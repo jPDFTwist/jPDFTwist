@@ -1,0 +1,392 @@
+package jpdftweak.tabs.input;
+
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import jpdftweak.core.IntegerList;
+import jpdftweak.tabs.input.preview.PreviewHandler;
+import jpdftweak.tabs.input.treetable.FileTreeTableModel;
+import jpdftweak.tabs.input.treetable.TreeTableComponent;
+import jpdftweak.tabs.input.treetable.node.Node;
+import jpdftweak.tabs.input.treetable.node.factory.FileNodeFactory;
+import jpdftweak.tabs.input.treetable.node.factory.NodeFactory;
+import jpdftweak.tabs.input.treetable.node.factory.event.PageEventListener;
+import jpdftweak.tabs.input.treetable.node.userobject.FileUserObject;
+import jpdftweak.tabs.input.treetable.node.userobject.FolderUserObject;
+import jpdftweak.tabs.input.treetable.node.userobject.UserObject;
+import jpdftweak.tabs.input.treetable.node.userobject.UserObjectType;
+import jpdftweak.tabs.input.treetable.node.userobject.VirtualFileUserObject;
+import jpdftweak.utils.SupportedFileTypes;
+import java.awt.SystemColor;
+import java.awt.Color;
+
+/**
+ *
+ * @author Vasilis Naskos
+ */
+public class InputTabPanel extends JPanel {
+    
+    private final JFrame parentFrame;
+    private final CellConstraints cc = new CellConstraints();
+    private JTextField fileCountField;
+    private final TreeTableComponent inputFilesTable;
+    private JButton selectfile, clear, generate;
+    private InputOptionsPanel optionsPanel;
+    private FileTreeTableModel model;
+    private boolean useTempFiles;
+    private final String[] columnHeaders = new String[]{
+        "File", "PaperSize", "Orientation", "Color Depth",
+        "Size", "Pages", "From Page", "To Page", "Include Odd",
+        "Include Even", "Empty Before", "Bookmark Level"
+    };
+    private final Class[] itemClassType = new Class[]{
+        String.class, String.class, String.class,
+        String.class, Integer.class, Integer.class,
+        Integer.class, Integer.class, Boolean.class,
+        Boolean.class, IntegerList.class, Integer.class
+    };
+    
+    private final GenerateInputItems generateFrame;
+    private final GenerateInputItems.Listener l;
+    
+    public static InputTabPanel getInputPanel() {
+        return new InputTabPanel();
+    }
+    
+    public InputTabPanel() {
+        super(new FormLayout("f:p, f:p:g, f:p, f:p, f:p, f:p",
+                "f:p, f:p, f:p:g"));
+        
+        this.parentFrame = (JFrame) this.getParent();
+        
+        inputFilesTable = new TreeTableComponent(columnHeaders, itemClassType);
+        inputFilesTable.getTreeTable().setBackground(new Color(230, 230, 250));
+        model = inputFilesTable.getModel();
+        
+        generateUserInterface();
+        updateFileCount();
+        
+        useTempFiles = false;
+        
+        l = new GenerateInputItems.Listener() {
+
+            @Override
+            public void importFileArray(final int[] places, ArrayList<File[]> files) {
+                index = 0;
+                
+                ModelHandler modelHandler = new ModelHandler() {
+
+                    @Override
+                    public void insertFileNode(Node node) {
+                        Node parent = model.createParents(node.getUserObject().getKey());
+                        int i = getIndex();
+                        if (places[i] == -1) {
+                            model.insertNodeInto(node, parent, parent.getChildCount());
+                        } else {
+                            model.insertNodeInto(node, parent, places[i]);
+                        }
+                        
+                        updateFileCount();
+                    }
+
+                    @Override
+                    public void updateTableUI() {
+                        inputFilesTable.updateTreeTableUI();
+                    }
+                };
+                
+                final FileImporter importer = new FileImporter(modelHandler, files);
+                final Thread importFiles = new Thread(importer);
+                importFiles.start();
+            }
+            
+            @Override
+            public void importFile(String name, int index) {
+                importFiles(index, new File(name));
+            }
+
+            @Override
+            public void importFile(String name) {
+                importFiles(new File(name));
+            }
+
+            @Override
+            public void importNode(Node node, int index) {
+                Node parent = model.createParents(node.getUserObject().getKey());
+                model.insertNodeInto(node, parent, index);
+            }
+            
+            @Override
+            public void insertNodeInto(Node node, Node parent, int index) {
+                model.insertNodeInto(node, parent, index);
+            }
+        };
+        generateFrame = new GenerateInputItems(l);
+    }
+    
+    int index;
+    
+    private int getIndex() {
+        return index++;
+    }
+    
+    private void generateUserInterface() {
+        generateFileRow();
+        generateOptionsPanel();
+        generateInputFilesTable();
+    }
+    
+    private void generateFileRow() {
+        initializeFileRowComponents();
+        positionFileRowComponents();
+    }
+    
+    private void initializeFileRowComponents() {
+        fileCountField = new JTextField();
+        fileCountField.setEditable(false);
+        
+        selectfile = new JButton("Select...");
+        selectfile.addActionListener(importFilesListener());
+        
+        clear = new JButton("Clear");
+        clear.addActionListener(clearButtonListener());
+        
+        generate = new JButton("Generate");
+        generate.addActionListener(generateButtonListener());
+    }
+    
+    private ActionListener importFilesListener() {
+        ActionListener importFilesListener = new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                importFilesActionPerformed();
+            }
+        };
+
+        return importFilesListener;
+    }
+
+    private void importFilesActionPerformed() {
+        final ModelHandler modelHandler = new ModelHandler() {
+
+            @Override
+            public void insertFileNode(Node node) {
+                Node parent = model.createParents(node.getUserObject().getKey());
+                model.insertNodeInto(node, parent, parent.getChildCount());
+                
+                updateFileCount();
+            }
+            
+            @Override
+            public void updateTableUI() {
+                inputFilesTable.updateTreeTableUI();
+            }
+        };
+        
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                FileImporter2 f2 = new FileImporter2(modelHandler);
+//                f2.doFileImporter2();
+//            }
+//        }).start();
+        
+        
+        final FileImporter importer = new FileImporter(modelHandler);
+        importer.setParentFrame(parentFrame);
+        importer.setUseTempFiles(useTempFiles);
+        importer.setOptimizePDF(optionsPanel.isOptimizePDFSelected());
+        importer.setAutoRestrictionsOverwrite(optionsPanel.isAutoRestrictionsOverwriteSelected());
+        importer.setAutoRestrioctionsNew(optionsPanel.isAutoRestrictionsNewSelected());
+        
+        final Thread importFiles = new Thread(importer);
+        importFiles.start();
+    }
+
+    private ActionListener clearButtonListener() {
+        ActionListener clearButtonListener = new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clearActionPerformed();
+            }
+        };
+
+        return clearButtonListener;
+    }
+    
+    private ActionListener generateButtonListener() {
+        ActionListener generateButtonListener = new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                generateFrame.setSelectedNode(inputFilesTable.getSelected());
+                generateFrame.setVisible(true);
+            }
+        };
+        
+        return generateButtonListener;
+    }
+
+    private void clearActionPerformed() {
+        //TODO mf.setInputFile(null);
+        model.clear();
+        updateFileCount();
+    }
+    
+    private void updateFileCount() {
+        String fn;
+        
+        if (model.isEmpty())
+            fn = "(No file selected)";
+        else
+            fn = "(" + model.getFileCount(model.getRoot()) + " files selected)";
+        
+        fileCountField.setText(fn);
+    }
+    
+    private void positionFileRowComponents() {
+        this.add(new JLabel("Filename"), cc.xy(1, 1));
+        this.add(fileCountField, cc.xyw(2, 1, 2));
+        this.add(selectfile, cc.xy(4, 1));
+        this.add(clear, cc.xy(5, 1));
+        this.add(generate, cc.xy(6, 1));
+    }
+    
+    private void generateOptionsPanel() {
+        optionsPanel = new InputOptionsPanel();
+        
+        this.add(optionsPanel, cc.xyw(1, 2, 6));
+    }
+    
+    private void generateInputFilesTable() {
+        positionInputFilesTable();
+    }
+    
+    private void positionInputFilesTable() {
+        this.add(inputFilesTable, cc.xyw(1, 3, 6));
+    }
+    
+    public void setUseTempFiles(boolean useTempFiles) {
+        this.useTempFiles = useTempFiles;
+    }
+    
+    public boolean isModelEmpty() {
+        return model.isEmpty();
+    }
+    
+    public Node getRootNode() {
+        return model.getRoot();
+    }
+    
+    public boolean isMergeByDirSelected() {
+        return optionsPanel.isMergeByDirSelected();
+    }
+    
+    public boolean isBatchSelected() {
+        return optionsPanel.isBatchSelected();
+    }
+    
+    public boolean isInterleaveSelected() {
+        return optionsPanel.isInterleaveSelected();
+    }
+    
+    public int getInterleaveSize() {
+        String interleaveSizeValue = optionsPanel.getInterleaveSize();
+        int interleaveSize = Integer.parseInt(interleaveSizeValue);
+        
+        return interleaveSize;
+    }
+    
+    public ModelReader getModelReader() {
+        //TODO
+        ModelReader reader = new ModelReader() {
+
+            @Override
+            public List<Node> getFolderNodes() {
+                //Node root = model.getRoot();
+                //List<Node> folders = model.listFolders(root);
+                //return folders;
+                return null;
+            }
+
+            @Override
+            public List<Node> getFileNodes() {
+                Node root = model.getRoot();
+                return getFiles(root);
+            }
+            
+            public List<Node> getFiles(Node root) {
+                List<Node> files = new ArrayList<Node>();
+                Enumeration e = root.children();
+                while (e.hasMoreElements()) {
+                    Node n = (Node) e.nextElement();
+                    if(UserObjectType.isFile(n)) {
+                        files.add(n);
+                    } else if(n.getUserObject() instanceof FolderUserObject) {
+                        files.addAll(getFiles(n));
+                    }
+                }
+                return files;
+            }
+        };
+        
+        return reader;
+    }
+    
+    //TODO
+    public int getBatchLength() {
+        if (isBatchSelected()) {
+            return model.getFileCount(model.getRoot());
+        } else if (isMergeByDirSelected()) {
+            return model.getFolderCount(model.getRoot());
+        } else {
+            return 1;
+        }
+    }
+    
+    public void setPreviewHandler(PreviewHandler previewHandler) {
+        inputFilesTable.setPreviewHandler(previewHandler);
+    }
+    
+    public void importFiles(File f) {
+        importFiles(-1, f);
+    }
+    
+    public void importFiles(final int index, File f) {
+        ModelHandler modelHandler = new ModelHandler() {
+
+            @Override
+            public void insertFileNode(Node node) {
+                Node parent = model.createParents(node.getUserObject().getKey());
+                if(index == -1) {
+                    model.insertNodeInto(node, parent, parent.getChildCount());
+                } else {
+                    model.insertNodeInto(node, parent, index);
+                }
+
+                updateFileCount();
+            }
+
+            @Override
+            public void updateTableUI() {
+                inputFilesTable.updateTreeTableUI();
+            }
+        };
+        
+        final FileImporter importer = new FileImporter(modelHandler, f);
+        final Thread importFiles = new Thread(importer);
+        importFiles.start();
+    }
+}

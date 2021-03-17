@@ -1,0 +1,171 @@
+package jpdftweak.tabs.input;
+
+import java.awt.Component;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.LayoutManager;
+import com.jgoodies.forms.layout.FormLayout;
+import javax.swing.JTextField;
+import javax.swing.JCheckBox;
+import com.jgoodies.forms.layout.CellConstraints;
+import javax.swing.JPanel;
+
+public class InputOptionsPanel extends JPanel {
+	private final CellConstraints cc;
+	private JCheckBox batchProcessing;
+	private JCheckBox interleave;
+	private JCheckBox mergeByDir;
+	private JCheckBox readPageSize;
+	private JCheckBox optimizePDF;
+	private JCheckBox autoRemoveRestrictionsOverwrite;
+	private JCheckBox autoRemoveRestrictionsNew;
+	private JTextField interleaveSize;
+
+	public InputOptionsPanel() {
+		super((LayoutManager) new FormLayout("f:p, 40dlu, $lcgap, f:p:g, 5dlu, $lcgap, f:p:g,f:p:g,f:p:g",
+				"f:p:g, f:p:g"));
+		this.cc = new CellConstraints();
+		this.initializeComponents();
+		this.positionComponents();
+	}
+
+	private void initializeComponents() {
+		this.interleave = new JCheckBox("Interleave documents in blocks of");
+		(this.interleaveSize = new JTextField("1", 10)).setEnabled(false);
+		this.interleave.addItemListener(this.interleaveListener());
+		(this.mergeByDir = new JCheckBox("Merge by directory")).addItemListener(this.mergeByDirListener());
+		(this.batchProcessing = new JCheckBox("Batch Process")).addItemListener(this.batchProcessingListener());
+		(this.optimizePDF = new JCheckBox("Optimize PDF")).setSelected(true);
+		(this.readPageSize = new JCheckBox("Read Page Size"))
+				.addItemListener(this.autoRemoveRestrictionsItemStateChanged());
+		this.readPageSize.setSelected(true);
+		(this.autoRemoveRestrictionsOverwrite = new JCheckBox("Auto remove restrictions (overwrite)"))
+				.addItemListener(this.autoRemoveRestrictionsItemStateChanged());
+		(this.autoRemoveRestrictionsNew = new JCheckBox("Auto remove restrictions (new)"))
+				.addItemListener(this.autoRemoveRestrictionsItemStateChanged());
+	}
+
+	private ItemListener interleaveListener() {
+		return new ItemListener() {
+			@Override
+			public void itemStateChanged(final ItemEvent e) {
+				InputOptionsPanel.this.interleaveItemStateChanged();
+			}
+		};
+	}
+
+	private void interleaveItemStateChanged() {
+		this.interleaveSize.setEnabled(this.interleave.isSelected());
+	}
+
+	private ItemListener autoRemoveRestrictionsItemStateChanged() {
+		return new ItemListener() {
+			@Override
+			public void itemStateChanged(final ItemEvent e) {
+				final JCheckBox check = (JCheckBox) e.getSource();
+				if (check == InputOptionsPanel.this.autoRemoveRestrictionsOverwrite && e.getStateChange() == 1) {
+					InputOptionsPanel.this.autoRemoveRestrictionsNew.setSelected(false);
+				} else if (check == InputOptionsPanel.this.autoRemoveRestrictionsNew && e.getStateChange() == 1) {
+					InputOptionsPanel.this.autoRemoveRestrictionsOverwrite.setSelected(false);
+				} else if (check == InputOptionsPanel.this.readPageSize && e.getStateChange() == 1) {
+					InputOptionsPanel.this.readPageSize.setSelected(true);
+				}
+			}
+		};
+	}
+
+	private ItemListener mergeByDirListener() {
+		return new ItemListener() {
+			@Override
+			public void itemStateChanged(final ItemEvent e) {
+				InputOptionsPanel.this.mergeByDirItemStateChanged(e);
+			}
+		};
+	}
+
+	private void mergeByDirItemStateChanged(final ItemEvent e) {
+		if (e.getStateChange() == 1) {
+			this.batchProcessing.setSelected(false);
+			this.interleave.setEnabled(true);
+		}
+	}
+
+	private ItemListener batchProcessingListener() {
+		return new ItemListener() {
+			@Override
+			public void itemStateChanged(final ItemEvent e) {
+				InputOptionsPanel.this.batchProcessingItemStateChanged(e);
+			}
+		};
+	}
+
+	private void batchProcessingItemStateChanged(final ItemEvent e) {
+		if (e.getStateChange() == 1) {
+			this.mergeByDir.setSelected(false);
+			this.interleave.setEnabled(false);
+			this.interleave.setSelected(false);
+		} else {
+			this.interleave.setEnabled(true);
+		}
+	}
+
+	private void positionComponents() {
+		this.add(this.interleave, this.cc.xy(1, 2));
+		this.add(this.interleaveSize, this.cc.xy(2, 2));
+		this.add(this.mergeByDir, this.cc.xyw(1, 1, 2));
+		this.add(this.batchProcessing, this.cc.xyw(4, 1, 2));
+		this.add(this.optimizePDF, this.cc.xyw(4, 2, 1));
+		this.add(this.readPageSize, this.cc.xyw(7, 1, 1));
+		this.add(this.autoRemoveRestrictionsOverwrite, this.cc.xyw(9, 1, 1));
+		this.add(this.autoRemoveRestrictionsNew, this.cc.xyw(9, 2, 1));
+	}
+
+	public boolean isMergeByDirSelected() {
+		return this.mergeByDir.isSelected();
+	}
+
+	public boolean isBatchSelected() {
+		return this.batchProcessing.isSelected();
+	}
+
+	public boolean isInterleaveSelected() {
+		return this.interleave.isSelected();
+	}
+
+	public String getInterleaveSize() {
+		return this.interleaveSize.getText();
+	}
+
+	public boolean isOptimizePDFSelected() {
+		return this.optimizePDF.isSelected();
+	}
+
+	public boolean isAutoRestrictionsOverwriteSelected() {
+		return this.autoRemoveRestrictionsOverwrite.isSelected();
+	}
+
+	public boolean isAutoRestrictionsNewSelected() {
+		return this.autoRemoveRestrictionsNew.isSelected();
+	}
+
+	public JCheckBox getReadPageSize() {
+		return this.readPageSize;
+	}
+
+	public void setReadPageSize(final JCheckBox readPageSize) {
+		this.readPageSize = readPageSize;
+	}
+
+	public boolean isReadPageSizeSelected() {
+		return this.readPageSize.isSelected();
+	}
+}
+
+/*
+	DECOMPILATION REPORT
+
+	Decompiled from: C:\Users\E6510\Eclipse-workspace\10B\jpdftweak.zip
+	Total time: 295 ms
+	
+	Decompiled with Procyon 0.5.32.
+*/
