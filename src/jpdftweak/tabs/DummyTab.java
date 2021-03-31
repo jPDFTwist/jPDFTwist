@@ -16,13 +16,13 @@ public class DummyTab extends Tab {
 		this.name = name;
 		add(BorderLayout.CENTER, new JLabel("Not implemented yet."));
 	}
+
 	
-	@Override
 	public String getTabName() {
 		return name;
 	}
 
-	@Override
+	
 	public PdfTweak run(PdfTweak input, OutputProgressDialog outDialog) {
 		return input;
 	}

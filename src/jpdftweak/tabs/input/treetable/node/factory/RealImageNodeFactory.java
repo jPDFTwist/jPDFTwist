@@ -1,17 +1,19 @@
 package jpdftweak.tabs.input.treetable.node.factory;
 
-import com.itextpdf.text.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.itextpdf.text.Rectangle;
+
 import jpdftweak.core.IntegerList;
 import jpdftweak.core.UnitTranslator;
 import jpdftweak.tabs.input.treetable.UserObjectValue;
 import jpdftweak.tabs.input.treetable.node.Node;
 import jpdftweak.tabs.input.treetable.node.userobject.FileUserObject;
 import jpdftweak.tabs.input.treetable.node.userobject.RealFileUserObject;
-import jpdftweak.utils.ImageParser;
+import jpdftweak.utils.JImageParser;
 
 /**
  *
@@ -19,66 +21,61 @@ import jpdftweak.utils.ImageParser;
  */
 public class RealImageNodeFactory extends FileNodeFactory {
 
-    private String filepath;
+	private String filepath;
 
-    @Override
-    public Node getFileNode(String filepath) {
-        this.filepath = filepath;
+	
+	public Node getFileNode(String filepath) {
+		this.filepath = filepath;
 
-        RealFileUserObject pdfUO = createRealPdfUserObject();
-        
-        try {
-            Node file = new Node(pdfUO);
-            insertPages(file);
-            return file;
-        } catch (IOException ex) {
-            Logger.getLogger(RealImageNodeFactory.class.getName()).log(Level.SEVERE, null, ex);
-            //TODO throw exception
-        }
-        
-        return null;
-    }
+		RealFileUserObject pdfUO = createRealPdfUserObject();
 
-    private RealFileUserObject createRealPdfUserObject() {
-        long fileSize = new File(filepath).length();
+		try {
+			Node file = new Node(pdfUO);
+			insertPages(file);
+			return file;
+		} catch (IOException ex) {
+			Logger.getLogger(RealImageNodeFactory.class.getName()).log(Level.SEVERE, null, ex);
+			// TODO throw exception
+		}
 
-        RealFileUserObject imgUO = new RealFileUserObject(
-                filepath,
-                FileUserObject.SubType.IMAGE);
+		return null;
+	}
 
-        imgUO.setValueAt(fileSize, UserObjectValue.SIZE);
-        imgUO.setValueAt(1, UserObjectValue.PAGES);
-        imgUO.setValueAt(1, UserObjectValue.FROM);
-        imgUO.setValueAt(1, UserObjectValue.TO);
-        imgUO.setValueAt(true, UserObjectValue.EVEN);
-        imgUO.setValueAt(true, UserObjectValue.ODD);
-        imgUO.setValueAt(new IntegerList("0"), UserObjectValue.EMPTY_BEFORE);
-        imgUO.setValueAt(0, UserObjectValue.BOOKMARK_LEVEL);
+	private RealFileUserObject createRealPdfUserObject() {
+		long fileSize = new File(filepath).length();
 
-        return imgUO;
-    }
+		RealFileUserObject imgUO = new RealFileUserObject(filepath, FileUserObject.SubType.IMAGE);
 
-    private void insertPages(Node file) throws IOException {
-        updateListenersPageCount(1);
+		imgUO.setValueAt(fileSize, UserObjectValue.SIZE);
+		imgUO.setValueAt(1, UserObjectValue.PAGES);
+		imgUO.setValueAt(1, UserObjectValue.FROM);
+		imgUO.setValueAt(1, UserObjectValue.TO);
+		imgUO.setValueAt(true, UserObjectValue.EVEN);
+		imgUO.setValueAt(true, UserObjectValue.ODD);
+		imgUO.setValueAt(new IntegerList("0"), UserObjectValue.EMPTY_BEFORE);
+		imgUO.setValueAt(0, UserObjectValue.BOOKMARK_LEVEL);
 
-        PageNodeFactory pageNodeFactory = NodeFactory.getPageNodeFactory();
-        ImageParser.ImageObject imageObj = ImageParser.tryToReadImage(filepath);
+		return imgUO;
+	}
 
-        if (imageObj == null || imageObj.getImage() == null) {
-            throw new IOException(
-                    String.format("Image %s\n not supported or corrupted!",
-                            filepath));
-        }
+	private void insertPages(Node file) throws IOException {
+		updateListenersPageCount(1);
 
-        Rectangle size = new Rectangle(
-                (float) UnitTranslator.pixelsToPoints(imageObj.getWidth(), 72),
-                (float) UnitTranslator.pixelsToPoints(imageObj.getHeight(), 72));
-        
-        updateListenersNextPage(1);
+		PageNodeFactory pageNodeFactory = NodeFactory.getPageNodeFactory();
+		JImageParser.ImageObject imageObj = JImageParser.tryToReadImage(filepath);
 
-        pageNodeFactory.setSize(size);
-        Node page = pageNodeFactory.getPageNode(1);
+		if (imageObj == null || imageObj.getImage() == null) {
+			throw new IOException(String.format("Image %s\n not supported or corrupted!", filepath));
+		}
 
-        file.insert(page, 0);
-    }
+		Rectangle size = new Rectangle((float) UnitTranslator.pixelsToPoints(imageObj.getWidth(), 72),
+				(float) UnitTranslator.pixelsToPoints(imageObj.getHeight(), 72));
+
+		updateListenersNextPage(1);
+
+		pageNodeFactory.setSize(size);
+		Node page = pageNodeFactory.getPageNode(1);
+
+		file.insert(page, 0);
+	}
 }

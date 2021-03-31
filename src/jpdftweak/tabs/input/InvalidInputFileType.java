@@ -6,6 +6,7 @@ package jpdftweak.tabs.input;
  */
 public class InvalidInputFileType extends UnsupportedOperationException {
 
-    public InvalidInputFileType() {}
-    
+	public InvalidInputFileType() {
+	}
+
 }

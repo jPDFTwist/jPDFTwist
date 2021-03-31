@@ -1,107 +1,111 @@
 package jpdftweak.tabs.input.treetable.node.userobject;
 
-import java.awt.Color;
 import java.text.DecimalFormat;
-import jpdftweak.core.UnitTranslator;
+import java.awt.Color;
+import jpdftweak.utils.ConstantClass1;
 import jpdftweak.tabs.input.treetable.UserObjectValue;
 
-/**
- *
- * @author Vasilis Naskos
- */
 public class PageUserObject extends UserObject {
-    
-    private double width, height; //Postscript points
-    private String orientation;
-    private String colorDepth;
-    private int backgroundColor;
+	private double width;
+	private double height;
+	private String orientation;
+	private String colorDepth;
+	private int backgroundColor;
+	private String id;
 
-    public PageUserObject() {
-        super(null, UserObjectType.PAGE);
-    }
-    
-    public PageUserObject(String key) {
-        super(key, UserObjectType.PAGE);
-    }
-    
-    @Override
-    public Object getValueAt(int column) {
-        UserObjectValue headerValue = UserObjectValue.fromInt(column);
+	public PageUserObject() {
+		super((String) null, UserObjectType.PAGE);
+	}
 
-        switch (headerValue) {
-            case FILE:
-                return "Page " + getFileName();
-            case PAPER_SIZE:
-                return getPaperSize(width, height);
-            case ORIENTATION:
-                return orientation;
-            case COLOR_DEPTH:
-                return colorDepth;
-            default:
-                return "";
-        }
-    }
-    
-    @Override
-    public void setValueAt(Object value, int column) {
-        UserObjectValue headerValue = UserObjectValue.fromInt(column);
-        
-        setValueAt(value, headerValue);
-    }
-    
-    @Override
-    public void setValueAt(Object value, UserObjectValue column) {
-        switch(column) {
-            case ORIENTATION:
-                orientation = String.valueOf(value);
-                break;
-            case COLOR_DEPTH:
-                colorDepth = String.valueOf(value);
-                break;
-        }
-    }
+	public PageUserObject(final String key) {
+		super(key, UserObjectType.PAGE);
+	}
 
-    public void setWidth(double width) {
-        this.width = width;
-    }
-    
-    public double getWidth() {
-        return width;
-    }
+	public Object getValueAt(final int column) {
+		final UserObjectValue headerValue = UserObjectValue.fromInt(column);
+		switch (headerValue) {
+			case ID : {
+				
+				return this.id;
+			}
+			case FILE : {
+				return "Page " + this.getFileName();
+			}
+			case PAPER_SIZE : {
+				return getPaperSize(this.width, this.height);
+			}
+			case ORIENTATION : {
+				return this.orientation;
+			}
+			case COLOR_DEPTH : {
+				return this.colorDepth;
+			}
+			default : {
+				return "";
+			}
+		}
+	}
 
-    public void setHeight(double height) {
-        this.height = height;
-    }
+	public void setValueAt(final Object value, final int column) {
+		final UserObjectValue headerValue = UserObjectValue.fromInt(column);
+		this.setValueAt(value, headerValue);
+	}
 
-    public double getHeight() {
-        return height;
-    }
+//	*** Controls "ID" Numbering ***
+	
+	public void setValueAt(final Object value, final UserObjectValue column) {
+		final ConstantClass1 C = new ConstantClass1();
+		switch (column) {
+			case ORIENTATION : {
+				this.orientation = String.valueOf(value);
+				this.id = C.getStringAsId();
+//				this.id = "";
+				break;
+			}
+			case COLOR_DEPTH : {
+				this.colorDepth = String.valueOf(value);
+				break;
+			}
+		}
+	}
 
-    public void setBackgroundColor(int backgroundColor) {
-        this.backgroundColor = backgroundColor;
-    }
-    
-    public Color getBackgroundColor() {
-        return new Color(backgroundColor, false);
-    }
-    
-    private static String getPaperSize(double width, double height) {
-        StringBuilder paperSizeBuilder = new StringBuilder();
+	public void setWidth(final double width) {
+		this.width = width;
+	}
 
-        paperSizeBuilder.append(getPageInchDimensionFormated(width));
-        paperSizeBuilder.append(" x ");
-        paperSizeBuilder.append(getPageInchDimensionFormated(height));
-        paperSizeBuilder.append(" inch");
+	public double getWidth() {
+		return this.width;
+	}
 
-        return paperSizeBuilder.toString();
-    }
+	public void setHeight(final double height) {
+		this.height = height;
+	}
 
-    private static String getPageInchDimensionFormated(double value) {
-        DecimalFormat df = new DecimalFormat();
-        df.setMaximumFractionDigits(2);
+	public double getHeight() {
+		return this.height;
+	}
 
-        double inches = value / UnitTranslator.POINT_POSTSCRIPT;
+	public void setBackgroundColor(final int backgroundColor) {
+		this.backgroundColor = backgroundColor;
+	}
 
-        return df.format(inches);
-    }
+	public Color getBackgroundColor() {
+		return new Color(this.backgroundColor, false);
+	}
+
+	private static String getPaperSize(final double width, final double height) {
+		final StringBuilder paperSizeBuilder = new StringBuilder();
+		paperSizeBuilder.append(getPageInchDimensionFormated(width));
+		paperSizeBuilder.append(" x ");
+		paperSizeBuilder.append(getPageInchDimensionFormated(height));
+		paperSizeBuilder.append(" inch");
+		return paperSizeBuilder.toString();
+	}
+
+	private static String getPageInchDimensionFormated(final double value) {
+		final DecimalFormat df = new DecimalFormat();
+		df.setMaximumFractionDigits(2);
+		final double inches = value / 72.0;
+		return df.format(inches);
+	}
 }

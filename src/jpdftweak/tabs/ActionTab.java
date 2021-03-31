@@ -1,6 +1,7 @@
 package jpdftweak.tabs;
 
 import javax.swing.JPanel;
+
 import jpdftweak.core.PdfTweak;
 
 /**
@@ -9,12 +10,12 @@ import jpdftweak.core.PdfTweak;
  */
 public abstract class ActionTab {
 
-    public abstract String getTabName();
+	public abstract String getTabName();
 
-    public abstract JPanel getUserInterface();
-    
-    public abstract void checkRun();
+	public abstract JPanel getUserInterface();
 
-    public abstract PdfTweak run(PdfTweak input);
-    
+	public abstract void checkRun();
+
+	public abstract PdfTweak run(PdfTweak input);
+
 }
