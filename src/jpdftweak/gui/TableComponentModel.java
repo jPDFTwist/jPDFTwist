@@ -21,7 +21,8 @@ public class TableComponentModel extends AbstractTableModel {
 			}
 		}
 		this.columnClasses = columnClasses;
-		if (columnClasses.length != columnNames.length) throw new IllegalArgumentException();
+		if (columnClasses.length != columnNames.length)
+			throw new IllegalArgumentException();
 	}
 
 	public int getColumnCount() {
@@ -36,19 +37,19 @@ public class TableComponentModel extends AbstractTableModel {
 		return rows.get(rowIndex)[columnIndex];
 	}
 
-	@Override
+	
 	public String getColumnName(int column) {
 		return columnNames[column];
 	}
 
-	@Override
+	
 	public Class<?> getColumnClass(int columnIndex) {
 		return columnClasses[columnIndex];
 	}
 
 	public void clear() {
 		if (getRowCount() > 0) {
-			fireTableRowsDeleted(0, getRowCount()-1);
+			fireTableRowsDeleted(0, getRowCount() - 1);
 		}
 		rows.clear();
 	}
@@ -57,7 +58,7 @@ public class TableComponentModel extends AbstractTableModel {
 		Object[] r = new Object[params.length];
 		System.arraycopy(params, 0, r, 0, params.length);
 		rows.add(r);
-		fireTableRowsInserted(rows.size()-1, rows.size()-1);	
+		fireTableRowsInserted(rows.size() - 1, rows.size() - 1);
 	}
 
 	public void deleteRow(int row) {
@@ -68,16 +69,16 @@ public class TableComponentModel extends AbstractTableModel {
 	public void moveRow(int row, int offset) {
 		fireTableRowsDeleted(row, row);
 		Object[] r = rows.remove(row);
-		rows.add(row+offset, r);
-		fireTableRowsInserted(row+offset, row+offset);
+		rows.add(row + offset, r);
+		fireTableRowsInserted(row + offset, row + offset);
 	}
 
-	@Override
+	
 	public boolean isCellEditable(int rowIndex, int columnIndex) {
 		return true;
 	}
 
-	@Override
+	
 	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
 		rows.get(rowIndex)[columnIndex] = aValue;
 		if (listener != null)
@@ -87,15 +88,15 @@ public class TableComponentModel extends AbstractTableModel {
 	public Object[] getRow(int rowIndex) {
 		return rows.get(rowIndex);
 	}
-	
+
 	public void setRowListener(RowListener listener) {
 		this.listener = listener;
 	}
-	
+
 	public static interface RowListener {
-	    /**
-	     * Invoked when a value in a row changed.
-	     */
-	    public void rowChanged(int rowIndex, int columnIndex);
+		/**
+		 * Invoked when a value in a row changed.
+		 */
+		public void rowChanged(int rowIndex, int columnIndex);
 	}
 }
