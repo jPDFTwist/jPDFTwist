@@ -8,7 +8,7 @@ public class PageDimension {
 	private final String name;
 	private final float width;
 	private final float height;
-        private final boolean percentage;
+	private final boolean percentage;
 
 	private static PageDimension[] commonSizes = null;
 
@@ -64,32 +64,33 @@ public class PageDimension {
 			addCommonSize(45, "Small paperback", PageSize.SMALL_PAPERBACK);
 			addCommonSize(46, "Penguin small paperback", PageSize.PENGUIN_SMALL_PAPERBACK);
 			addCommonSize(47, "Penguin large paperback", PageSize.PENGUIN_LARGE_PAPERBACK);
-			commonSizes[96] =new PageDimension("Ledger", PageSize.LEDGER, false, false);
-			commonSizes[97] =new PageDimension("ISO 7810 ID-1", PageSize.ID_1, false, false);
-			commonSizes[98] =new PageDimension("ISO 7810 ID-2", PageSize.ID_2, false, false);
-			commonSizes[99] =new PageDimension("ISO 7810 ID-3", PageSize.ID_3, false, false);
+			commonSizes[96] = new PageDimension("Ledger", PageSize.LEDGER, false, false);
+			commonSizes[97] = new PageDimension("ISO 7810 ID-1", PageSize.ID_1, false, false);
+			commonSizes[98] = new PageDimension("ISO 7810 ID-2", PageSize.ID_2, false, false);
+			commonSizes[99] = new PageDimension("ISO 7810 ID-3", PageSize.ID_3, false, false);
 		}
 		return commonSizes;
 	}
 
 	private static void addCommonSize(int index, String name, Rectangle size) {
-		if (size.getWidth() > size.getHeight()) throw new RuntimeException(name);
-		commonSizes[index*2] = new PageDimension(name+" Portrait", size, false, false);
-		commonSizes[index*2+1] = new PageDimension(name+" Landscape", size, true, false);
+		if (size.getWidth() > size.getHeight())
+			throw new RuntimeException(name);
+		commonSizes[index * 2] = new PageDimension(name + " Portrait", size, false, false);
+		commonSizes[index * 2 + 1] = new PageDimension(name + " Landscape", size, true, false);
 	}
 
 	public PageDimension(String name, float width, float height, boolean percentage) {
 		this.name = name;
 		this.width = width;
 		this.height = height;
-                this.percentage = percentage;
+		this.percentage = percentage;
 	}
 
 	public PageDimension(String name, Rectangle size, boolean rotated, boolean percentage) {
 		this.name = name;
 		this.width = rotated ? size.getHeight() : size.getWidth();
 		this.height = rotated ? size.getWidth() : size.getHeight();
-                this.percentage = percentage;
+		this.percentage = percentage;
 	}
 
 	public float getWidth() {
@@ -100,11 +101,11 @@ public class PageDimension {
 		return height;
 	}
 
-        public boolean isPercentange() {
-            return percentage;
-        }
+	public boolean isPercentange() {
+		return percentage;
+	}
 
-	@Override
+	
 	public String toString() {
 		return name;
 	}

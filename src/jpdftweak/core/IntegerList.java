@@ -7,10 +7,10 @@ package jpdftweak.core;
 public class IntegerList {
 	private final int[] value;
 
-    public IntegerList() {
-        this.value = new int[]{0};
-    }
-        
+	public IntegerList() {
+		this.value = new int[] { 0 };
+	}
+
 	public IntegerList(String string) {
 		String[] parts = string.split(",", -1);
 		if (parts.length == 0)
@@ -23,7 +23,7 @@ public class IntegerList {
 		}
 	}
 
-	@Override
+	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < value.length; i++) {

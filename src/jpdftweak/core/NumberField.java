@@ -13,60 +13,59 @@ import javax.swing.text.Document;
 import javax.swing.text.PlainDocument;
 
 /**
- * A JTextField that accepts only numbers
- * .
+ * A JTextField that accepts only numbers .
+ *
  * @author vasilis
  */
 public class NumberField extends JTextField {
-    
-    public NumberField() {
-        super();
-    }
 
-    public NumberField(int cols) {
-        super(cols);
-    }
-    
-    public NumberField(String text) {
-        super(text);
-    }
+	public NumberField() {
+		super();
+	}
 
-    @Override
-    protected Document createDefaultModel() {
-        return new DoubleNumberDocument();
-    }
+	public NumberField(int cols) {
+		super(cols);
+	}
 
-    static class DoubleNumberDocument extends PlainDocument {
+	public NumberField(String text) {
+		super(text);
+	}
 
-        @Override
-        public void insertString(int offs, String str, AttributeSet a)
-                throws BadLocationException {
+	
+	protected Document createDefaultModel() {
+		return new DoubleNumberDocument();
+	}
 
-            if (str == null) {
-                return;
-            }
+	static class DoubleNumberDocument extends PlainDocument {
 
-            char[] chars = str.toCharArray();
-            boolean ok = true;
-            
-            for (int i = 0; i < chars.length; i++) {
+		
+		public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
 
-                if(chars[i] == '.' && !super.getText(0, super.getLength()).contains("."))
-                    continue;
-                
-                try {
-                    Double.parseDouble(String.valueOf(chars[i]));
-                } catch (NumberFormatException exc) {
-                    ok = false;
-                    break;
-                }
+			if (str == null) {
+				return;
+			}
 
-            }
+			char[] chars = str.toCharArray();
+			boolean ok = true;
 
-            if (ok) {
-                super.insertString(offs, new String(chars), a);
-            }
+			for (int i = 0; i < chars.length; i++) {
 
-        }
-    }
+				if (chars[i] == '.' && !super.getText(0, super.getLength()).contains("."))
+					continue;
+
+				try {
+					Double.parseDouble(String.valueOf(chars[i]));
+				} catch (NumberFormatException exc) {
+					ok = false;
+					break;
+				}
+
+			}
+
+			if (ok) {
+				super.insertString(offs, new String(chars), a);
+			}
+
+		}
+	}
 }
