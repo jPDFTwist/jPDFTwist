@@ -7,7 +7,7 @@ public class ConstantClass1 {
 
 	static {
 		ConstantClass1.id = 0;
-		ConstantClass1.preId = -1;
+		ConstantClass1.preId = 0;
 		ConstantClass1.fid = 0;
 	}
 
@@ -35,6 +35,8 @@ public class ConstantClass1 {
 		ConstantClass1.fid = fid;
 	}
 
+//	*** Controls "ID" Numbering ***	
+	
 	public String getStringAsId() {
 		String str = "";
 		++ConstantClass1.id;
@@ -61,9 +63,3 @@ public class ConstantClass1 {
 		return str.concat(idString.toString());
 	}
 }
-
-/*
-	DECOMPILATION REPORT
-	
-	Decompiled with Procyon 0.5.32.
-*/

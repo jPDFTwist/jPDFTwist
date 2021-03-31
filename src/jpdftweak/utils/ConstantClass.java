@@ -87,9 +87,3 @@ public class ConstantClass {
 		ConstantClass.fileId = ConstantClass.id;
 	}
 }
-
-/*
-	DECOMPILATION REPORT
-	
-	Decompiled with Procyon 0.5.32.
-*/
