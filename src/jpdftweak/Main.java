@@ -1,43 +1,40 @@
 package jpdftweak;
 
-import jpdftweak.gui.MainForm;
-import javax.swing.JScrollPane;
 import java.awt.Color;
-import javax.swing.JTextArea;
-import java.io.Writer;
+import java.awt.Frame;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.awt.Frame;
+
 import javax.swing.JDialog;
-import java.awt.Component;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.UIManager;
 
+import jpdftweak.gui.MainForm;
+
 public class Main {
-	public static final String VERSION = "1.1 Stage XV";
+	public static final String VERSION = "1.1 Stage XIV";
 
 	public static void main(final String[] args) {
-			
+
 		System.out.println("");
-		
+
 		final long heapSize = Runtime.getRuntime().totalMemory();
 		System.out.println("Heap Size     =  " + heapSize / 1024L / 1024L + " MB");
 
-		
-//		final long freememory = Runtime.getRuntime().freeMemory();
-//		System.out.println("Free Memory   =  " + freememory / 1024L / 1024L + " MB");
-				
-//		final long usedmemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-//		System.out.println("Used Memory   =  " + usedmemory / 1024L / 1024L + " MB");
+		//		final long freememory = Runtime.getRuntime().freeMemory();
+		//		System.out.println("Free Memory   =  " + freememory / 1024L / 1024L + " MB");
 
-		
+		//		final long usedmemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+		//		System.out.println("Used Memory   =  " + usedmemory / 1024L / 1024L + " MB");
+
 		final long maxBytes = Runtime.getRuntime().maxMemory();
 		System.out.println("Max Memory    =  " + maxBytes / 1024L / 1024L + " MB");
-		
-		
+
 		System.out.println("");
 		System.out.println("");
-		
+
 		final String missingLib = findMissingLibName();
 		try {
 			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
@@ -52,7 +49,7 @@ public class Main {
 			return;
 		}
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-			@Override
+			
 			public void uncaughtException(final Thread t, final Throwable e) {
 				e.printStackTrace();
 				final JDialog exceptionDialog = new JDialog((Frame) null,
@@ -91,11 +88,9 @@ public class Main {
 			result = "bctsp";
 			Class.forName("org.bouncycastle.tsp.TSPException");
 			result = null;
-		}
-		catch (Throwable t) {
+		} catch (Throwable t) {
 		}
 		return result;
-		
-		
+
 	}
 }
