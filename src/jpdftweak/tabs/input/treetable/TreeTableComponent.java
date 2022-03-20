@@ -17,12 +17,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +40,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -54,12 +51,11 @@ import javax.swing.SortOrder;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableModel;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
-import jpdftweak.core.PageRange;
+import jpdftweak.tabs.input.InputTabFileImporter;
 import jpdftweak.tabs.input.treetable.node.userobject.UserObjectType;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.BorderHighlighter;
@@ -117,8 +113,9 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 	// private int headercheck=0;
 	// boolean isNewPage;
 	// private PdfPTable pdfTable;
+	final InputTabFileImporter inputTabFileImporter;
 
-	public TreeTableComponent(final String[] headers, final Class[] classes) {
+	public TreeTableComponent(final String[] headers, final Class[] classes, final InputTabFileImporter inputTabFileImporter) {
 		this.CC = new CellConstraints();
 		this.expandCollapse = false;
 		this.ascendingOrder = true;
@@ -150,7 +147,8 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 		this.colorBtn = new JButton("Colors");
 		this.exportList = new JButton("ExportList");
 		this.saveList = new JButton("Save");
-		this.openList = new JButton("Load CSV");
+		this.openList = new JButton("Load");
+		this.inputTabFileImporter = inputTabFileImporter;
 		this.createUI();
 	}
 
@@ -302,7 +300,7 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 		this.openList.addActionListener(new ActionListener() {
 			
 			public void actionPerformed(final ActionEvent e) {
-				TreeTableComponent.this.loadCSV();
+				TreeTableComponent.this.loadJSON();
 
 			}
 		});
@@ -764,7 +762,7 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 		}
 	}
 
-	private void loadCSV()
+	private void loadJSON()
 	{
 		JFileChooser fc = new JFileChooser();
 		fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
@@ -776,10 +774,11 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 				String content = new String(Files.readAllBytes(Paths.get(file.toURI())));
 				JSONObject json = new JSONObject(content);
 				JSONArray inputFiles = json.getJSONArray("input-files");
-				for (int i=0;i<inputFiles.length();i++){
-					System.out.println(inputFiles.getString(i));
-					// TODO: load the json files into the table model
+				String[] files = new String[inputFiles.length()];
+				for(int i = 0; i < inputFiles.length(); i++){
+					files[i] = inputFiles.getString(i);
 				}
+				inputTabFileImporter.importFilesToInputTab(files);
 			} catch (Exception e) {
 				System.err.println(e.getMessage());
 			}
