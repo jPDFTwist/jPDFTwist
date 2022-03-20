@@ -8,6 +8,6 @@ import jpdftweak.tabs.input.treetable.node.Node;
  */
 public interface PreviewHandler {
 
-	public void runPreview(Node node);
+	void runPreview(Node node);
 
 }

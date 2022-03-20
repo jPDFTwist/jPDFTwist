@@ -103,7 +103,7 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 	TreeTableExpansionState expansionState;
 	private PreviewHandler previewHandler;
 	// private Component previewPanel;
-	private JPanel previewPanel;
+	private Preview previewPanel;
 	private final CellConstraints CC;
 	private double zoom = 1.0; // zoom factor
 	private DefaultListModel listModel;
@@ -305,6 +305,8 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 			}
 		});
 
+		this.previewPanel = new Preview();
+		this.add(this.previewPanel, CC.xyw(10, 1, 18));
 	}
 
 	private void treeTableMouseListenerAction(final MouseEvent evt) throws IOException {
@@ -340,7 +342,6 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 	}
 
 	private void treeTableKeyListenerAction(final KeyEvent evt) throws IOException {
-
 		int row = -1;
 
 		if (evt.getKeyCode() == KeyEvent.VK_DOWN) {
@@ -374,71 +375,33 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 			Image img;
 
 			if (rwidth / 72 == 1000 && rheight / 72 == 1000) {
-				// Rectangle rect = new Rectangle(0, 0, rwidth/200, rheight/200);
 				img = page.getImage(rwidth / 200, rheight / 200, rect, null, true, true);
-				previewPanel = new Preview(new Dimension(400, 500), img, rwidth, rheight, page);
-
-			}
-
-			else if (rwidth / 72 > 500 && rheight / 72 > 500) {
+				this.previewPanel.preview(img, rwidth, rheight, page);
+			} else if (rwidth / 72 > 500 && rheight / 72 > 500) {
 				img = page.getImage(rwidth / 100, rheight / 100, rect, null, true, true);
-				previewPanel = new Preview(new Dimension(400, 500), img, rwidth, rheight, page);
-
-			}
-
-			else if (rwidth / 72 > 200 && rheight / 72 > 200) {
+				this.previewPanel.preview(img, rwidth, rheight, page);
+			} else if (rwidth / 72 > 200 && rheight / 72 > 200) {
 				img = page.getImage(rwidth / 50, rheight / 50, rect, null, true, true);
-				previewPanel = new Preview(new Dimension(400, 500), img, rwidth, rheight, page);
-
-			}
-
-			else if (rwidth / 72 > 90 && rheight / 72 > 90) {
-
+				this.previewPanel.preview(img, rwidth, rheight, page);
+			} else if (rwidth / 72 > 90 && rheight / 72 > 90) {
 				img = page.getImage(rwidth / 25, rheight / 25, rect, null, true, true);
-				previewPanel = new Preview(new Dimension(400, 500), img, rwidth, rheight, page);
-
-			}
-
-			else if (rwidth / 72 > 50 && rheight / 72 > 50) {
-
+				this.previewPanel.preview(img, rwidth, rheight, page);
+			} else if (rwidth / 72 > 50 && rheight / 72 > 50) {
 				img = page.getImage(rwidth / 20, rheight / 20, rect, null, true, true);
-				previewPanel = new Preview(new Dimension(400, 500), img, rwidth, rheight, page);
-
-			}
-
-			else if (rwidth / 72 > 20 && rheight / 72 > 20) {
-
+				this.previewPanel.preview(img, rwidth, rheight, page);
+			} else if (rwidth / 72 > 20 && rheight / 72 > 20) {
 				img = page.getImage(rwidth / 10, rheight / 10, rect, null, true, true);
-				previewPanel = new Preview(new Dimension(400, 500), img, rwidth, rheight, page);
-
-			}
-
-			else if ((rwidth / 72 > 15 && rwidth / 72 < 20) && (rheight / 72 > 15 && rheight / 72 < 20)) {
-
+				this.previewPanel.preview(img, rwidth, rheight, page);
+			} else if ((rwidth / 72 > 15 && rwidth / 72 < 20) && (rheight / 72 > 15 && rheight / 72 < 20)) {
 				img = page.getImage(rwidth / 4, rheight / 4, rect, null, true, true);
-				previewPanel = new Preview(new Dimension(400, 500), img, rwidth, rheight, page);
-
-			}
-
-			else if (rwidth / 72 < 5 && rheight / 72 < 5) {
-
+				this.previewPanel.preview(img, rwidth, rheight, page);
+			} else if (rwidth / 72 < 5 && rheight / 72 < 5) {
 				img = page.getImage(rwidth, rheight, rect, null, true, true);
-				previewPanel = new Preview(new Dimension(400, 500), img, rwidth, rheight, page);
-
-			}
-
-			else if (rwidth / 72 < 15 && rheight / 72 < 15) {
-
+				this.previewPanel.preview(img, rwidth, rheight, page);
+			} else if (rwidth / 72 < 15 && rheight / 72 < 15) {
 				img = page.getImage(rwidth / 2, rheight / 2, rect, null, true, true);
-				previewPanel = new Preview(new Dimension(400, 500), img, rwidth, rheight, page);
-
+				this.previewPanel.preview(img, rwidth, rheight, page);
 			}
-
-			this.previewPanel.repaint();
-			// this.add(this.previewPanel,CC.xyw(8,1,7));
-			this.add(this.previewPanel, CC.xyw(10, 1, 18));
-
-			// this.previewHandler.runPreview(node);
 		}
 
 	}
@@ -502,6 +465,7 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 	}
 
 	private void deleteButtonListenerAction() {
+		this.previewPanel.clearPreview();
 		for (int i = this.treeTable.getSelectedRowCount() - 1; i >= 0
 				&& this.treeTable.getSelectedRowCount() != 0; --i) {
 			final int row = this.treeTable.getSelectedRows()[i];
@@ -510,8 +474,6 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 			}
 			final TreePath path = this.treeTable.getPathForRow(row);
 			this.model.removeNodeFromParent((Node) path.getLastPathComponent(), true);
-			preview = new Preview();
-			this.preview.clearPreview();
 		}
 	}
 
