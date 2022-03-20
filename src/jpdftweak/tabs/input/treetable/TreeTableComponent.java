@@ -27,8 +27,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -55,6 +59,8 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import jpdftweak.core.PageRange;
+import jpdftweak.tabs.input.treetable.node.userobject.UserObjectType;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.BorderHighlighter;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
@@ -80,6 +86,8 @@ import jpdftweak.tabs.input.preview.PreviewHandler;
 import jpdftweak.tabs.input.treetable.node.Node;
 import jpdftweak.tabs.input.treetable.node.userobject.FileUserObject;
 import jpdftweak.tabs.input.treetable.node.userobject.PageUserObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class TreeTableComponent extends JPanel implements PreviewHandler {
 	private final JScrollPane scrollPane;
@@ -721,60 +729,42 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 
 	}
 
-	public void createCSV() {
-		JTable table = (JTable) treeTable;
-		String filename = null;
-		LocalDateTime now = LocalDateTime.now();
-		String date = Integer.toString(now.getDayOfMonth()) + "_" + now.getMonth() + "_"
-				+ Integer.toString(now.getYear());
-		String time = Integer.toString(now.getHour()) + "_" + Integer.toString(now.getMinute()) + "_"
-				+ Integer.toString(now.getSecond());
-		String timestamp = date + "_" + time;
-		try {
+	private List<String> getInputElements(Node parent) {
+		final List<String> inputElements = new ArrayList<>();
 
-			File dir = new File("C:/jProject/Untitled");
-			if (dir.exists() == false) {
-				boolean result = dir.mkdirs();
-				// System.out.println("created:"+ result);
+		Enumeration<?> e = parent.children();
+		while (e.hasMoreElements()) {
+			final Node child = (Node) e.nextElement();
+			if (UserObjectType.isFile(child)) {
+				inputElements.add(child.getUserObject().getKey());
+			} else if (child.getUserObject().getType() == UserObjectType.FOLDER) {
+				inputElements.addAll(getInputElements(child));
 			}
-			filename = "Jtree_details" + timestamp + ".csv";
-
-			TableModel model = table.getModel();
-			FileWriter csv = new FileWriter(new File("C:\\jProject\\Untitled\\" + filename));
-
-			for (int i = 0; i < model.getColumnCount(); i++) {
-				csv.write(model.getColumnName(i) + ",");
-			}
-			csv.write("\n");
-
-			for (int i = 0; i < model.getRowCount(); i++) {
-
-				for (int j = 0; j < model.getColumnCount(); j++) {
-					Object dataobject = model.getValueAt(i, j);
-					if (dataobject == null || "".equals(dataobject)) {
-						// System.out.println("No Value");
-						csv.append("");
-						csv.append(",");
-
-					} else {
-						csv.append(dataobject.toString());
-						csv.append(",");
-					}
-					// csv.write(model.getValueAt(i, j).toString()+",");
-
-				}
-				csv.write("\n");
-			}
-			csv.close();
-		} catch (Exception e) {
-			System.err.println(e.getMessage());
-
 		}
 
+		return inputElements;
+	}
+
+	public void createCSV() {
+		try {
+			final TreeTableModel model = treeTable.getTreeTableModel();
+			final JSONArray inputFiles = new JSONArray(getInputElements((Node) model.getRoot()));
+			final JSONObject json = new JSONObject();
+			json.put("input-files", inputFiles);
+
+			LocalDateTime now = LocalDateTime.now();
+			String timestamp = String.format("%s_%s_%s_%s_%s_%s",
+				now.getDayOfMonth(), now.getMonth(), now.getYear(), now.getHour(), now.getMinute(), now.getSecond());
+			String filename = "Jtree_details" + timestamp + ".json";
+			FileWriter jsonFile = new FileWriter("C:\\jProject\\Untitled\\" + filename);
+			jsonFile.write(json.toString(4));
+			jsonFile.close();
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
 	}
 
 	private void loadCSV()
-
 	{
 		JFileChooser fc = new JFileChooser();
 		fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
@@ -782,58 +772,17 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			File file = fc.getSelectedFile();
-			// String
-			// filepath="C:\\jProject\\Untitled\\Jtree_details20_SEPTEMBER_2020_23_21_37.csv";
-			// File file= new File(filepath);
 			try {
-
-				FileReader fr = new FileReader(file);
-				BufferedReader br = new BufferedReader(fr);
-
-				ArrayList<String[]> elements = new ArrayList<String[]>();
-				String line = null;
-				while ((line = br.readLine()) != null) {
-					String[] splitted = line.split(",");
-					elements.add(splitted);
+				String content = new String(Files.readAllBytes(Paths.get(file.toURI())));
+				JSONObject json = new JSONObject(content);
+				JSONArray inputFiles = json.getJSONArray("input-files");
+				for (int i=0;i<inputFiles.length();i++){
+					System.out.println(inputFiles.getString(i));
+					// TODO: load the json files into the table model
 				}
-
-				br.close();
-
-				String[] columNames = new String[] { "File", "ID", "PaperSize", "Orientation", "Color Depth", "Size",
-						"Pages", "From Page", "To Page", "Include Odd", "Include Even", "Empty Before",
-				"Bookmark Level" };
-
-				Object[][] content = new Object[elements.size()][13];
-
-				for (int i = 1; i < elements.size(); i++) {
-					content[i][0] = elements.get(i)[0];
-					content[i][1] = elements.get(i)[1];
-					content[i][2] = elements.get(i)[2];
-					content[i][3] = elements.get(i)[3];
-					content[i][4] = elements.get(i)[4];
-					content[i][5] = elements.get(i)[5];
-					content[i][6] = elements.get(i)[6];
-					content[i][7] = elements.get(i)[7];
-					content[i][8] = elements.get(i)[8];
-					content[i][9] = elements.get(i)[9];
-					content[i][10] = elements.get(i)[10];
-					content[i][11] = elements.get(i)[11];
-					content[i][12] = elements.get(i)[12];
-				}
-				JTable table = new JTable(content, columNames);
-
-				JScrollPane sp = new JScrollPane(table);
-				JFrame f = new JFrame();
-				f.setSize(700, 700);
-				f.getContentPane().add(sp);
-				f.setVisible(true);
-				// f.add(table);
-
 			} catch (Exception e) {
 				System.err.println(e.getMessage());
-
 			}
-
 		}
 
 	}
