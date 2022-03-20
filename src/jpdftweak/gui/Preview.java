@@ -9,7 +9,7 @@ import java.awt.image.BufferedImage;
 public class Preview extends JPanel {
 
 	private final DefaultListModel<JLabel> jLabelListModel = new DefaultListModel<>();
-	private final JComboBox<String> zoomValueComboBox;
+	private final JSpinner zoomValueSpinner;
 	private final JScrollPane scrollPane;
 
 	private PDFPage previewPage;
@@ -27,14 +27,12 @@ public class Preview extends JPanel {
 	private int units;
 	private double previousZoom;
 	private double zoom;
-	private boolean isPercent;
 
 	public Preview() {
 		super(new BorderLayout());
 
 		previousZoom = 0.0;
 		zoom = 1.0;
-		isPercent = false;
 
 		JButton zoomOut = new JButton("-");
 		zoomOut.setToolTipText("Zoom out");
@@ -45,21 +43,9 @@ public class Preview extends JPanel {
 		JButton reset = new JButton("Fit to Window");
 		reset.setToolTipText("Default preview");
 
-		zoomValueComboBox = new JComboBox<>();
-		zoomValueComboBox.addItem("1%");
-		zoomValueComboBox.addItem("2%");
-		zoomValueComboBox.addItem("3%");
-		zoomValueComboBox.addItem("4%");
-		zoomValueComboBox.addItem("5%");
-		zoomValueComboBox.addItem("10%");
-		zoomValueComboBox.addItem("20%");
-		zoomValueComboBox.addItem("25%");
-		zoomValueComboBox.addItem("50%");
-		zoomValueComboBox.addItem("75%");
-		zoomValueComboBox.addItem("100%");
-
-		zoomValueComboBox.setEditable(true);
-		zoomValueComboBox.setToolTipText("Zoom");
+		zoomValueSpinner = new JSpinner();
+		zoomValueSpinner.setModel(new SpinnerNumberModel(1, 1, 999, 1));
+		zoomValueSpinner.setToolTipText("Zoom");
 
 		JList<JLabel> list = new JList<>(jLabelListModel);
 
@@ -76,7 +62,7 @@ public class Preview extends JPanel {
 		buttonsPanel.setLayout(new FlowLayout());
 		buttonsPanel.add(zoomIn);
 		buttonsPanel.add(zoomOut);
-		buttonsPanel.add(zoomValueComboBox);
+		buttonsPanel.add(zoomValueSpinner);
 		buttonsPanel.add(reset);
 		add(buttonsPanel, BorderLayout.PAGE_END);
 
@@ -90,8 +76,7 @@ public class Preview extends JPanel {
 				return;
 			}
 
-			setIsPercent(false);
-			zoom(1.5, originalElementWidth, originalElementHeight, previewPage, isIsPercent());
+			zoom(1.5, originalElementWidth, originalElementHeight, previewPage, false);
 			setZoom(1.5);
 		});
 
@@ -105,12 +90,11 @@ public class Preview extends JPanel {
 				return;
 			}
 
-			setIsPercent(false);
-			zoom(0.5, originalElementWidth, originalElementHeight, previewPage, isIsPercent());
+			zoom(0.5, originalElementWidth, originalElementHeight, previewPage, false);
 			setZoom(0.5);
 		});
 
-		this.zoomValueComboBox.addActionListener(e -> {
+		this.zoomValueSpinner.addChangeListener(e -> {
 			if (jLabelListModel.isEmpty()) {
 				return;
 			}
@@ -120,37 +104,31 @@ public class Preview extends JPanel {
 				return;
 			}
 
-			String zoomValue = (String) zoomValueComboBox.getSelectedItem();
-			String trimmedString;
-			int l = zoomValue.indexOf("%");
-			trimmedString = zoomValue.substring(0, l);
-			double value = 0;
-			value = Double.parseDouble(trimmedString);
-			setIsPercent(true);
-			zoom(value, originalElementWidth, originalElementHeight, previewPage, isIsPercent());
+			int zoomValue = (int) zoomValueSpinner.getValue();
+			zoom(zoomValue, originalElementWidth, originalElementHeight, previewPage, true);
 		});
 
 		reset.addActionListener(e -> {
 			if (initialPreviewWidth * 2 == originalElementWidth) {
-				zoomValueComboBox.setSelectedItem("50%");
+				zoomValueSpinner.setValue(50);
 			}
 			if (initialPreviewWidth * 4 == originalElementWidth) {
-				zoomValueComboBox.setSelectedItem("25%");
+				zoomValueSpinner.setValue(25);
 			}
 			if (originalElementWidth > 1440) {
-				zoomValueComboBox.setSelectedItem("10%");
+				zoomValueSpinner.setValue(10);
 			}
 			if (originalElementWidth > 3600) {
-				zoomValueComboBox.setSelectedItem("5%");
+				zoomValueSpinner.setValue(5);
 			}
 			if (originalElementWidth > 6400) {
-				zoomValueComboBox.setSelectedItem("4%");
+				zoomValueSpinner.setValue(4);
 			}
 			if (originalElementWidth > 14400) {
-				zoomValueComboBox.setSelectedItem("2%");
+				zoomValueSpinner.setValue(2);
 			}
 			if (originalElementWidth > 36000) {
-				zoomValueComboBox.setSelectedItem("1%");
+				zoomValueSpinner.setValue(1);
 			}
 
 			previousZoom = 0.0;
@@ -170,69 +148,21 @@ public class Preview extends JPanel {
 		this.currentPreviewHeight = initialPreviewHeight;
 
 		if (initialPreviewWidth == originalElementWidth) {
-			String value = "100%";
-			for (int i = 0; i < zoomValueComboBox.getModel().getSize(); i++) {
-				if (zoomValueComboBox.getItemAt(i).equals(value)) {
-					zoomValueComboBox.setSelectedIndex(i);
-					break;
-				}
-			}
+			zoomValueSpinner.setValue(100);
 		} else if (initialPreviewWidth * 2 == originalElementWidth) {
-			String value = "50%";
-			for (int i = 0; i < zoomValueComboBox.getModel().getSize(); i++) {
-				if (zoomValueComboBox.getItemAt(i).equals(value)) {
-					zoomValueComboBox.setSelectedIndex(i);
-					break;
-				}
-			}
+			zoomValueSpinner.setValue(50);
 		} else if (initialPreviewWidth * 4 == originalElementWidth) {
-			String value = "25%";
-			for (int i = 0; i < zoomValueComboBox.getModel().getSize(); i++) {
-				if (zoomValueComboBox.getItemAt(i).equals(value)) {
-					zoomValueComboBox.setSelectedIndex(i);
-					break;
-				}
-			}
+			zoomValueSpinner.setValue(25);
 		} else if (originalElementWidth > 36000) {
-			String value = "1%";
-			for (int i = 0; i < zoomValueComboBox.getModel().getSize(); i++) {
-				if (zoomValueComboBox.getItemAt(i).equals(value)) {
-					zoomValueComboBox.setSelectedIndex(i);
-					break;
-				}
-			}
+			zoomValueSpinner.setValue(1);
 		} else if (originalElementWidth > 14400) {
-			String value = "2%";
-			for (int i = 0; i < zoomValueComboBox.getModel().getSize(); i++) {
-				if (zoomValueComboBox.getItemAt(i).equals(value)) {
-					zoomValueComboBox.setSelectedIndex(i);
-					break;
-				}
-			}
+			zoomValueSpinner.setValue(2);
 		} else if (originalElementWidth > 6400) {
-			String value = "4%";
-			for (int i = 0; i < zoomValueComboBox.getModel().getSize(); i++) {
-				if (zoomValueComboBox.getItemAt(i).equals(value)) {
-					zoomValueComboBox.setSelectedIndex(i);
-					break;
-				}
-			}
+			zoomValueSpinner.setValue(4);
 		} else if (originalElementWidth > 3600) {
-			String value = "10%";
-			for (int i = 0; i < zoomValueComboBox.getModel().getSize(); i++) {
-				if (zoomValueComboBox.getItemAt(i).equals(value)) {
-					zoomValueComboBox.setSelectedIndex(i);
-					break;
-				}
-			}
+			zoomValueSpinner.setValue(10);
 		} else if (originalElementWidth > 1440) {
-			String value = "5%";
-			for (int i = 0; i < zoomValueComboBox.getModel().getSize(); i++) {
-				if (zoomValueComboBox.getItemAt(i).equals(value)) {
-					zoomValueComboBox.setSelectedIndex(i);
-					break;
-				}
-			}
+			zoomValueSpinner.setValue(5);
 		}
 
 		JLabel previewImageLabel = new JLabel(previewImage1);
@@ -436,6 +366,7 @@ public class Preview extends JPanel {
 		} else {
 			currentPreviewWidth = (int) (currentPreviewWidth * zoomFactor);
 			currentPreviewHeight = (int) (currentPreviewHeight * zoomFactor);
+			zoomValueSpinner.setValue((currentPreviewWidth * 100) / rwidth);
 		}
 
 		Rectangle rect = new Rectangle(0, 0, rwidth, rheight);
@@ -479,9 +410,9 @@ public class Preview extends JPanel {
 
 				g.setColor(Color.black);
 
-				if (isIsPercent()) {
+				if (ispercent) {
 					if (originalElementHeight < 360) {
-						units = (int) ((int) (INCH * zoomfactor) / 100);
+						units = (int) (INCH * zoomfactor) / 100;
 					}
 					if (initialPreviewHeight * 2 == originalElementHeight) {
 						units = (int) (INCH * zoomfactor) / 50;
@@ -502,13 +433,16 @@ public class Preview extends JPanel {
 						units = (int) (INCH * zoomfactor) / 2;
 					}
 					if (originalElementWidth > 36000) {
-						units = (int) (INCH * zoomfactor) / 1;
+						units = (int) (INCH * zoomfactor);
 					}
 				} else {
-					units = (int) ((int) INCH * getZoom());
+					units = (int) (INCH * getZoom());
 				}
 
 				increment = units / 2;
+				if (increment == 0) {
+					return;
+				}
 				int tickLength = 0;
 				String text = null;
 				int start = 0;
@@ -587,7 +521,7 @@ public class Preview extends JPanel {
 			public void paintComponent(Graphics g) {
 				super.paintComponent(g);
 
-				if (isIsPercent()) {
+				if (ispercent) {
 					if (originalElementWidth < 360) {
 						units = (int) (INCH * zoomfactor) / 100;
 					}
@@ -620,6 +554,9 @@ public class Preview extends JPanel {
 					units = (int) (INCH * getZoom());
 				}
 				increment = units / 2;
+				if (increment == 0) {
+					return;
+				}
 				Rectangle r = g.getClipBounds();
 
 				int tickLength = 0;
@@ -709,13 +646,5 @@ public class Preview extends JPanel {
 	public void setZoom(double d) {
 		previousZoom = zoom;
 		zoom = previousZoom * d;
-	}
-
-	public boolean isIsPercent() {
-		return isPercent;
-	}
-
-	public void setIsPercent(boolean isPercent) {
-		this.isPercent = isPercent;
 	}
 }
