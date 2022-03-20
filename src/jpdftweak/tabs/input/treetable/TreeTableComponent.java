@@ -1,21 +1,44 @@
 package jpdftweak.tabs.input.treetable;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Desktop;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.LayoutManager;
-import java.awt.Rectangle;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.pdf.PdfContentByte;
+import com.itextpdf.text.pdf.PdfWriter;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
+import com.sun.pdfview.PDFFile;
+import com.sun.pdfview.PDFPage;
+import jpdftweak.gui.Preview;
+import jpdftweak.tabs.input.InputTabFileImporter;
+import jpdftweak.tabs.input.preview.PreviewHandler;
+import jpdftweak.tabs.input.treetable.node.Node;
+import jpdftweak.tabs.input.treetable.node.userobject.FileUserObject;
+import jpdftweak.tabs.input.treetable.node.userobject.PageUserObject;
+import jpdftweak.tabs.input.treetable.node.userobject.UserObjectType;
+import org.jdesktop.swingx.JXTreeTable;
+import org.jdesktop.swingx.decorator.BorderHighlighter;
+import org.jdesktop.swingx.decorator.ColorHighlighter;
+import org.jdesktop.swingx.decorator.ComponentAdapter;
+import org.jdesktop.swingx.decorator.HighlightPredicate;
+import org.jdesktop.swingx.decorator.Highlighter;
+import org.jdesktop.swingx.treetable.TreeTableModel;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -34,57 +57,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTree;
-import javax.swing.SortOrder;
-import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.tree.TreeCellRenderer;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
-
-import jpdftweak.tabs.input.InputTabFileImporter;
-import jpdftweak.tabs.input.treetable.node.userobject.UserObjectType;
-import org.jdesktop.swingx.JXTreeTable;
-import org.jdesktop.swingx.decorator.BorderHighlighter;
-import org.jdesktop.swingx.decorator.ColorHighlighter;
-import org.jdesktop.swingx.decorator.ComponentAdapter;
-import org.jdesktop.swingx.decorator.HighlightPredicate;
-import org.jdesktop.swingx.decorator.Highlighter;
-import org.jdesktop.swingx.treetable.TreeTableModel;
-
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.PageSize;
-import com.itextpdf.text.pdf.PdfContentByte;
-import com.itextpdf.text.pdf.PdfWriter;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
-import com.sun.pdfview.PDFFile;
-import com.sun.pdfview.PDFPage;
-
-import jpdftweak.gui.Preview;
-import jpdftweak.tabs.input.preview.PreviewHandler;
-import jpdftweak.tabs.input.treetable.node.Node;
-import jpdftweak.tabs.input.treetable.node.userobject.FileUserObject;
-import jpdftweak.tabs.input.treetable.node.userobject.PageUserObject;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 public class TreeTableComponent extends JPanel implements PreviewHandler {
 	private final JScrollPane scrollPane;
 	private FileTreeTableModel model;
@@ -101,18 +73,8 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 	private boolean expandCollapse;
 	private boolean ascendingOrder;
 	TreeTableExpansionState expansionState;
-	private PreviewHandler previewHandler;
-	// private Component previewPanel;
 	private Preview previewPanel;
 	private final CellConstraints CC;
-	private double zoom = 1.0; // zoom factor
-	private DefaultListModel listModel;
-	private ImageIcon image;
-	private JList<JLabel> list;
-	private Preview preview;
-	// private int headercheck=0;
-	// boolean isNewPage;
-	// private PdfPTable pdfTable;
 	final InputTabFileImporter inputTabFileImporter;
 
 	public TreeTableComponent(final String[] headers, final Class[] classes, final InputTabFileImporter inputTabFileImporter) {
@@ -123,7 +85,7 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 			throw new IllegalArgumentException();
 		}
 
-		setLayout((LayoutManager) new FormLayout(
+		setLayout(new FormLayout(
 				new ColumnSpec[] { ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"),
 						ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"),
 						ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"),
@@ -161,53 +123,46 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 	}
 
 	private void initTreeTable() {
-		this.treeTable = new JXTreeTable((TreeTableModel) this.model);
+		this.treeTable = new JXTreeTable(this.model);
 
 		this.treeTable.getColumnModel().getColumn(1).setPreferredWidth(90);
 		this.treeTable.getColumnModel().getColumn(0).setPreferredWidth(300);
 		this.treeTable.getColumnModel().getColumn(9).setPreferredWidth(30);
 		this.treeTable.getColumnModel().getColumn(10).setPreferredWidth(30);
 		this.treeTable.getColumnModel().getColumn(9)
-		.setCellRenderer((TableCellRenderer) new ConditionalCheckBoxRenderer());
+		.setCellRenderer(new ConditionalCheckBoxRenderer());
 		this.treeTable.getColumnModel().getColumn(10)
-		.setCellRenderer((TableCellRenderer) new ConditionalCheckBoxRenderer());
+		.setCellRenderer(new ConditionalCheckBoxRenderer());
 		this.treeTable.setRootVisible(false);
 		this.treeTable.setShowGrid(true);
 		this.treeTable.setColumnControlVisible(true);
 		this.treeTable.setSortable(true);
 		this.treeTable.setSortOrder(0, SortOrder.DESCENDING);
 		final TreeTableRenderer treeCellRenderer = new TreeTableRenderer();
-		this.treeTable.setTreeCellRenderer((TreeCellRenderer) treeCellRenderer);
+		this.treeTable.setTreeCellRenderer(treeCellRenderer);
 
-		this.treeTable.addMouseListener((MouseListener) new MouseAdapter() {
-			
+		this.treeTable.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(final MouseEvent evt) {
 				try {
 					TreeTableComponent.this.treeTableMouseListenerAction(evt);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
-
 		});
 
-		this.treeTable.addKeyListener((KeyListener) new KeyAdapter() {
+		this.treeTable.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent evt) {
 				int keyCode = evt.getKeyCode();
 
 				if (keyCode == KeyEvent.VK_DOWN || keyCode == KeyEvent.VK_UP) {
-
 					try {
 						TreeTableComponent.this.treeTableKeyListenerAction(evt);
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
-
 			}
-
 		});
 
 		final BorderHighlighter topHighlighter = new BorderHighlighter((HighlightPredicate) new HighlightPredicate() {
@@ -364,13 +319,9 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 			String parent = userObject.getKey();
 
 			PDFFile file = new PDFFile(ByteBuffer.wrap(loadFile(parent)));
-
 			PDFPage page = file.getPage(Integer.parseInt(node.getUserObject().getKey()));
-
 			int rwidth = (int) (page.getBBox().getWidth());
-
 			int rheight = (int) (page.getBBox().getHeight());
-
 			Rectangle rect = new Rectangle(0, 0, rwidth, rheight);
 			Image img;
 
@@ -420,7 +371,7 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 
 	private void upButtonListenerAction() {
 		this.expansionState.store();
-		final ArrayList<TreePath> newPaths = new ArrayList<TreePath>();
+		final ArrayList<TreePath> newPaths = new ArrayList<>();
 		for (int selectedRowCount = this.treeTable.getSelectedRowCount(), i = 0; i < selectedRowCount; ++i) {
 			final int row = this.treeTable.getSelectedRows()[0];
 			if (this.treeTable.getCellEditor() != null && !this.treeTable.getCellEditor().stopCellEditing()) {
@@ -496,10 +447,6 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 
 	public void clear() {
 		this.model.clear();
-	}
-
-	public void setPreviewHandler(final PreviewHandler previewHandler) {
-		this.previewHandler = previewHandler;
 	}
 
 	public Node getSelected() {

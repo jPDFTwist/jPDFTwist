@@ -98,7 +98,6 @@ public class MainForm extends JFrame {
 		
 				inputTab = new InputTab();
 				jtp.addTab(inputTab.getTabName(), inputTab.getUserInterface());
-				inputTab.setPreviewHandler(previewHandler);
 				
 				watermarkPlusTab = new WatermarkPlusTab();
 				for (Tab tab : tabs) {

@@ -157,11 +157,4 @@ public class InputTab extends ActionTab {
 		this.useTempFiles = useTempFiles;
 		inputTabPanel.setUseTempFiles(useTempFiles);
 	}
-
-	/**
-	 * @wbp.parser.entryPoint
-	 */
-	public void setPreviewHandler(PreviewHandler previewHandler) {
-		inputTabPanel.setPreviewHandler(previewHandler);
-	}
 }
