@@ -15,7 +15,6 @@ import jpdftweak.tabs.input.InputTabPanel;
 import jpdftweak.tabs.input.InputValidator;
 import jpdftweak.tabs.input.ModelReader;
 import jpdftweak.tabs.input.pagerange.PageRangeGenerator;
-import jpdftweak.tabs.input.preview.PreviewHandler;
 import jpdftweak.tabs.input.treetable.node.Node;
 import jpdftweak.tabs.input.treetable.node.userobject.FolderUserObject;
 import jpdftweak.tabs.input.treetable.node.userobject.UserObjectType;
@@ -156,12 +155,5 @@ public class InputTab extends ActionTab {
 	public void setUseTempFiles(boolean useTempFiles) {
 		this.useTempFiles = useTempFiles;
 		inputTabPanel.setUseTempFiles(useTempFiles);
-	}
-
-	/**
-	 * @wbp.parser.entryPoint
-	 */
-	public void setPreviewHandler(PreviewHandler previewHandler) {
-		inputTabPanel.setPreviewHandler(previewHandler);
 	}
 }

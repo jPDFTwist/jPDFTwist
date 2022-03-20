@@ -3,17 +3,16 @@ package jpdftweak.tabs.input;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import jpdftweak.core.IntegerList;
-import jpdftweak.tabs.input.preview.PreviewHandler;
+import jpdftweak.gui.Preview;
 import jpdftweak.tabs.input.treetable.FileTreeTableModel;
 import jpdftweak.tabs.input.treetable.TreeTableComponent;
 import jpdftweak.tabs.input.treetable.node.Node;
 import jpdftweak.tabs.input.treetable.node.userobject.FolderUserObject;
 import jpdftweak.tabs.input.treetable.node.userobject.UserObjectType;
-import jpdftweak.utils.ConstantClass1;
+import org.jdesktop.swingx.treetable.MutableTreeTableNode;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
@@ -28,26 +27,20 @@ import java.util.List;
 public class InputTabPanel extends JPanel {
 
 	private final JFrame parentFrame;
-	private final CellConstraints CC ;
+	private final CellConstraints CC;
 	private JTextField fileCountField;
+	private final Preview previewPanel;
 	private final TreeTableComponent inputFilesTable;
-	private JButton selectfile;
+	private JButton selectFile;
 	private JButton clear;
 	private JButton generate;					  						  
 	private InputOptionsPanel optionsPanel;
-	private FileTreeTableModel model;
-	private Integer id;
-	private boolean flg;					
-	ConstantClass1 C;			  
+	private final FileTreeTableModel model;
 	private boolean useTempFiles;
-	private final String[] columnHeaders;
-											
-	private final Class[] itemClassType ;
 
 	private final GenerateInputItems generateFrame;
-	private final GenerateInputItems.Listener L;
 
-	private InputTabFileImporter inputTabFileImporter;
+	private final InputTabFileImporter inputTabFileImporter;
 
 	public static InputTabPanel getInputPanel() {
 		return new InputTabPanel();
@@ -57,15 +50,13 @@ public class InputTabPanel extends JPanel {
 		super(new FormLayout("f:p, f:p:g, f:p:g, f:p, f:p, f:p, f:p, f:p, f:p, f:p", "f:p, f:p, f:p:g"));
 
 		this.CC = new CellConstraints();
-		this.flg = true;
-		this.C = new ConstantClass1();
-		
-		this.columnHeaders = new String[]{"File", "ID", "PaperSize", "Orientation", "Color Depth", "Size", "Pages",
-				"From Page", "To Page", "Include Odd", "Include Even", "Empty Before", "Bookmark Level"};
-		
-		this.itemClassType = new Class[]{String.class, String.class, String.class, String.class, String.class,
-				Integer.class, Integer.class, Integer.class, Integer.class, Boolean.class, Boolean.class,
-				IntegerList.class, Integer.class};								  								  
+
+		String[] columnHeaders = new String[]{"File", "ID", "PaperSize", "Orientation", "Color Depth", "Size", "Pages",
+			"From Page", "To Page", "Include Odd", "Include Even", "Empty Before", "Bookmark Level"};
+
+		Class[] itemClassType = new Class[]{String.class, String.class, String.class, String.class, String.class,
+			Integer.class, Integer.class, Integer.class, Integer.class, Boolean.class, Boolean.class,
+			IntegerList.class, Integer.class};
 		this.parentFrame = (JFrame) this.getParent();
 
 		inputTabFileImporter = files -> {
@@ -101,7 +92,9 @@ public class InputTabPanel extends JPanel {
 			importFiles.start();
 		};
 
-		inputFilesTable = new TreeTableComponent(columnHeaders, itemClassType, inputTabFileImporter);
+		this.previewPanel = new Preview();
+
+		inputFilesTable = new TreeTableComponent(columnHeaders, itemClassType, inputTabFileImporter, previewPanel);
 		inputFilesTable.getTreeTable().setBackground(new Color(230, 230, 250));
 		model = inputFilesTable.getModel();
 
@@ -110,7 +103,7 @@ public class InputTabPanel extends JPanel {
 
 		useTempFiles = false;
 
-		L = new GenerateInputItems.Listener() {
+		GenerateInputItems.Listener l = new GenerateInputItems.Listener() {
 
 
 			public void importFileArray(final int[] places, ArrayList<File[]> files) {
@@ -131,7 +124,7 @@ public class InputTabPanel extends JPanel {
 						updateFileCount();
 					}
 
-					
+
 					public void updateTableUI() {
 						inputFilesTable.updateTreeTableUI();
 					}
@@ -142,28 +135,28 @@ public class InputTabPanel extends JPanel {
 				importFiles.start();
 			}
 
-			
+
 			public void importFile(String name, int index) {
 				importFiles(index, new File(name));
 			}
 
-			
+
 			public void importFile(String name) {
 				importFiles(new File(name));
 			}
 
-			
+
 			public void importNode(Node node, int index) {
 				Node parent = model.createParents(node.getUserObject().getKey());
 				model.insertNodeInto(node, parent, index);
 			}
 
-			
+
 			public void insertNodeInto(Node node, Node parent, int index) {
 				model.insertNodeInto(node, parent, index);
 			}
 		};
-		generateFrame = new GenerateInputItems(L);
+		generateFrame = new GenerateInputItems(l);
 	}
 
 	int index;
@@ -177,15 +170,18 @@ public class InputTabPanel extends JPanel {
 		positionFileRowComponents();
 
 		generateOptionsPanel();
-		generateInputFilesTable();
+
+		final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, inputFilesTable, previewPanel);
+		splitPane.setResizeWeight(0.9);
+		this.add(splitPane, this.CC.xyw(1, 3, 9));
 	}
 
 	private void initializeFileRowComponents() {
 		fileCountField = new JTextField();
 		fileCountField.setEditable(false);
 
-		selectfile = new JButton("Select...");
-		selectfile.addActionListener(e -> importFilesActionPerformed());
+		selectFile = new JButton("Select...");
+		selectFile.addActionListener(e -> importFilesActionPerformed());
 
 		clear = new JButton("Clear");
 		clear.addActionListener(clearButtonListener());
@@ -199,37 +195,18 @@ public class InputTabPanel extends JPanel {
 	}
 
 	private ActionListener clearButtonListener() {
-		ActionListener clearButtonListener = new ActionListener() {
-
-			
-			public void actionPerformed(ActionEvent e) {
-				clearActionPerformed();
-			}
-		};
-
-		return clearButtonListener;
+		return e -> clearActionPerformed();
 	}
 
 	private ActionListener generateButtonListener() {
-		ActionListener generateButtonListener = new ActionListener() {
-
-			
-			public void actionPerformed(ActionEvent e) {
-				generateFrame.setSelectedNode(inputFilesTable.getSelected());
-				generateFrame.setVisible(true);
-			}
+		return e -> {
+			generateFrame.setSelectedNode(inputFilesTable.getSelected());
+			generateFrame.setVisible(true);
 		};
-
-		return generateButtonListener;
 	}
 
 	private void clearActionPerformed() {
-		// TODO mf.setInputFile(null);
 		this.model.clear();
-		final ConstantClass1 C = new ConstantClass1();
-		C.setId(-1);
-		C.setFid(0);
-		C.setPreId(-1);
 		this.updateFileCount();
 	}
 
@@ -247,21 +224,13 @@ public class InputTabPanel extends JPanel {
 	private void positionFileRowComponents() {
 		this.add(new JLabel("Filename"), CC.xy(1, 1));
 		this.add(fileCountField, CC.xyw(2, 1, 2));
-		this.add(selectfile, CC.xy(4, 1));
+		this.add(selectFile, CC.xy(4, 1));
 		this.add(clear, CC.xy(5, 1));
 		this.add(generate, CC.xy(6, 1));
 	}
 
 	private void generateOptionsPanel() {
-		this.add((Component) (this.optionsPanel = new InputOptionsPanel()), this.CC.xyw(1, 2, 7));
-	}
-
-	private void generateInputFilesTable() {
-		positionInputFilesTable();
-	}
-
-	private void positionInputFilesTable() {
-		this.add((Component) this.inputFilesTable, this.CC.xyw(1, 3, 9));
+		this.add(this.optionsPanel = new InputOptionsPanel(), this.CC.xyw(1, 2, 7));
 	}
 
 	public void setUseTempFiles(boolean useTempFiles) {
@@ -290,32 +259,24 @@ public class InputTabPanel extends JPanel {
 
 	public int getInterleaveSize() {
 		String interleaveSizeValue = optionsPanel.getInterleaveSize();
-		int interleaveSize = Integer.parseInt(interleaveSizeValue);
 
-		return interleaveSize;
+		return Integer.parseInt(interleaveSizeValue);
 	}
 
 	public ModelReader getModelReader() {
-		// TODO
-		ModelReader reader = new ModelReader() {
-
-			
+		return new ModelReader() {
 			public List<Node> getFolderNodes() {
-				// Node root = model.getRoot();
-				// List<Node> folders = model.listFolders(root);
-				// return folders;
 				return null;
 			}
 
-			
 			public List<Node> getFileNodes() {
 				Node root = model.getRoot();
 				return getFiles(root);
 			}
 
 			public List<Node> getFiles(Node root) {
-				List<Node> files = new ArrayList<Node>();
-				Enumeration e = root.children();
+				List<Node> files = new ArrayList<>();
+				Enumeration<? extends MutableTreeTableNode> e = root.children();
 				while (e.hasMoreElements()) {
 					Node n = (Node) e.nextElement();
 					if (UserObjectType.isFile(n)) {
@@ -327,8 +288,6 @@ public class InputTabPanel extends JPanel {
 				return files;
 			}
 		};
-
-		return reader;
 	}
 
 	// TODO
@@ -340,10 +299,6 @@ public class InputTabPanel extends JPanel {
 		} else {
 			return 1;
 		}
-	}
-
-	public void setPreviewHandler(PreviewHandler previewHandler) {
-		inputFilesTable.setPreviewHandler(previewHandler);
 	}
 
 	public void importFiles(File f) {
