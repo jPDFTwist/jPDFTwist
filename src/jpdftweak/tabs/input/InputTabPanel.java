@@ -1,25 +1,7 @@
 package jpdftweak.tabs.input;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.awt.LayoutManager;
-import jpdftweak.utils.ConstantClass1;									  
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.*;
-
 import jpdftweak.core.IntegerList;
 import jpdftweak.tabs.input.preview.PreviewHandler;
 import jpdftweak.tabs.input.treetable.FileTreeTableModel;
@@ -27,12 +9,22 @@ import jpdftweak.tabs.input.treetable.TreeTableComponent;
 import jpdftweak.tabs.input.treetable.node.Node;
 import jpdftweak.tabs.input.treetable.node.userobject.FolderUserObject;
 import jpdftweak.tabs.input.treetable.node.userobject.UserObjectType;
+import jpdftweak.utils.ConstantClass1;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.List;
 
 /**
  *
  * @author Vasilis Naskos
  */
-
 public class InputTabPanel extends JPanel {
 
 	private final JFrame parentFrame;
@@ -55,13 +47,14 @@ public class InputTabPanel extends JPanel {
 	private final GenerateInputItems generateFrame;
 	private final GenerateInputItems.Listener L;
 
+	private InputTabFileImporter inputTabFileImporter;
 
 	public static InputTabPanel getInputPanel() {
 		return new InputTabPanel();
 	}
 
 	public InputTabPanel() {
-		super((LayoutManager) new FormLayout("f:p, f:p:g, f:p:g, f:p, f:p, f:p, f:p, f:p, f:p, f:p", "f:p, f:p, f:p:g"));
+		super(new FormLayout("f:p, f:p:g, f:p:g, f:p, f:p, f:p, f:p, f:p, f:p, f:p", "f:p, f:p, f:p:g"));
 
 		this.CC = new CellConstraints();
 		this.flg = true;
@@ -75,7 +68,40 @@ public class InputTabPanel extends JPanel {
 				IntegerList.class, Integer.class};								  								  
 		this.parentFrame = (JFrame) this.getParent();
 
-		inputFilesTable = new TreeTableComponent(columnHeaders, itemClassType);
+		inputTabFileImporter = files -> {
+			final ModelHandler modelHandler = new ModelHandler() {
+
+				public void insertFileNode(Node node) {
+					Node parent = model.createParents(node.getUserObject().getKey());
+					model.insertNodeInto(node, parent, parent.getChildCount());
+
+					updateFileCount();
+				}
+
+				public void updateTableUI() {
+					inputFilesTable.updateTreeTableUI();
+				}
+			};
+
+			final FileImporter importer;
+			if (files == null) {
+				importer = new FileImporter(modelHandler);
+			} else {
+				List<File[]> filesList = new ArrayList<>();
+				filesList.add(Arrays.stream(files).map(File::new).toArray(File[]::new));
+				importer = new FileImporter(modelHandler, filesList);
+			}
+			importer.setParentFrame(parentFrame);
+			importer.setUseTempFiles(useTempFiles);
+			importer.setOptimizePDF(optionsPanel.isOptimizePDFSelected());
+			importer.setAutoRestrictionsOverwrite(optionsPanel.isAutoRestrictionsOverwriteSelected());
+			importer.setAutoRestrioctionsNew(optionsPanel.isAutoRestrictionsNewSelected());
+
+			final Thread importFiles = new Thread(importer);
+			importFiles.start();
+		};
+
+		inputFilesTable = new TreeTableComponent(columnHeaders, itemClassType, inputTabFileImporter);
 		inputFilesTable.getTreeTable().setBackground(new Color(230, 230, 250));
 		model = inputFilesTable.getModel();
 
@@ -84,7 +110,7 @@ public class InputTabPanel extends JPanel {
 
 		useTempFiles = false;
 
-		L = (GenerateInputItems.Listener) new GenerateInputItems.Listener() {
+		L = new GenerateInputItems.Listener() {
 
 
 			public void importFileArray(final int[] places, ArrayList<File[]> files) {
@@ -147,14 +173,11 @@ public class InputTabPanel extends JPanel {
 	}
 
 	private void generateUserInterface() {
-		generateFileRow();
-		generateOptionsPanel();
-		generateInputFilesTable();
-	}
-
-	private void generateFileRow() {
 		initializeFileRowComponents();
 		positionFileRowComponents();
+
+		generateOptionsPanel();
+		generateInputFilesTable();
 	}
 
 	private void initializeFileRowComponents() {
@@ -162,7 +185,7 @@ public class InputTabPanel extends JPanel {
 		fileCountField.setEditable(false);
 
 		selectfile = new JButton("Select...");
-		selectfile.addActionListener(importFilesListener());
+		selectfile.addActionListener(e -> importFilesActionPerformed());
 
 		clear = new JButton("Clear");
 		clear.addActionListener(clearButtonListener());
@@ -171,54 +194,8 @@ public class InputTabPanel extends JPanel {
 		generate.addActionListener(generateButtonListener());
 	}
 
-	private ActionListener importFilesListener() {
-		ActionListener importFilesListener = new ActionListener() {
-
-			
-			public void actionPerformed(ActionEvent e) {
-				importFilesActionPerformed();
-			}
-		};
-
-		return importFilesListener;
-	}
-
 	private void importFilesActionPerformed() {
-		final ModelHandler modelHandler = new ModelHandler() {
-
-			
-			public void insertFileNode(Node node) {
-				Node parent = model.createParents(node.getUserObject().getKey());
-				model.insertNodeInto(node, parent, parent.getChildCount());
-
-				updateFileCount();
-			}
-
-			
-			public void updateTableUI() {
-				inputFilesTable.updateTreeTableUI();
-			}
-		};
-
-		
-		//        new Thread(new Runnable() {
-		//            
-		//            public void run() {
-		//                FileImporter2 f2 = new FileImporter2(modelHandler);
-		//                f2.doFileImporter2();
-		//            }
-		//        }).start();
-
-		
-		final FileImporter importer = new FileImporter(modelHandler);
-		importer.setParentFrame(parentFrame);
-		importer.setUseTempFiles(useTempFiles);
-		importer.setOptimizePDF(optionsPanel.isOptimizePDFSelected());
-		importer.setAutoRestrictionsOverwrite(optionsPanel.isAutoRestrictionsOverwriteSelected());
-		importer.setAutoRestrioctionsNew(optionsPanel.isAutoRestrictionsNewSelected());
-
-		final Thread importFiles = new Thread(importer);
-		importFiles.start();
+		inputTabFileImporter.importFilesToInputTab(null);
 	}
 
 	private ActionListener clearButtonListener() {

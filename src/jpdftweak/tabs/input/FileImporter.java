@@ -1,14 +1,5 @@
 package jpdftweak.tabs.input;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.swing.JFrame;
-
 import jpdftweak.core.FilenameUtils;
 import jpdftweak.tabs.input.error.ErrorHandler;
 import jpdftweak.tabs.input.treetable.node.Node;
@@ -19,6 +10,15 @@ import jpdftweak.tabs.input.treetable.node.factory.event.PageEventListener;
 import jpdftweak.tabs.input.treetable.node.userobject.FileUserObject;
 import jpdftweak.tabs.input.treetable.node.userobject.UserObjectType;
 import jpdftweak.utils.SupportedFileTypes;
+
+import javax.swing.*;
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -34,7 +34,7 @@ public class FileImporter implements Runnable {
 
 	private boolean useTempFiles, optimizePDF, autoRestrictionsOverwrite, autoRestrioctionsNew;
 
-	private ArrayList<File[]> files;
+	private List<File[]> files;
 	private ProcessCancelledListener cancelListener;
 
 	private boolean cancel;
@@ -48,13 +48,7 @@ public class FileImporter implements Runnable {
 
 		this.errorHandler = new ErrorHandler();
 		this.importDialog = new InputProgressDialog();
-		this.cancelListener = new ProcessCancelledListener() {
-
-			
-			public void cancelled() {
-				cancel = true;
-			}
-		};
+		this.cancelListener = () -> cancel = true;
 		importDialog.setCancelledListener(cancelListener);
 
 		this.modelHandler = modelHandler;
@@ -82,21 +76,18 @@ public class FileImporter implements Runnable {
 
 	public FileImporter(ModelHandler handler, File... f) {
 		this(handler);
-		files = new ArrayList<File[]>();
+		files = new ArrayList<>();
 		files.add(f);
 	}
 
-	public FileImporter(ModelHandler handler, ArrayList<File[]> files) {
+	public FileImporter(ModelHandler handler, List<File[]> files) {
 		this(handler);
 		this.files = files;
 	}
-
 	
 	public void run() {
 		if (files != null && !files.isEmpty()) {
-
 			showProgressDialog();
-
 			setProgressBarLimits();
 
 			for (File[] fileArray : files) {
@@ -125,22 +116,18 @@ public class FileImporter implements Runnable {
 
 		setProgressBarLimits();
 
-		Thread t = new Thread(new Runnable() {
-
-			
-			public void run() {
-				for (File[] directory : files) {
-					if (cancel) {
-						break;
-					}
-					importDirectory(directory);
+		Thread t = new Thread(() -> {
+			for (File[] directory : files) {
+				if (cancel) {
+					break;
 				}
-
-				importDialog.closeDialogWithDelay();
-				errorHandler.showErrors();
-				modelHandler.updateTableUI();
-				System.gc();
+				importDirectory(directory);
 			}
+
+			importDialog.closeDialogWithDelay();
+			errorHandler.showErrors();
+			modelHandler.updateTableUI();
+			System.gc();
 		});
 
 		t.start();
