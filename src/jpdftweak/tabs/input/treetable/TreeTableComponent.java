@@ -13,7 +13,6 @@ import com.sun.pdfview.PDFFile;
 import com.sun.pdfview.PDFPage;
 import jpdftweak.gui.Preview;
 import jpdftweak.tabs.input.InputTabFileImporter;
-import jpdftweak.tabs.input.preview.PreviewHandler;
 import jpdftweak.tabs.input.treetable.node.Node;
 import jpdftweak.tabs.input.treetable.node.userobject.FileUserObject;
 import jpdftweak.tabs.input.treetable.node.userobject.PageUserObject;
@@ -21,20 +20,14 @@ import jpdftweak.tabs.input.treetable.node.userobject.UserObjectType;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.BorderHighlighter;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
-import org.jdesktop.swingx.decorator.ComponentAdapter;
-import org.jdesktop.swingx.decorator.HighlightPredicate;
-import org.jdesktop.swingx.decorator.Highlighter;
 import org.jdesktop.swingx.treetable.TreeTableModel;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -57,9 +50,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class TreeTableComponent extends JPanel implements PreviewHandler {
+public class TreeTableComponent extends JPanel {
 	private final JScrollPane scrollPane;
-	private FileTreeTableModel model;
+	private final FileTreeTableModel model;
 	private JXTreeTable treeTable;
 	private final JButton expandBtn;
 	private final JButton upBtn;
@@ -77,8 +70,9 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 	private final CellConstraints CC;
 	final InputTabFileImporter inputTabFileImporter;
 
-	public TreeTableComponent(final String[] headers, final Class[] classes, final InputTabFileImporter inputTabFileImporter) {
+	public TreeTableComponent(final String[] headers, final Class[] classes, final InputTabFileImporter inputTabFileImporter, final Preview previewPanel) {
 		this.CC = new CellConstraints();
+		this.previewPanel = previewPanel;
 		this.expandCollapse = false;
 		this.ascendingOrder = true;
 		if (headers.length != classes.length) {
@@ -86,21 +80,16 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 		}
 
 		setLayout(new FormLayout(
-				new ColumnSpec[] { ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"),
-						ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"),
-						ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"),
-						ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"),
-						ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"),
-						ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"),
-						ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"),
-						ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"),
-						ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"),
-						ColumnSpec.decode("pref:grow"), },
+			new ColumnSpec[] {
+				ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"),
+				ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"),
+				ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"), ColumnSpec.decode("pref:grow"),
+			},
 				new RowSpec[] { RowSpec.decode("fill:pref:grow"), RowSpec.decode("fill:pref"), }));
 		this.model = new FileTreeTableModel(headers, classes);
 		this.initTreeTable();
 		this.expansionState = new TreeTableExpansionState(this.treeTable);
-		this.scrollPane = new JScrollPane((Component) this.treeTable);
+		this.scrollPane = new JScrollPane(this.treeTable);
 		this.expandBtn = new JButton("Expand/Collapse");
 		this.upBtn = new JButton("Up");
 		this.downBtn = new JButton("Down");
@@ -165,103 +154,51 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 			}
 		});
 
-		final BorderHighlighter topHighlighter = new BorderHighlighter((HighlightPredicate) new HighlightPredicate() {
-			public boolean isHighlighted(final Component arg0, final ComponentAdapter arg1) {
-				return true;
-			}
-		}, (Border) BorderFactory.createMatteBorder(0, 0, 1, 1, Color.DARK_GRAY));
-		final ColorHighlighter colorHighlighter = new ColorHighlighter((HighlightPredicate) new HighlightPredicate() {
-			public boolean isHighlighted(final Component arg0, final ComponentAdapter arg1) {
-				return !(arg0 instanceof JTree);
-			}
-		}, new Color(243, 242, 241), Color.BLACK);
-		this.treeTable.addHighlighter((Highlighter) topHighlighter);
-		this.treeTable.addHighlighter((Highlighter) colorHighlighter);
+		final BorderHighlighter topHighlighter = new BorderHighlighter((arg0, arg1) -> true, BorderFactory.createMatteBorder(0, 0, 1, 1, Color.DARK_GRAY));
+		final ColorHighlighter colorHighlighter = new ColorHighlighter((arg0, arg1) -> !(arg0 instanceof JTree), new Color(243, 242, 241), Color.BLACK);
+		this.treeTable.addHighlighter(topHighlighter);
+		this.treeTable.addHighlighter(colorHighlighter);
 	}
 
 	private void createUI() {
-		// final CellConstraints CC = new CellConstraints();
 		this.scrollPane.setPreferredSize(new Dimension(750, 400));
 		this.add(this.scrollPane, CC.xyw(1, 1, 9));
 		this.add(this.expandBtn, CC.xy(1, 2));
-		this.expandBtn.addActionListener(new ActionListener() {
-			
-			public void actionPerformed(final ActionEvent e) {
-				TreeTableComponent.this.expandButtonListenerAction();
-			}
-		});
+		this.expandBtn.addActionListener(e -> TreeTableComponent.this.expandButtonListenerAction());
 		this.add(this.upBtn, CC.xy(2, 2));
-		this.upBtn.addActionListener(new ActionListener() {
-			
-			public void actionPerformed(final ActionEvent e) {
-				TreeTableComponent.this.upButtonListenerAction();
-			}
-		});
+		this.upBtn.addActionListener(e -> TreeTableComponent.this.upButtonListenerAction());
 		this.add(this.downBtn, CC.xy(3, 2));
-		this.downBtn.addActionListener(new ActionListener() {
-			
-			public void actionPerformed(final ActionEvent e) {
-				TreeTableComponent.this.downButtonListenerAction();
-			}
-		});
+		this.downBtn.addActionListener(e -> TreeTableComponent.this.downButtonListenerAction());
 		this.add(this.deleteBtn, CC.xy(4, 2));
-		this.deleteBtn.addActionListener(new ActionListener() {
-			
-			public void actionPerformed(final ActionEvent e) {
-				try {
-					TreeTableComponent.this.deleteButtonListenerAction();
-				} catch (Exception ex) {
-					Logger.getLogger(TreeTableComponent.class.getName()).log(Level.SEVERE, null, ex);
-				}
+		this.deleteBtn.addActionListener(e -> {
+			try {
+				TreeTableComponent.this.deleteButtonListenerAction();
+			} catch (Exception ex) {
+				Logger.getLogger(TreeTableComponent.class.getName()).log(Level.SEVERE, null, ex);
 			}
 		});
 		this.add(this.orderBtn, CC.xy(5, 2));
-		this.orderBtn.addActionListener(new ActionListener() {
-			
-			public void actionPerformed(final ActionEvent e) {
-				TreeTableComponent.this.sortButtonListenerAction();
-			}
-		});
+		this.orderBtn.addActionListener(e -> TreeTableComponent.this.sortButtonListenerAction());
 		this.add(this.colorBtn, CC.xy(6, 2));
-		this.colorBtn.addActionListener(new ActionListener() {
-			
-			public void actionPerformed(final ActionEvent e) {
-				TreeTableComponent.this.colorButtonListenerAction();
-			}
-		});
+		this.colorBtn.addActionListener(e -> TreeTableComponent.this.colorButtonListenerAction());
 
 		this.add(this.exportList, CC.xy(7, 2));
-		this.exportList.addActionListener(new ActionListener() {
-			
-			public void actionPerformed(final ActionEvent e) {
-				TreeTableComponent.this.createPdf();
+		this.exportList.addActionListener(e -> {
+			TreeTableComponent.this.createPdf();
 
-				JOptionPane.showMessageDialog(null, "File successfully saved at C:\\jProject\\Untitled\\ ");
+			JOptionPane.showMessageDialog(null, "File successfully saved at C:\\jProject\\Untitled\\ ");
 
-			}
 		});
 
 		this.add(this.saveList, CC.xy(8, 2));
-		this.saveList.addActionListener(new ActionListener() {
-			
-			public void actionPerformed(final ActionEvent e) {
-				TreeTableComponent.this.createCSV();
-				JOptionPane.showMessageDialog(null, "File successfully saved at C:\\jProject\\Untitled\\ ");
+		this.saveList.addActionListener(e -> {
+			TreeTableComponent.this.createCSV();
+			JOptionPane.showMessageDialog(null, "File successfully saved at C:\\jProject\\Untitled\\ ");
 
-			}
 		});
 
 		this.add(this.openList, CC.xy(9, 2));
-		this.openList.addActionListener(new ActionListener() {
-			
-			public void actionPerformed(final ActionEvent e) {
-				TreeTableComponent.this.loadJSON();
-
-			}
-		});
-
-		this.previewPanel = new Preview();
-		this.add(this.previewPanel, CC.xyw(10, 1, 18));
+		this.openList.addActionListener(e -> TreeTableComponent.this.loadJSON());
 	}
 
 	private void treeTableMouseListenerAction(final MouseEvent evt) throws IOException {
@@ -280,12 +217,8 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 			return;
 		}
 		if (node.getUserObject() instanceof FileUserObject) {
-
-			final FileUserObject userObject = (FileUserObject) node.getUserObject();
-			// System.out.println("path:"+userObject.getKey());
-
 			try {
-				File newFile = new File(userObject.getKey());
+				File newFile = new File(node.getUserObject().getKey());
 				if (newFile.exists()) {
 					Desktop.getDesktop().open(newFile);
 				}
@@ -382,19 +315,16 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 			newPaths.add(newPath);
 		}
 		this.expansionState.restore();
-		final Runnable setSelectionRunnable = new Runnable() {
-			
-			public void run() {
-				final TreeSelectionModel tsm = TreeTableComponent.this.treeTable.getTreeSelectionModel();
-				tsm.setSelectionPaths(newPaths.toArray(new TreePath[0]));
-			}
+		final Runnable setSelectionRunnable = () -> {
+			final TreeSelectionModel tsm = TreeTableComponent.this.treeTable.getTreeSelectionModel();
+			tsm.setSelectionPaths(newPaths.toArray(new TreePath[0]));
 		};
 		SwingUtilities.invokeLater(setSelectionRunnable);
 	}
 
 	private void downButtonListenerAction() {
 		this.expansionState.store();
-		final ArrayList<TreePath> newPaths = new ArrayList<TreePath>();
+		final ArrayList<TreePath> newPaths = new ArrayList<>();
 		for (int i = this.treeTable.getSelectedRowCount() - 1; i >= 0; --i) {
 			final int row = this.treeTable.getSelectedRows()[i];
 			if (this.treeTable.getCellEditor() != null && !this.treeTable.getCellEditor().stopCellEditing()) {
@@ -405,12 +335,9 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 			newPaths.add(newPath);
 		}
 		this.expansionState.restore();
-		final Runnable setSelectionRunnable = new Runnable() {
-			
-			public void run() {
-				final TreeSelectionModel tsm = TreeTableComponent.this.treeTable.getTreeSelectionModel();
-				tsm.setSelectionPaths(newPaths.toArray(new TreePath[0]));
-			}
+		final Runnable setSelectionRunnable = () -> {
+			final TreeSelectionModel tsm = TreeTableComponent.this.treeTable.getTreeSelectionModel();
+			tsm.setSelectionPaths(newPaths.toArray(new TreePath[0]));
 		};
 		SwingUtilities.invokeLater(setSelectionRunnable);
 	}
@@ -456,35 +383,17 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 
 			return null;
 		}
-		final Node node = (Node) path.getLastPathComponent();
 
-		return node;
+		return (Node) path.getLastPathComponent();
 	}
 
 	public void updateTreeTableUI() {
-		SwingUtilities.invokeLater(new Runnable() {
-			
-			public void run() {
-				TreeTableComponent.this.treeTable.updateUI();
-			}
-		});
-	}
-
-	
-	public void runPreview(Node p0) {
-		// TODO Auto-generated method stub
-
+		SwingUtilities.invokeLater(() -> TreeTableComponent.this.treeTable.updateUI());
 	}
 
 	public static byte[] loadFile(String sourcePath) throws IOException {
-		InputStream inputStream = null;
-		try {
-			inputStream = new FileInputStream(sourcePath);
+		try (InputStream inputStream = new FileInputStream(sourcePath)) {
 			return readFully(inputStream);
-		} finally {
-			if (inputStream != null) {
-				inputStream.close();
-			}
 		}
 	}
 
@@ -500,58 +409,20 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 	}
 
 	private void createPdf() {
-		// Document document=new Document(PageSize.A4,50.0f,50.0f,10.0f,50.0f);
 		Document document = new Document();
 
-		JTable table = (JTable) treeTable;
+		JTable table = treeTable;
 
-		int width = table.getWidth();
-		int height = table.getHeight();
-
-		String filename = null;
+		String filename;
 		LocalDateTime now = LocalDateTime.now();
-		String date = Integer.toString(now.getDayOfMonth()) + "_" + now.getMonth() + "_"
-				+ Integer.toString(now.getYear());
-		String time = Integer.toString(now.getHour()) + "_" + Integer.toString(now.getMinute()) + "_"
-				+ Integer.toString(now.getSecond());
+		String date = now.getDayOfMonth() + "_" + now.getMonth() + "_" + now.getYear();
+		String time = now.getHour() + "_" + now.getMinute() + "_" + now.getSecond();
 		String timestamp = date + "_" + time;
 		try {
-
-			File dir = new File("C:/jProject/Untitled");
-			if (dir.exists() == false) {
-				boolean result = dir.mkdirs();
-				// System.out.println("created:"+ result);
-			}
-
 			PdfWriter writer;
 			filename = "my_jtree_" + timestamp + ".pdf";
 			writer = PdfWriter.getInstance(document, new FileOutputStream("C:\\jProject\\Untitled\\" + filename));
 			document.open();
-
-			/**
-			 * PdfContentByte cb=writer.getDirectContent(); PdfTemplate
-			 * tp=cb.createTemplate((float)width,(float)height);
-			 *
-			 * Graphics2D g2; if(shapes)
-			 * g2=tp.createGraphicsShapes((float)width,(float)height); else
-			 * g2=tp.createGraphicsShapes((float)width,(float)height);
-			 *
-			 * table.print(g2);
-			 *
-			 * g2.dispose(); com.itextpdf.text.Image
-			 * image=com.itextpdf.text.Image.getInstance((PdfTemplate)tp);
-			 * image.scalePercent(43.0f); document.add((com.itextpdf.text.Element)image);
-			 **/
-
-			/**
-			 * java.awt.Image img1=getImageFromComponent(table.getTableHeader());
-			 * addImageToDocument(document, writer, img1);
-			 *
-			 * getRowsImage(table,document, writer);
-			 **/
-
-			// java.awt.Image img2=getImageFromComponent(table);
-			// addImageToDocument(document, writer, img2);
 
 			BufferedImage img1 = (BufferedImage) getImageFromComponent(table.getTableHeader());
 			BufferedImage img2 = (BufferedImage) getImageFromComponent(table);
@@ -560,14 +431,12 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
-
 		}
 		document.close();
 
 	}
 
 	public java.awt.Image getImageFromComponent(JComponent component) {
-		// System.out.println("width:"+component.getWidth());
 		BufferedImage image = new BufferedImage(treeTable.getWidth(), component.getHeight(),
 				BufferedImage.TYPE_INT_RGB);
 		component.paint(image.getGraphics());
@@ -579,14 +448,6 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 			throws IOException, DocumentException {
 		com.itextpdf.text.Image image = com.itextpdf.text.Image.getInstance(writer, img, 1);
 
-		/**
-		 * com.itextpdf.text.Rectangle rect=new
-		 * com.itextpdf.text.Rectangle(image.getScaledWidth(), image.getScaledHeight());
-		 * document.setPageSize(rect); document.newPage(); //image.scalePercent(43.0f);
-		 * image.setAbsolutePosition(0, 0);
-		 * document.add((com.itextpdf.text.Element)image);
-		 **/
-
 		PdfContentByte content = writer.getDirectContent();
 		image.scaleAbsolute(PageSize.A4.getWidth(), PageSize.A4.getHeight());
 		image.setAbsolutePosition(0, 0);
@@ -595,13 +456,10 @@ public class TreeTableComponent extends JPanel implements PreviewHandler {
 		float heightRatio = image.getHeight() * width / image.getWidth();
 		int nPages = (int) (heightRatio / PageSize.A4.getHeight());
 		float difference = heightRatio % PageSize.A4.getHeight();
-		// System.out.println("difference:"+difference);
 
 		while (nPages >= 0) {
-			// difference=difference+8.0f;
 			document.newPage();
 			content.addImage(image, width, 0, 0, heightRatio, 0, -((--nPages * PageSize.A4.getHeight()) + difference));
-
 		}
 
 	}

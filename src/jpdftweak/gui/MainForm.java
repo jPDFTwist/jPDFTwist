@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -42,10 +40,8 @@ import jpdftweak.tabs.ShuffleTab;
 import jpdftweak.tabs.Tab;
 import jpdftweak.tabs.WatermarkPlusTab;
 import jpdftweak.tabs.WatermarkTab;
-import jpdftweak.tabs.input.preview.PreviewHandler;
 import jpdftweak.tabs.input.treetable.UserObjectValue;
 import jpdftweak.tabs.input.treetable.node.Node;
-import java.awt.SystemColor;
 
 public class MainForm extends JFrame {
 
@@ -84,18 +80,6 @@ public class MainForm extends JFrame {
 		CellConstraints CC = new CellConstraints();
 		JTabbedPane jtp;
 		getContentPane().add(jtp = new JTabbedPane(), CC.xyw(1, 1, 3));
-		
-				PreviewHandler previewHandler = new PreviewHandler() {
-		
-					public void runPreview(Node node) {
-						try {
-							virtualRun(node);
-						} catch (IOException ex) {
-							Logger.getLogger(MainForm.class.getName()).log(Level.SEVERE, null, ex);
-						}
-					}
-				};
-		
 				inputTab = new InputTab();
 				jtp.addTab(inputTab.getTabName(), inputTab.getUserInterface());
 				

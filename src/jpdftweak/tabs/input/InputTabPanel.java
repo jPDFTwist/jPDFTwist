@@ -3,6 +3,7 @@ package jpdftweak.tabs.input;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import jpdftweak.core.IntegerList;
+import jpdftweak.gui.Preview;
 import jpdftweak.tabs.input.treetable.FileTreeTableModel;
 import jpdftweak.tabs.input.treetable.TreeTableComponent;
 import jpdftweak.tabs.input.treetable.node.Node;
@@ -28,6 +29,7 @@ public class InputTabPanel extends JPanel {
 	private final JFrame parentFrame;
 	private final CellConstraints CC;
 	private JTextField fileCountField;
+	private final Preview previewPanel;
 	private final TreeTableComponent inputFilesTable;
 	private JButton selectFile;
 	private JButton clear;
@@ -90,7 +92,9 @@ public class InputTabPanel extends JPanel {
 			importFiles.start();
 		};
 
-		inputFilesTable = new TreeTableComponent(columnHeaders, itemClassType, inputTabFileImporter);
+		this.previewPanel = new Preview();
+
+		inputFilesTable = new TreeTableComponent(columnHeaders, itemClassType, inputTabFileImporter, previewPanel);
 		inputFilesTable.getTreeTable().setBackground(new Color(230, 230, 250));
 		model = inputFilesTable.getModel();
 
@@ -166,7 +170,10 @@ public class InputTabPanel extends JPanel {
 		positionFileRowComponents();
 
 		generateOptionsPanel();
-		generateInputFilesTable();
+
+		final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, inputFilesTable, previewPanel);
+		splitPane.setResizeWeight(0.9);
+		this.add(splitPane, this.CC.xyw(1, 3, 9));
 	}
 
 	private void initializeFileRowComponents() {
@@ -224,14 +231,6 @@ public class InputTabPanel extends JPanel {
 
 	private void generateOptionsPanel() {
 		this.add(this.optionsPanel = new InputOptionsPanel(), this.CC.xyw(1, 2, 7));
-	}
-
-	private void generateInputFilesTable() {
-		positionInputFilesTable();
-	}
-
-	private void positionInputFilesTable() {
-		this.add(this.inputFilesTable, this.CC.xyw(1, 3, 9));
 	}
 
 	public void setUseTempFiles(boolean useTempFiles) {
