@@ -192,9 +192,7 @@ public class TreeTableComponent extends JPanel {
 
 		this.add(this.saveList, CC.xy(8, 2));
 		this.saveList.addActionListener(e -> {
-			TreeTableComponent.this.createCSV();
-			JOptionPane.showMessageDialog(null, "File successfully saved at C:\\jProject\\Untitled\\ ");
-
+			TreeTableComponent.this.createJSON();
 		});
 
 		this.add(this.openList, CC.xy(9, 2));
@@ -510,8 +508,16 @@ public class TreeTableComponent extends JPanel {
 		return inputElements;
 	}
 
-	public void createCSV() {
+	public void createJSON() {
 		try {
+			final JFileChooser fc = new JFileChooser();
+			fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			int returnVal = fc.showSaveDialog(TreeTableComponent.this);
+
+			if (returnVal != JFileChooser.APPROVE_OPTION) {
+				return;
+			}
+
 			final TreeTableModel model = treeTable.getTreeTableModel();
 			final JSONArray inputFiles = new JSONArray(getInputElements((Node) model.getRoot()));
 			final JSONObject json = new JSONObject();
@@ -520,10 +526,12 @@ public class TreeTableComponent extends JPanel {
 			LocalDateTime now = LocalDateTime.now();
 			String timestamp = String.format("%s_%s_%s_%s_%s_%s",
 				now.getDayOfMonth(), now.getMonth(), now.getYear(), now.getHour(), now.getMinute(), now.getSecond());
-			String filename = "Jtree_details" + timestamp + ".json";
-			FileWriter jsonFile = new FileWriter("C:\\jProject\\Untitled\\" + filename);
+			String filename = "jpdftweak_input_" + timestamp + ".json";
+			final String filepath = fc.getSelectedFile().getAbsolutePath() + File.separator + filename;
+			FileWriter jsonFile = new FileWriter(filepath);
 			jsonFile.write(json.toString(4));
 			jsonFile.close();
+			JOptionPane.showMessageDialog(null, "File successfully saved at " + filepath);
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
 		}
@@ -532,7 +540,7 @@ public class TreeTableComponent extends JPanel {
 	private void loadJSON()
 	{
 		JFileChooser fc = new JFileChooser();
-		fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		int returnVal = fc.showOpenDialog(TreeTableComponent.this);
 
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
