@@ -160,7 +160,11 @@ public class TreeTableComponent extends JPanel {
 		this.treeTable.addHighlighter(colorHighlighter);
 	}
 
-	private void createUI() {
+	private void createUI() 
+	{
+		try {
+		//Create Tree List
+
 		this.scrollPane.setPreferredSize(new Dimension(750, 400));
 		this.add(this.scrollPane, CC.xyw(1, 1, 9));
 		this.add(this.expandBtn, CC.xy(1, 2));
@@ -185,9 +189,6 @@ public class TreeTableComponent extends JPanel {
 		this.add(this.exportList, CC.xy(7, 2));
 		this.exportList.addActionListener(e -> {
 			TreeTableComponent.this.createPdf();
-
-			JOptionPane.showMessageDialog(null, "File successfully saved at C:\\jProject\\Untitled\\ ");
-
 		});
 
 		this.add(this.saveList, CC.xy(8, 2));
@@ -197,6 +198,10 @@ public class TreeTableComponent extends JPanel {
 
 		this.add(this.openList, CC.xy(9, 2));
 		this.openList.addActionListener(e -> TreeTableComponent.this.loadJSON());
+		
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
 	}
 
 	private void treeTableMouseListenerAction(final MouseEvent evt) throws IOException {
@@ -406,32 +411,46 @@ public class TreeTableComponent extends JPanel {
 		return baos.toByteArray();
 	}
 
-	private void createPdf() {
-		Document document = new Document();
+	private void createPdf() 
+	{
+		try
+		{
+			//Create Tree Report
+			
+			final JFileChooser fc = new JFileChooser();
+			fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			int returnVal = fc.showSaveDialog(TreeTableComponent.this);
 
-		JTable table = treeTable;
-
-		String filename;
-		LocalDateTime now = LocalDateTime.now();
-		String date = now.getDayOfMonth() + "_" + now.getMonth() + "_" + now.getYear();
-		String time = now.getHour() + "_" + now.getMinute() + "_" + now.getSecond();
-		String timestamp = date + "_" + time;
-		try {
+			if (returnVal != JFileChooser.APPROVE_OPTION) {
+				return;
+			}			
+			Document document = new Document();				
+			JTable table = treeTable;
+			
+			LocalDateTime now = LocalDateTime.now();
+			String date = now.getDayOfMonth() + "-" + now.getMonth() + "-" + now.getYear();
+			String time = now.getHour() + "-" + now.getMinute() + "-" + now.getSecond();
+			String timestamp = date + "-" + time;
+			
 			PdfWriter writer;
-			filename = "my_jtree_" + timestamp + ".pdf";
-			writer = PdfWriter.getInstance(document, new FileOutputStream("C:\\jProject\\Untitled\\" + filename));
-			document.open();
+			
+			String filename2 = "JpdfTweak-Tree-Report-" + timestamp + ".pdf";
+			final String filepath = fc.getSelectedFile().getAbsolutePath() + File.separator + filename2;
+			writer = PdfWriter.getInstance(document, new FileOutputStream(filepath));
 
+			document.open();
 			BufferedImage img1 = (BufferedImage) getImageFromComponent(table.getTableHeader());
 			BufferedImage img2 = (BufferedImage) getImageFromComponent(table);
 			BufferedImage joinedImg = joinBufferedImage(img1, img2);
 			addImageToDocument(document, writer, joinedImg);
+			
+			JOptionPane.showMessageDialog(null, "File successfully saved at " + filepath);
 
+			document.close();
+			
 		} catch (Exception e) {
-			System.err.println(e.getMessage());
+		System.err.println(e.getMessage());
 		}
-		document.close();
-
 	}
 
 	public java.awt.Image getImageFromComponent(JComponent component) {
@@ -510,6 +529,8 @@ public class TreeTableComponent extends JPanel {
 
 	public void createJSON() {
 		try {
+			//Create Tree Input Structure
+			
 			final JFileChooser fc = new JFileChooser();
 			fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			int returnVal = fc.showSaveDialog(TreeTableComponent.this);
@@ -517,21 +538,23 @@ public class TreeTableComponent extends JPanel {
 			if (returnVal != JFileChooser.APPROVE_OPTION) {
 				return;
 			}
-
 			final TreeTableModel model = treeTable.getTreeTableModel();
 			final JSONArray inputFiles = new JSONArray(getInputElements((Node) model.getRoot()));
 			final JSONObject json = new JSONObject();
 			json.put("input-files", inputFiles);
 
 			LocalDateTime now = LocalDateTime.now();
-			String timestamp = String.format("%s_%s_%s_%s_%s_%s",
+			String timestamp = String.format("%s-%s-%s-%s-%s-%s",
 				now.getDayOfMonth(), now.getMonth(), now.getYear(), now.getHour(), now.getMinute(), now.getSecond());
-			String filename = "jpdftweak_input_" + timestamp + ".json";
-			final String filepath = fc.getSelectedFile().getAbsolutePath() + File.separator + filename;
+			
+			String filename1 = "JpdfTweak-Tree-Input-" + timestamp + ".json";
+			final String filepath = fc.getSelectedFile().getAbsolutePath() + File.separator + filename1;
 			FileWriter jsonFile = new FileWriter(filepath);
+			
 			jsonFile.write(json.toString(4));
 			jsonFile.close();
 			JOptionPane.showMessageDialog(null, "File successfully saved at " + filepath);
+			
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
 		}
@@ -558,7 +581,7 @@ public class TreeTableComponent extends JPanel {
 				System.err.println(e.getMessage());
 			}
 		}
-
 	}
 
 }
+
