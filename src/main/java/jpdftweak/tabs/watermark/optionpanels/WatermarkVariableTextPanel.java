@@ -1,3 +1,7 @@
+/**
+ * Original Functions		@author Michael Schierl					Affero GNU Public License
+ * Additional Functions		@author & @sponsor: E.Victor			Proprietary for in-house use only / Not released to the Public
+ */
 package jpdftweak.tabs.watermark.optionpanels;
 
 import javax.swing.JFileChooser;
@@ -8,7 +12,7 @@ import jpdftweak.tabs.watermark.WatermarkStyle;
 
 /**
  *
- * @author Vasilis Naskos
+ * @ 
  */
 public class WatermarkVariableTextPanel extends javax.swing.JPanel {
 

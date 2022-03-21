@@ -1,3 +1,7 @@
+/**
+ * Original Functions		@author Michael Schierl					Affero GNU Public License
+ * Additional Functions		@author & @sponsor: E.Victor			Proprietary for in-house use only / Not released to the Public
+ */
 package jpdftweak.tabs.watermark;
 
 import java.awt.AlphaComposite;
@@ -23,7 +27,7 @@ import javax.swing.JLabel;
 
 /**
  *
- * @author Vasilis Naskos
+ * @ 
  */
 public class WatermarkPreviewBox extends JComponent implements MouseListener, MouseMotionListener, ComponentListener {
 
@@ -43,7 +47,7 @@ public class WatermarkPreviewBox extends JComponent implements MouseListener, Mo
 
 	private int width, height;
 
-	private static final String STANDARD_TEXT = "<html><body>watermark</body></html>";
+	private static final String STANDARD_TEXT = "<html><body>Watermark</body></html>";
 	private String previewText = STANDARD_TEXT;
 
 	private Rectangle rect;
@@ -96,9 +100,11 @@ public class WatermarkPreviewBox extends JComponent implements MouseListener, Mo
 		dim = renderer.getPreferredSize();
 		width = dim.width;
 		height = dim.height;
-
-		startX = this.getSize().width / 2 - width / 2;
-		startY = this.getSize().height / 2 - height / 2;
+		
+		rect = new Rectangle(startX, startY, width, height);
+		
+		startX = (int) (this.getSize().width / 2.1 - width / 2);
+		startY = (int) (this.getSize().height / 2.4 - height / 2);
 
 		rect = new Rectangle(startX, startY, width, height);
 
@@ -109,8 +115,8 @@ public class WatermarkPreviewBox extends JComponent implements MouseListener, Mo
 		rotationCenterX = rect.x + (dim.width / 2);
 		rotationCenterY = rect.y + (dim.height / 2);
 
-		renderer.setVerticalTextPosition(JLabel.TOP);
-		renderer.setHorizontalTextPosition(JLabel.LEFT);
+		renderer.setVerticalTextPosition(JLabel.CENTER);
+		renderer.setHorizontalTextPosition(JLabel.CENTER);
 
 	}
 

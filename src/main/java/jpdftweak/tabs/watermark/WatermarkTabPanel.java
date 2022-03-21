@@ -1,3 +1,7 @@
+/**
+ * Original Functions		@author Michael Schierl					Affero GNU Public License
+ * Additional Functions		@author & @sponsor: E.Victor			Proprietary for in-house use only / Not released to the Public
+ */
 package jpdftweak.tabs.watermark;
 
 import java.awt.Dimension;
@@ -17,10 +21,13 @@ import jpdftweak.tabs.watermark.optionpanels.WatermarkImagePanel;
 import jpdftweak.tabs.watermark.optionpanels.WatermarkOptionsPanel;
 import jpdftweak.tabs.watermark.optionpanels.WatermarkRepeatedTextPanel;
 import jpdftweak.tabs.watermark.optionpanels.WatermarkVariableTextPanel;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormSpecs;
+import com.jgoodies.forms.layout.RowSpec;
 
 /**
  *
- * @author Vasilis Naskos
+ * @ 
  */
 public class WatermarkTabPanel extends JPanel {
 
@@ -44,7 +51,17 @@ public class WatermarkTabPanel extends JPanel {
 	}
 
 	public WatermarkTabPanel() {
-		super(new FormLayout("f:p:g, f:p, $lcgap, f:p", "p, $lcgap, f:p:g"));
+		super(new FormLayout(new ColumnSpec[] {
+				ColumnSpec.decode("pref:grow"),
+				FormSpecs.PREF_COLSPEC,
+				ColumnSpec.decode("5dlu"),
+				FormSpecs.DEFAULT_COLSPEC,
+				FormSpecs.RELATED_GAP_COLSPEC,},
+			new RowSpec[] {
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				FormSpecs.PREF_ROWSPEC,
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				RowSpec.decode("fill:pref:grow"),}));
 
 		CC = new CellConstraints();
 		generateUserInterface();
@@ -94,10 +111,10 @@ public class WatermarkTabPanel extends JPanel {
 	}
 
 	private void positionComponents() {
-		this.add(pageNumberRanges, CC.xyw(1, 1, 2));
-		this.add(previewBox, CC.xy(4, 1));
-		this.add(optionsPanel, CC.xyw(1, 3, 2));
-		this.add(styleOptionsPanel, CC.xy(4, 3));
+		this.add(pageNumberRanges, "1, 2, 2, 1");
+		this.add(previewBox, CC.xy(4, 2));
+		this.add(optionsPanel, "1, 4, 2, 1");
+		this.add(styleOptionsPanel, "4, 3, 1, 2");
 	}
 
 	private void replacePanel(final int value) {
@@ -124,7 +141,7 @@ public class WatermarkTabPanel extends JPanel {
 					styleOptionsPanel = emptyPanel;
 				}
 
-				add(styleOptionsPanel, CC.xy(4, 3));
+				add(styleOptionsPanel, CC.xy(4, 4));
 				validate();
 				repaint();
 			}
@@ -152,28 +169,37 @@ public class WatermarkTabPanel extends JPanel {
 
 			switch (style.getType()) {
 			case NUMBERS:
-				previewBox.setText("1");
+				previewBox.setText("1, 2, 3");
 				break;
 			case LATIN_CAPITAL:
-				previewBox.setText("I");
+				previewBox.setText("I, II, III");
 				break;
 			case LATIN_LOWERCASE:
-				previewBox.setText("i");
+				previewBox.setText("i, ii, iii");
 				break;
 			case CAPITAL_LETTERS:
-				previewBox.setText("A");
+				previewBox.setText("A, B, C");
 				break;
 			case LOWERCASE_LETTERS:
-				previewBox.setText("a");
+				previewBox.setText("a, b, c");
 				break;
 			case BATES_NUMBERING:
-				previewBox.setText("1");
+				previewBox.setText("Bates Numbering");
+				break;
+			case IMAGE:
+				previewBox.setText("Image");
 				break;
 			case REPEATED_TEXT:
-				previewBox.setText("watermark");
+				previewBox.setText("Repeated Text");
 				break;
 			case VARIABLE_TEXT:
-				previewBox.setText("watermark");
+				previewBox.setText("Variable Text");
+				break;
+			case EMPTY:
+				previewBox.setText("Watermark");
+				break;
+			default:
+				previewBox.setText("Watermark");
 				break;
 			}
 		} catch (Exception e) {

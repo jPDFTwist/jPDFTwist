@@ -1,3 +1,7 @@
+/**
+ * Original Functions		@author Michael Schierl					Affero GNU Public License
+ * Additional Functions		@author & @sponsor: E.Victor			Proprietary for in-house use only / Not released to the Public
+ */
 package jpdftweak.tabs.watermark.optionpanels;
 
 import java.util.ArrayList;
@@ -10,7 +14,7 @@ import jpdftweak.tabs.watermark.WatermarkStyle;
 
 /**
  *
- * @author Vasilis Naskos
+ * @ 
  */
 public class WatermarkBatesPanel extends javax.swing.JPanel {
 

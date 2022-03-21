@@ -1,3 +1,7 @@
+/**
+ * Original Functions		@author Michael Schierl					Affero GNU Public License
+ * Additional Functions		@author & @sponsor: E.Victor			Proprietary for in-house use only / Not released to the Public
+ */
 package jpdftweak.tabs.watermark;
 
 import java.awt.Color;
