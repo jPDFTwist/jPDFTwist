@@ -144,7 +144,7 @@ public class TreeTableComponent extends JPanel {
 			public void keyPressed(KeyEvent evt) {
 				int keyCode = evt.getKeyCode();
 
-				if (keyCode == KeyEvent.VK_DOWN || keyCode == KeyEvent.VK_UP) {
+				if (keyCode == KeyEvent.VK_DOWN || keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_PAGE_DOWN || keyCode == KeyEvent.VK_PAGE_UP) {
 					try {
 						TreeTableComponent.this.treeTableKeyListenerAction(evt);
 					} catch (IOException e) {
@@ -241,6 +241,13 @@ public class TreeTableComponent extends JPanel {
 
 		if (evt.getKeyCode() == KeyEvent.VK_UP) {
 			row = this.treeTable.getSelectedRow() - 1;
+		}
+		if (evt.getKeyCode() == KeyEvent.VK_PAGE_DOWN) {
+			row = this.treeTable.getSelectedRow() + 31;
+		}
+
+		if (evt.getKeyCode() == KeyEvent.VK_PAGE_UP) {
+			row = this.treeTable.getSelectedRow() - 31;
 		}
 		final TreePath path = this.treeTable.getPathForRow(row);
 
@@ -394,14 +401,18 @@ public class TreeTableComponent extends JPanel {
 		SwingUtilities.invokeLater(() -> TreeTableComponent.this.treeTable.updateUI());
 	}
 
-	public static byte[] loadFile(String sourcePath) throws IOException {
-		try (InputStream inputStream = new FileInputStream(sourcePath)) {
+	public static byte[] loadFile(String sourcePath) throws IOException 
+	{
+		try (InputStream inputStream = new FileInputStream(sourcePath)) 
+		{
 			return readFully(inputStream);
-		}
+		}  
 	}
 
-	public static byte[] readFully(InputStream stream) throws IOException {
-		byte[] buffer = new byte[8192];
+	public static byte[] readFully(InputStream stream) throws IOException 
+	{
+		//byte[] buffer = new byte[8192];
+		byte[] buffer = new byte[8388608];
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 		int bytesRead;
@@ -413,8 +424,7 @@ public class TreeTableComponent extends JPanel {
 
 	private void createPdf() 
 	{
-		try
-		{
+		try {
 			//Create Tree Report
 			
 			final JFileChooser fc = new JFileChooser();
@@ -423,8 +433,10 @@ public class TreeTableComponent extends JPanel {
 
 			if (returnVal != JFileChooser.APPROVE_OPTION) {
 				return;
-			}			
-			Document document = new Document();				
+			}
+			
+			Document document=new Document(PageSize.A1,0,0,0,0);
+			//Document document = new Document();				
 			JTable table = treeTable;
 			
 			LocalDateTime now = LocalDateTime.now();
@@ -439,16 +451,18 @@ public class TreeTableComponent extends JPanel {
 			writer = PdfWriter.getInstance(document, new FileOutputStream(filepath));
 
 			document.open();
+			
 			BufferedImage img1 = (BufferedImage) getImageFromComponent(table.getTableHeader());
 			BufferedImage img2 = (BufferedImage) getImageFromComponent(table);
 			BufferedImage joinedImg = joinBufferedImage(img1, img2);
 			addImageToDocument(document, writer, joinedImg);
 			
-			JOptionPane.showMessageDialog(null, "File successfully saved at " + filepath);
-
-			document.close();
+			document.close();			
+			JOptionPane.showMessageDialog(null, "File successfully saved at \"" + filepath + "\"");
 			
-		} catch (Exception e) {
+		} 
+		catch (Exception e) 
+		{
 		System.err.println(e.getMessage());
 		}
 	}
@@ -458,7 +472,6 @@ public class TreeTableComponent extends JPanel {
 				BufferedImage.TYPE_INT_RGB);
 		component.paint(image.getGraphics());
 		return image;
-
 	}
 
 	public void addImageToDocument(Document document, PdfWriter writer, java.awt.Image img)
@@ -466,19 +479,18 @@ public class TreeTableComponent extends JPanel {
 		com.itextpdf.text.Image image = com.itextpdf.text.Image.getInstance(writer, img, 1);
 
 		PdfContentByte content = writer.getDirectContent();
-		image.scaleAbsolute(PageSize.A4.getWidth(), PageSize.A4.getHeight());
+		image.scaleAbsolute(PageSize.A1.getWidth(), PageSize.A1.getHeight());
 		image.setAbsolutePosition(0, 0);
 
-		float width = PageSize.A4.getWidth();
+		float width = PageSize.A1.getWidth();
 		float heightRatio = image.getHeight() * width / image.getWidth();
-		int nPages = (int) (heightRatio / PageSize.A4.getHeight());
-		float difference = heightRatio % PageSize.A4.getHeight();
+		int nPages = (int) (heightRatio / PageSize.A1.getHeight());
+		float difference = heightRatio % PageSize.A1.getHeight();
 
 		while (nPages >= 0) {
 			document.newPage();
-			content.addImage(image, width, 0, 0, heightRatio, 0, -((--nPages * PageSize.A4.getHeight()) + difference));
+			content.addImage(image, width, 0, 0, heightRatio, 0, -((--nPages * PageSize.A1.getHeight()) + difference));
 		}
-
 	}
 
 	public static BufferedImage joinBufferedImage(BufferedImage img1, BufferedImage img2) {
@@ -496,7 +508,6 @@ public class TreeTableComponent extends JPanel {
 			if (bufferedImage.getWidth() > maxWidth) {
 				maxWidth = bufferedImage.getWidth();
 			}
-
 		}
 
 		int heightCurr = 0;
@@ -508,7 +519,6 @@ public class TreeTableComponent extends JPanel {
 		}
 
 		return concatImage;
-
 	}
 
 	private List<String> getInputElements(Node parent) {
@@ -553,7 +563,7 @@ public class TreeTableComponent extends JPanel {
 			
 			jsonFile.write(json.toString(4));
 			jsonFile.close();
-			JOptionPane.showMessageDialog(null, "File successfully saved at " + filepath);
+			JOptionPane.showMessageDialog(null, "File successfully saved at \"" + filepath + "\"");
 			
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
