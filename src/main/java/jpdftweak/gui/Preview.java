@@ -136,6 +136,14 @@ public class Preview extends JPanel {
 		});
 	}
 
+	public int getVisibleWidth() {
+		return (int) (scrollPane.getWidth() - (1.5*SIZE));
+	}
+
+	public int getVisibleHeight() {
+		return (int) (scrollPane.getHeight() - (1.5*SIZE));
+	}
+
 	public void preview(Image previewImage, int originalElementWidth, int originalElementHeight, PDFPage previewPage) {
 		clearPreview();
 		this.previewPage = previewPage;
