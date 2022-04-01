@@ -146,10 +146,21 @@ public class TreeTableComponent extends JPanel {
 
 				if (keyCode == KeyEvent.VK_DOWN || keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_PAGE_DOWN || keyCode == KeyEvent.VK_PAGE_UP) {
 					try {
-						TreeTableComponent.this.treeTableKeyListenerAction(evt);
+						treeTableKeyListenerAction(evt);
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
+				}
+			}
+		});
+
+		this.treeTable.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				try {
+					updatePreview(getSelected());
+				} catch (IOException ex) {
+					ex.printStackTrace();
 				}
 			}
 		});
@@ -255,23 +266,26 @@ public class TreeTableComponent extends JPanel {
 			return;
 		}
 		final Node node = (Node) path.getLastPathComponent();
+		updatePreview(node);
+	}
 
-		if (node.getUserObject() instanceof PageUserObject) {
+	private void updatePreview(Node node) throws IOException {
+		if (!(node.getUserObject() instanceof PageUserObject)) {
+			return;
+		}
 
-			final FileUserObject userObject = (FileUserObject) node.getParent().getUserObject();
-			String parent = userObject.getKey();
+		final FileUserObject userObject = (FileUserObject) node.getParent().getUserObject();
+		String parent = userObject.getKey();
 
-			PDFFile file = new PDFFile(ByteBuffer.wrap(loadFile(parent)));
-			PDFPage page = file.getPage(Integer.parseInt(node.getUserObject().getKey()));
-			int pageWidth = (int) (page.getBBox().getWidth());
-			int pageHeight = (int) (page.getBBox().getHeight());
-			Rectangle rect = new Rectangle(0, 0, pageWidth, pageHeight);
+		PDFFile file = new PDFFile(ByteBuffer.wrap(loadFile(parent)));
+		PDFPage page = file.getPage(Integer.parseInt(node.getUserObject().getKey()));
+		int pageWidth = (int) (page.getBBox().getWidth());
+		int pageHeight = (int) (page.getBBox().getHeight());
+		Rectangle rect = new Rectangle(0, 0, pageWidth, pageHeight);
 
 		float ratio = (float) pageWidth / this.previewPanel.getVisibleWidth();
 		Image img = page.getImage((int) (pageWidth / ratio), (int) (pageHeight / ratio), rect, null, true, true);
 		this.previewPanel.preview(img, pageWidth, pageHeight, page);
-	}
-
 	}
 
 	private void expandButtonListenerAction() {
@@ -375,7 +389,7 @@ public class TreeTableComponent extends JPanel {
 		SwingUtilities.invokeLater(() -> TreeTableComponent.this.treeTable.updateUI());
 	}
 
-	public static byte[] loadFile(String sourcePath) throws IOException
+	public byte[] loadFile(String sourcePath) throws IOException
 	{
 		try (InputStream inputStream = new FileInputStream(sourcePath)) 
 		{
@@ -383,7 +397,7 @@ public class TreeTableComponent extends JPanel {
 		}  
 	}
 
-	public static byte[] readFully(InputStream stream) throws IOException
+	public byte[] readFully(InputStream stream) throws IOException
 	{
 		//byte[] buffer = new byte[8192];
 		byte[] buffer = new byte[8388608];
