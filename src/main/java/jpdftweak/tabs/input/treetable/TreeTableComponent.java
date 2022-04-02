@@ -17,6 +17,9 @@ import jpdftweak.tabs.input.treetable.node.Node;
 import jpdftweak.tabs.input.treetable.node.userobject.FileUserObject;
 import jpdftweak.tabs.input.treetable.node.userobject.PageUserObject;
 import jpdftweak.tabs.input.treetable.node.userobject.UserObjectType;
+import jpdftweak.utils.JImageParser;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.BorderHighlighter;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
@@ -270,7 +273,7 @@ public class TreeTableComponent extends JPanel {
 	}
 
 	private void updatePreview(Node node) throws IOException {
-		if (!(node.getUserObject() instanceof PageUserObject)) {
+		if (node == null || !(node.getUserObject() instanceof PageUserObject)) {
 			previewPanel.clearPreview();
 			return;
 		}
@@ -278,14 +281,17 @@ public class TreeTableComponent extends JPanel {
 		final FileUserObject userObject = (FileUserObject) node.getParent().getUserObject();
 		String parent = userObject.getKey();
 
-		PDFFile file = new PDFFile(ByteBuffer.wrap(loadFile(parent)));
-		PDFPage page = file.getPage(Integer.parseInt(node.getUserObject().getKey()));
-		int pageWidth = (int) (page.getBBox().getWidth());
-		int pageHeight = (int) (page.getBBox().getHeight());
-		Rectangle rect = new Rectangle(0, 0, pageWidth, pageHeight);
+		final Image previewImage;
+		if (userObject.getSubType().equals(FileUserObject.SubType.PDF)) {
+			PDDocument document = PDDocument.load(new File(parent));
+			PDFRenderer pdfRenderer = new PDFRenderer(document);
+			previewImage = pdfRenderer.renderImage(Integer.parseInt(node.getUserObject().getKey())-1);
+			document.close();
+		} else {
+			previewImage = JImageParser.readAwtImage(parent);
+		}
 
-		Image img = page.getImage(pageWidth, pageHeight, rect, null, true, true);
-		this.previewPanel.preview(img);
+		this.previewPanel.preview(previewImage);
 	}
 
 	private void expandButtonListenerAction() {
@@ -371,6 +377,7 @@ public class TreeTableComponent extends JPanel {
 	}
 
 	public void clear() {
+		this.previewPanel.clearPreview();
 		this.model.clear();
 	}
 

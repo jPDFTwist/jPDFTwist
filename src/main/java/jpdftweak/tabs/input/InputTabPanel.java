@@ -206,6 +206,7 @@ public class InputTabPanel extends JPanel {
 	}
 
 	private void clearActionPerformed() {
+		this.previewPanel.clearPreview();
 		this.model.clear();
 		this.updateFileCount();
 	}
