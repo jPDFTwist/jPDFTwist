@@ -83,7 +83,7 @@ public class JImageParser {
 			imgObj.setHeight(awtImage.getHeight(null));
 			imgObj.setDepth(getBitDepth(awtImage));
 		} catch (Exception ex) {
-			Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
+//			Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
 		}
 
 		awtImage.flush();

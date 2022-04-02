@@ -17,6 +17,9 @@ import jpdftweak.tabs.input.treetable.node.Node;
 import jpdftweak.tabs.input.treetable.node.userobject.FileUserObject;
 import jpdftweak.tabs.input.treetable.node.userobject.PageUserObject;
 import jpdftweak.tabs.input.treetable.node.userobject.UserObjectType;
+import jpdftweak.utils.JImageParser;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.BorderHighlighter;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
@@ -146,10 +149,21 @@ public class TreeTableComponent extends JPanel {
 
 				if (keyCode == KeyEvent.VK_DOWN || keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_PAGE_DOWN || keyCode == KeyEvent.VK_PAGE_UP) {
 					try {
-						TreeTableComponent.this.treeTableKeyListenerAction(evt);
+						treeTableKeyListenerAction(evt);
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
+				}
+			}
+		});
+
+		this.treeTable.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				try {
+					updatePreview(getSelected());
+				} catch (IOException ex) {
+					ex.printStackTrace();
 				}
 			}
 		});
@@ -255,49 +269,29 @@ public class TreeTableComponent extends JPanel {
 			return;
 		}
 		final Node node = (Node) path.getLastPathComponent();
+		updatePreview(node);
+	}
 
-		if (node.getUserObject() instanceof PageUserObject) {
-
-			final FileUserObject userObject = (FileUserObject) node.getParent().getUserObject();
-			String parent = userObject.getKey();
-
-			PDFFile file = new PDFFile(ByteBuffer.wrap(loadFile(parent)));
-			PDFPage page = file.getPage(Integer.parseInt(node.getUserObject().getKey()));
-			int rwidth = (int) (page.getBBox().getWidth());
-			int rheight = (int) (page.getBBox().getHeight());
-			Rectangle rect = new Rectangle(0, 0, rwidth, rheight);
-			Image img;
-
-			if (rwidth / 72 == 1000 && rheight / 72 == 1000) {
-				img = page.getImage(rwidth / 200, rheight / 200, rect, null, true, true);
-				this.previewPanel.preview(img, rwidth, rheight, page);
-			} else if (rwidth / 72 > 500 && rheight / 72 > 500) {
-				img = page.getImage(rwidth / 100, rheight / 100, rect, null, true, true);
-				this.previewPanel.preview(img, rwidth, rheight, page);
-			} else if (rwidth / 72 > 200 && rheight / 72 > 200) {
-				img = page.getImage(rwidth / 50, rheight / 50, rect, null, true, true);
-				this.previewPanel.preview(img, rwidth, rheight, page);
-			} else if (rwidth / 72 > 90 && rheight / 72 > 90) {
-				img = page.getImage(rwidth / 25, rheight / 25, rect, null, true, true);
-				this.previewPanel.preview(img, rwidth, rheight, page);
-			} else if (rwidth / 72 > 50 && rheight / 72 > 50) {
-				img = page.getImage(rwidth / 20, rheight / 20, rect, null, true, true);
-				this.previewPanel.preview(img, rwidth, rheight, page);
-			} else if (rwidth / 72 > 20 && rheight / 72 > 20) {
-				img = page.getImage(rwidth / 10, rheight / 10, rect, null, true, true);
-				this.previewPanel.preview(img, rwidth, rheight, page);
-			} else if ((rwidth / 72 > 15 && rwidth / 72 < 20) && (rheight / 72 > 15 && rheight / 72 < 20)) {
-				img = page.getImage(rwidth / 4, rheight / 4, rect, null, true, true);
-				this.previewPanel.preview(img, rwidth, rheight, page);
-			} else if (rwidth / 72 < 5 && rheight / 72 < 5) {
-				img = page.getImage(rwidth, rheight, rect, null, true, true);
-				this.previewPanel.preview(img, rwidth, rheight, page);
-			} else if (rwidth / 72 < 15 && rheight / 72 < 15) {
-				img = page.getImage(rwidth / 2, rheight / 2, rect, null, true, true);
-				this.previewPanel.preview(img, rwidth, rheight, page);
-			}
+	private void updatePreview(Node node) throws IOException {
+		if (node == null || !(node.getUserObject() instanceof PageUserObject)) {
+			previewPanel.clearPreview();
+			return;
 		}
 
+		final FileUserObject userObject = (FileUserObject) node.getParent().getUserObject();
+		String parent = userObject.getKey();
+
+		final Image previewImage;
+		if (userObject.getSubType().equals(FileUserObject.SubType.PDF)) {
+			PDDocument document = PDDocument.load(new File(parent));
+			PDFRenderer pdfRenderer = new PDFRenderer(document);
+			previewImage = pdfRenderer.renderImage(Integer.parseInt(node.getUserObject().getKey())-1);
+			document.close();
+		} else {
+			previewImage = JImageParser.readAwtImage(parent);
+		}
+
+		this.previewPanel.preview(previewImage);
 	}
 
 	private void expandButtonListenerAction() {
@@ -383,6 +377,7 @@ public class TreeTableComponent extends JPanel {
 	}
 
 	public void clear() {
+		this.previewPanel.clearPreview();
 		this.model.clear();
 	}
 
@@ -401,7 +396,7 @@ public class TreeTableComponent extends JPanel {
 		SwingUtilities.invokeLater(() -> TreeTableComponent.this.treeTable.updateUI());
 	}
 
-	public static byte[] loadFile(String sourcePath) throws IOException 
+	public byte[] loadFile(String sourcePath) throws IOException
 	{
 		try (InputStream inputStream = new FileInputStream(sourcePath)) 
 		{
@@ -409,7 +404,7 @@ public class TreeTableComponent extends JPanel {
 		}  
 	}
 
-	public static byte[] readFully(InputStream stream) throws IOException 
+	public byte[] readFully(InputStream stream) throws IOException
 	{
 		//byte[] buffer = new byte[8192];
 		byte[] buffer = new byte[8388608];
