@@ -271,6 +271,7 @@ public class TreeTableComponent extends JPanel {
 
 	private void updatePreview(Node node) throws IOException {
 		if (!(node.getUserObject() instanceof PageUserObject)) {
+			previewPanel.clearPreview();
 			return;
 		}
 
@@ -283,9 +284,8 @@ public class TreeTableComponent extends JPanel {
 		int pageHeight = (int) (page.getBBox().getHeight());
 		Rectangle rect = new Rectangle(0, 0, pageWidth, pageHeight);
 
-		float ratio = (float) pageWidth / this.previewPanel.getVisibleWidth();
-		Image img = page.getImage((int) (pageWidth / ratio), (int) (pageHeight / ratio), rect, null, true, true);
-		this.previewPanel.preview(img, pageWidth, pageHeight, page);
+		Image img = page.getImage(pageWidth, pageHeight, rect, null, true, true);
+		this.previewPanel.preview(img);
 	}
 
 	private void expandButtonListenerAction() {
