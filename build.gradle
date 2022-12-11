@@ -21,10 +21,10 @@ tasks.withType(JavaExec) {
 
 repositories {
     mavenCentral()
-    
-    // Roman Numerals
+
+    // JAI
     maven {
-        url "http://maven.icm.edu.pl/artifactory/repo"
+        url "https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/"
         allowInsecureProtocol = true
     }
     
@@ -73,7 +73,6 @@ dependencies {
     implementation group: 'org.apache.sanselan', name: 'sanselan', version: '0.97-incubator'
     implementation group: 'com.rover12421.opensource', name: 'JFontChooser', version: '1.0.5'
     implementation group: 'com.jgoodies', name: 'jgoodies-forms', version: '1.6.0'
-    implementation group: 'com.frequal.romannumerals', name: 'roman-numerals', version: '1.0'
     implementation group: 'com.esotericsoftware', name: 'minlog', version: '1.3.0'
     implementation group: 'org.bouncycastle', name: 'bcmail-jdk16', version: '1.46'
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk16', version: '1.46'
