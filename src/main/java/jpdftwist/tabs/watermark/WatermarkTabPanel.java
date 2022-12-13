@@ -15,7 +15,7 @@ import javax.swing.table.TableModel;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-import jpdftwist.gui.TableComponent;
+import jpdftwist.gui.components.table.TableComponent;
 import jpdftwist.tabs.watermark.optionpanels.WatermarkBatesPanel;
 import jpdftwist.tabs.watermark.optionpanels.WatermarkImagePanel;
 import jpdftwist.tabs.watermark.optionpanels.WatermarkOptionsPanel;

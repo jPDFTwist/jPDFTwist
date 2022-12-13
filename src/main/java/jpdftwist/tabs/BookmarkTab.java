@@ -29,7 +29,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import jpdftwist.core.PdfBookmark;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.gui.MainForm;
-import jpdftwist.gui.TableComponent;
+import jpdftwist.gui.components.table.TableComponent;
 import jpdftwist.gui.dialogs.OutputProgressDialog;
 import jpdftwist.tabs.input.FileChooser;
 import jpdftwist.utils.PdfParser;

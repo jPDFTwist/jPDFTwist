@@ -15,7 +15,7 @@ import com.jgoodies.forms.layout.FormLayout;
 
 import jpdftwist.core.PDFTwist;
 import jpdftwist.gui.MainForm;
-import jpdftwist.gui.TableComponent;
+import jpdftwist.gui.components.table.TableComponent;
 import jpdftwist.gui.dialogs.OutputProgressDialog;
 
 public class DocumentInfoTab extends Tab {

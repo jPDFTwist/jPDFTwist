@@ -29,7 +29,7 @@ import com.jgoodies.forms.layout.RowSpec;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.ViewerPreference;
 import jpdftwist.gui.MainForm;
-import jpdftwist.gui.TableComponent;
+import jpdftwist.gui.components.table.TableComponent;
 import jpdftwist.gui.dialogs.OutputProgressDialog;
 
 public class InteractionTab extends Tab {

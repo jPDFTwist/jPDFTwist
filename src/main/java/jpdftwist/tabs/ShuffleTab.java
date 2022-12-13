@@ -27,7 +27,7 @@ import jpdftwist.core.ShuffleRule;
 import jpdftwist.core.ShuffleRule.PageBase;
 import jpdftwist.gui.MainForm;
 import jpdftwist.gui.PreviewPanel;
-import jpdftwist.gui.TableComponent;
+import jpdftwist.gui.components.table.TableComponent;
 import jpdftwist.gui.dialogs.OutputProgressDialog;
 
 public class ShuffleTab extends Tab {
