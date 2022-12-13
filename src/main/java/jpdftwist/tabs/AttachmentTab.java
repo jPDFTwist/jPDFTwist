@@ -15,24 +15,24 @@ import javax.swing.JList;
 import com.itextpdf.text.DocumentException;
 
 import jpdftwist.core.PDFTwist;
-import jpdftwist.gui.MainForm;
+import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.dialogs.OutputProgressDialog;
 
 public class AttachmentTab extends Tab {
 
 	private JButton add, remove;
 	private JList list;
-	private MainForm mainForm;
+	private MainWindow mainWindow;
 	private DefaultListModel lm;
 
-	public AttachmentTab(MainForm mf) {
+	public AttachmentTab(MainWindow mf) {
 		super(new BorderLayout());
-		mainForm = mf;
+		mainWindow = mf;
 		add(add = new JButton("Add attachment..."), BorderLayout.NORTH);
 		add.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser f = new JFileChooser();
-				if (f.showOpenDialog(mainForm) == JFileChooser.APPROVE_OPTION) {
+				if (f.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) {
 					lm.addElement(f.getSelectedFile());
 				}
 			}

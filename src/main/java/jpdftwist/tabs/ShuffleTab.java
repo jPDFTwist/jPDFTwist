@@ -25,7 +25,7 @@ import jpdftwist.core.PageDimension;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.ShuffleRule;
 import jpdftwist.core.ShuffleRule.PageBase;
-import jpdftwist.gui.MainForm;
+import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.PreviewPanel;
 import jpdftwist.gui.components.table.TableComponent;
 import jpdftwist.gui.dialogs.OutputProgressDialog;
@@ -43,9 +43,9 @@ public class ShuffleTab extends Tab {
 	private int shufflePagesPerPass;
 	private ShuffleRule[] shuffleRules;
 
-	private final MainForm mf;
+	private final MainWindow mf;
 
-	public ShuffleTab(MainForm mf) {
+	public ShuffleTab(MainWindow mf) {
 		super(new BorderLayout());
 		this.mf = mf;
 		JPanel panel1 = new JPanel(new FormLayout("f:p, f:p:g, f:p, f:p", "f:p, f:p, f:p, 10dlu, f:p, f:p, f:p:g"));

@@ -14,21 +14,21 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import jpdftwist.core.PDFTwist;
-import jpdftwist.gui.MainForm;
+import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.components.table.TableComponent;
 import jpdftwist.gui.dialogs.OutputProgressDialog;
 
 public class DocumentInfoTab extends Tab {
 
-	private final MainForm mainForm;
+	private final MainWindow mainWindow;
 
 	private JCheckBox infoChange;
 	private TableComponent infoEntries;
 	private JButton infoLoad, infoAdd;
 
-	public DocumentInfoTab(MainForm mf) {
+	public DocumentInfoTab(MainWindow mf) {
 		super(new FormLayout("f:p:g, f:p", "f:p, f:p, f:p:g"));
-		this.mainForm = mf;
+		this.mainWindow = mf;
 		CellConstraints CC = new CellConstraints();
 		this.add(infoChange = new JCheckBox("Change Document Info"), CC.xy(1, 1));
 		infoChange.addActionListener(new ActionListener() {

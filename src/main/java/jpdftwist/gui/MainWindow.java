@@ -26,37 +26,29 @@ import jpdftwist.tabs.input.treetable.UserObjectValue;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 
-public class MainForm extends JFrame {
+public class MainWindow extends JFrame {
 
     private InputTab inputTab;
     private OutputTab outputTab;
     private WatermarkPlusTab watermarkPlusTab;
 
-
-    private Tab[] tabs = {
-        // inputTab,
+    private final Tab[] tabs = {
         new PageSizeTab(this), new WatermarkTab(this), new ShuffleTab(this),
-        // new PageNumberTab(this),
         new BookmarkTab(this), new Forms(this), new AttachmentTab(this), new InteractionTab(this),
         new DocumentInfoTab(this), new EncryptSignTab(this),};
 
-    private JProgressBar heapMemoryProgressBar;
-
-
-    public MainForm() {
+    public MainWindow() {
         super("JPDFTwist " + Main.VERSION);
         initGUI();
     }
 
     private void initGUI() {
-        setIconImage(Toolkit.getDefaultToolkit().createImage(MainForm.class.getResource("/icon.png")));
+        setIconImage(Toolkit.getDefaultToolkit().createImage(MainWindow.class.getResource("/icon.png")));
 
         UserObjectValue.initMap();
 
@@ -87,33 +79,33 @@ public class MainForm extends JFrame {
 
         JButton run;
         getContentPane().add(run = new JButton("Run"), CC.xy(2, 2));
-        run.addActionListener(new ActionListener() {
-
-            public void actionPerformed(ActionEvent e) {
-                new Thread(new Runnable() {
-
-                    public void run() {
-                        runTwist();
-                    }
-                }).start();
-            }
-        });
+        run.addActionListener(e -> new Thread(this::runTwist).start());
         JButton quit;
         getContentPane().add(quit = new JButton("Quit"), CC.xy(3, 2));
-        quit.addActionListener(new ActionListener() {
+        quit.addActionListener(e -> dispose());
 
-            public void actionPerformed(ActionEvent e) {
-                dispose();
+        JProgressBar heapMemoryProgressBar = new JProgressBar();
+        heapMemoryProgressBar.setStringPainted(true);
+        heapMemoryProgressBar.setToolTipText("Commit Size / Max Heap Size");
+        heapMemoryProgressBar.setForeground(new Color(95, 158, 160));
 
-            }
+        new Timer(10, e1 -> {
+            MemoryMXBean memBean = ManagementFactory.getMemoryMXBean();
+            MemoryUsage heapMemoryUsage = memBean.getHeapMemoryUsage();
 
-        });
+            float maxHeap = heapMemoryUsage.getMax() / 1048576.f;
+            float committedHeap = heapMemoryUsage.getCommitted() / 1048576.f;
+
+            heapMemoryProgressBar.setMaximum((int) maxHeap);
+            heapMemoryProgressBar.setValue((int) committedHeap);
+            heapMemoryProgressBar.setString("Commit Size = " + committedHeap + " MB / " + maxHeap + " MB");
+        }).start();
+        getContentPane().add(heapMemoryProgressBar, "1, 3, 3, 1, fill, center");
         pack();
         getRootPane().setDefaultButton(run);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
-        getContentPane().add(getHeapMemoryProgressBar(), "1, 3, 3, 1, fill, center");
     }
 
     protected void runTwist() {
@@ -157,10 +149,7 @@ public class MainForm extends JFrame {
                 outputProgress.dispose();
                 JOptionPane.showMessageDialog(this, "Finished", "JPDFTwist", JOptionPane.INFORMATION_MESSAGE);
             }
-        } catch (DocumentException ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (IOException ex) {
+        } catch (DocumentException | IOException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } catch (OutOfMemoryError ex) {
@@ -183,28 +172,5 @@ public class MainForm extends JFrame {
     public InputTab getInputTab() {
         return inputTab;
     }
-
-    private JProgressBar getHeapMemoryProgressBar() {
-        if (heapMemoryProgressBar == null) {
-            heapMemoryProgressBar = new JProgressBar();
-            heapMemoryProgressBar.setStringPainted(true);
-            heapMemoryProgressBar.setToolTipText("Commit Size / Max Heap Size");
-            heapMemoryProgressBar.setForeground(new Color(95, 158, 160));
-
-            new Timer(10, e1 -> {
-				MemoryMXBean memBean = ManagementFactory.getMemoryMXBean();
-				MemoryUsage heapMemoryUsage = memBean.getHeapMemoryUsage();
-
-				float maxHeap = heapMemoryUsage.getMax() / 1048576.f;
-				float committedHeap = heapMemoryUsage.getCommitted() / 1048576.f;
-
-				heapMemoryProgressBar.setMaximum((int) maxHeap);
-				heapMemoryProgressBar.setValue((int) committedHeap);
-				heapMemoryProgressBar.setString("Commit Size = " + committedHeap + " MB / " + maxHeap + " MB");
-			}).start();
-        }
-        return heapMemoryProgressBar;
-    }
-
 
 }

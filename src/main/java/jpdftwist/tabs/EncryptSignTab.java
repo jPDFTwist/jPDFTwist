@@ -17,12 +17,12 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 import jpdftwist.core.PDFTwist;
-import jpdftwist.gui.MainForm;
+import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.dialogs.OutputProgressDialog;
 
 public class EncryptSignTab extends Tab {
 
-	private final MainForm mainForm;
+	private final MainWindow mainWindow;
 
 	private JCheckBox signDocument, encryptDocument, noEncryptMetadata;
 	private JComboBox  encryptMode;
@@ -36,9 +36,9 @@ public class EncryptSignTab extends Tab {
 	private JComboBox certLevel;
 	
 
-	public EncryptSignTab(MainForm mf) {
+	public EncryptSignTab(MainWindow mf) {
 		super(new FormLayout("f:p, f:p:g, f:p", "f:p, f:p, f:p, f:p, f:p, f:p, 10dlu, f:p, f:p, f:p, f:p, f:p, f:p, f:p:g"));
-		this.mainForm = mf;
+		this.mainWindow = mf;
 		CellConstraints CC = new CellConstraints();
 		this.add(encryptDocument = new JCheckBox("Encrypt PDF"), CC.xyw(1,1,2));
 		encryptDocument.addActionListener(new ActionListener() {

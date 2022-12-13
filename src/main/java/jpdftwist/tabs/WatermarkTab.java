@@ -20,14 +20,14 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import jpdftwist.core.PDFTwist;
-import jpdftwist.gui.MainForm;
+import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.components.table.TableComponent;
 import jpdftwist.gui.dialogs.OutputProgressDialog;
 import jpdftwist.tabs.input.FileChooser;
 
 public class WatermarkTab extends Tab {
 
-	private MainForm mainForm;
+	private MainWindow mainWindow;
 	private JCheckBox pdfWatermark, textWatermark, pageNumbers, watermarkUseColor, useMask, differentPageNumbers;
 	private JTextField filename, pgnoSize, pgnoHOffset, pgnoVOffset, maskText;
 	private JTextField watermarkText, watermarkSize, watermarkOpacity;
@@ -35,10 +35,10 @@ public class WatermarkTab extends Tab {
 	private JButton fileButton, watermarkColor, load;
 	private TableComponent pageNumberRanges;
 
-	public WatermarkTab(MainForm mf) {
+	public WatermarkTab(MainWindow mf) {
 		super(new FormLayout("f:p, f:p:g, 80dlu, f:p",
 				"f:p, f:p, 10dlu, f:p, f:p, f:p, f:p, f:p, 10dlu, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p:g"));
-		mainForm = mf;
+		mainWindow = mf;
 		CellConstraints CC = new CellConstraints();
 		add(pdfWatermark = new JCheckBox("Add first page of PDF as background watermark"), CC.xyw(1, 1, 4));
 		pdfWatermark.addActionListener(new ActionListener() {
@@ -55,7 +55,7 @@ public class WatermarkTab extends Tab {
 				FileChooser fileChooser = new FileChooser();
 
 				JFileChooser pdfChooser = fileChooser.getFileChooser();
-				if (pdfChooser.showOpenDialog(mainForm) == JFileChooser.APPROVE_OPTION) {
+				if (pdfChooser.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) {
 					filename.setText(pdfChooser.getSelectedFile().getAbsolutePath());
 				}
 			}
@@ -78,7 +78,7 @@ public class WatermarkTab extends Tab {
 		watermarkColor.setBackground(Color.BLACK);
 		watermarkColor.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Color c = JColorChooser.showDialog(mainForm, "Select Color", watermarkColor.getBackground());
+				Color c = JColorChooser.showDialog(mainWindow, "Select Color", watermarkColor.getBackground());
 				if (c != null) {
 					watermarkColor.setBackground(c);
 				}

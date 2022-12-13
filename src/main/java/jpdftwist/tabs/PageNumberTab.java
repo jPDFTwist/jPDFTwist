@@ -16,7 +16,7 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import jpdftwist.core.PDFTwist;
-import jpdftwist.gui.MainForm;
+import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.components.table.TableComponent;
 import jpdftwist.gui.dialogs.OutputProgressDialog;
 
@@ -29,7 +29,7 @@ public class PageNumberTab extends Tab {
 	private static final String[] NUMBER_STYLES = new String[] { "1, 2, 3", "I, II, III", "i, ii, iii", "A, B, C",
 			"a, b, c", "Empty" };
 
-	public PageNumberTab(MainForm mf) {
+	public PageNumberTab(MainWindow mf) {
 		super(new FormLayout("f:p:g, f:p", "f:p, f:p, f:p:g"));
 		CellConstraints CC = new CellConstraints();
 		add(changePageNumbers = new JCheckBox("Change page numbers"), CC.xy(1, 1));
@@ -93,10 +93,10 @@ public class PageNumberTab extends Tab {
 	public static class PageNumberLoadAction implements ActionListener {
 
 		private final TableComponent pageNumberRanges;
-		private final MainForm mainForm;
+		private final MainWindow mainWindow;
 
-		public PageNumberLoadAction(MainForm mainForm, TableComponent pageNumberRanges) {
-			this.mainForm = mainForm;
+		public PageNumberLoadAction(MainWindow mainWindow, TableComponent pageNumberRanges) {
+			this.mainWindow = mainWindow;
 			this.pageNumberRanges = pageNumberRanges;
 		}
 

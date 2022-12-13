@@ -23,12 +23,12 @@ import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
 import jpdftwist.core.PDFTwist;
-import jpdftwist.gui.MainForm;
+import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.dialogs.OutputProgressDialog;
 
 public class Forms extends Tab {
 
-	private MainForm mainForm;
+	private MainWindow mainWindow;
 
 	private JCheckBox changeforms;
 	private JButton formLoad;
@@ -39,9 +39,9 @@ public class Forms extends Tab {
 	private JButton export_1;
 	private JButton export_2;
 
-	public Forms(MainForm mf) {
+	public Forms(MainWindow mf) {
 		super(new BorderLayout());
-		mainForm = mf;
+		mainWindow = mf;
 		initGUI();
 	}
 

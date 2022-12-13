@@ -11,7 +11,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
 
-import jpdftwist.gui.MainForm;
+import jpdftwist.gui.MainWindow;
 
 public class Main {
 	public static final String VERSION = "1.1 Stage XIV";
@@ -65,7 +65,7 @@ public class Main {
 			exceptionDialog.setLocationRelativeTo(null);
 			exceptionDialog.setVisible(true);
 		});
-		new MainForm();
+		new MainWindow();
 	}
 
 	private static String findMissingLibName() {

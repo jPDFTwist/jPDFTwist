@@ -28,7 +28,7 @@ import com.jgoodies.forms.layout.FormLayout;
 
 import jpdftwist.core.PdfBookmark;
 import jpdftwist.core.PDFTwist;
-import jpdftwist.gui.MainForm;
+import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.components.table.TableComponent;
 import jpdftwist.gui.dialogs.OutputProgressDialog;
 import jpdftwist.tabs.input.FileChooser;
@@ -40,11 +40,11 @@ public class BookmarkTab extends Tab {
 	private JButton importPDF, importCSV, exportCSV;
 	private TableComponent bookmarks;
 	private JCheckBox changeBookmarks;
-	private final MainForm mainForm;
+	private final MainWindow mainWindow;
 
-	public BookmarkTab(MainForm mf) {
+	public BookmarkTab(MainWindow mf) {
 		super(new FormLayout("f:p:g, f:p", "f:p, f:p, f:p:g"));
-		this.mainForm = mf;
+		this.mainWindow = mf;
 		CellConstraints CC = new CellConstraints();
 		add(changeBookmarks = new JCheckBox("Change chapter bookmarks"), CC.xy(1, 1));
 		changeBookmarks.addActionListener(new ActionListener() {
@@ -55,7 +55,7 @@ public class BookmarkTab extends Tab {
 		add(load = new JButton("Load from document"), CC.xy(2, 1));
 		load.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				List<PdfBookmark> bm = mainForm.getInputTab().loadBookmarks();
+				List<PdfBookmark> bm = mainWindow.getInputTab().loadBookmarks();
 				bookmarks.clear();
 				appendBookmarks(bm);
 			}
@@ -67,7 +67,7 @@ public class BookmarkTab extends Tab {
 				FileChooser fileChooser = new FileChooser();
 
 				JFileChooser chooser = fileChooser.getFileChooser();
-				if (chooser.showOpenDialog(mainForm) == JFileChooser.APPROVE_OPTION) {
+				if (chooser.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) {
 					try {
 						bookmarks.clear();
 						PdfReader reader = PdfParser.open(chooser.getSelectedFile().getAbsolutePath(), false);
@@ -76,7 +76,7 @@ public class BookmarkTab extends Tab {
 						reader.close();
 					} catch (Exception ex) {
 						ex.printStackTrace();
-						JOptionPane.showMessageDialog(mainForm, ex.getMessage(), "Error reading file",
+						JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Error reading file",
 								JOptionPane.ERROR_MESSAGE);
 					}
 				}
@@ -87,7 +87,7 @@ public class BookmarkTab extends Tab {
 
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser jfc = new JFileChooser();
-				if (jfc.showOpenDialog(mainForm) == JFileChooser.APPROVE_OPTION) {
+				if (jfc.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) {
 					importCSV(jfc.getSelectedFile());
 				}
 			}
@@ -97,10 +97,10 @@ public class BookmarkTab extends Tab {
 		exportCSV.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser jfc = new JFileChooser();
-				if (jfc.showSaveDialog(mainForm) == JFileChooser.APPROVE_OPTION) {
+				if (jfc.showSaveDialog(mainWindow) == JFileChooser.APPROVE_OPTION) {
 					File f = jfc.getSelectedFile();
 					if (f.exists()) {
-						if (JOptionPane.showConfirmDialog(mainForm, "Overwrite existing file?", "Confirm Overwrite",
+						if (JOptionPane.showConfirmDialog(mainWindow, "Overwrite existing file?", "Confirm Overwrite",
 								JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.NO_OPTION) {
 							return;
 						}
@@ -134,7 +134,7 @@ public class BookmarkTab extends Tab {
 			appendBookmarks(bmks);
 		} catch (IOException ex) {
 			ex.printStackTrace();
-			JOptionPane.showMessageDialog(mainForm, ex.getMessage(), "Error reading file", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Error reading file", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -149,7 +149,7 @@ public class BookmarkTab extends Tab {
 			w.close();
 		} catch (IOException ex) {
 			ex.printStackTrace();
-			JOptionPane.showMessageDialog(mainForm, ex.getMessage(), "Error reading file", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Error reading file", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 

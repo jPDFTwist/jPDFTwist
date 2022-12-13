@@ -32,7 +32,7 @@ import com.jgoodies.forms.layout.RowSpec;
 
 import jpdftwist.core.PdfToImage;
 import jpdftwist.core.PDFTwist;
-import jpdftwist.gui.MainForm;
+import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.dialogs.OutputProgressDialog;
 import jpdftwist.tabs.input.FileChooser;
 
@@ -47,7 +47,7 @@ public class OutputTab extends Tab {
 	private JLabel colorLabel, compressionLabel, qualityLabel, warning;
 	private JComboBox fileType, colorMode, compressionType;
 	private JPanel imagePanel;
-	private final MainForm mainForm;
+	private final MainWindow mainWindow;
 	private String currentExtension = ".pdf";
 	private JPanel panel;
 	private JRadioButton rdbtnSplitByPage;
@@ -73,9 +73,9 @@ public class OutputTab extends Tab {
 	private JComboBox textField_8;
 	
 	
-	public OutputTab (MainForm mf) {
+	public OutputTab (MainWindow mf) {
 		super(new FormLayout("f:p, f:p:g, f:p", "f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p:g" + ""));
-		this.mainForm = mf;
+		this.mainWindow = mf;
 		CellConstraints CC = new CellConstraints();
 		this.add(new JLabel("Filename:"), CC.xy(1, 1));
 		this.add(outputFile = new JTextField(), CC.xy(2, 1));
@@ -88,7 +88,7 @@ public class OutputTab extends Tab {
 				FileChooser fileChooser = new FileChooser();
 				JFileChooser pdfChooser = fileChooser.getFileChooser();
 				
-				if (pdfChooser.showSaveDialog(mainForm) != JFileChooser.APPROVE_OPTION) {
+				if (pdfChooser.showSaveDialog(mainWindow) != JFileChooser.APPROVE_OPTION) {
 					return;
 				}
 				String filename = pdfChooser.getSelectedFile().getAbsolutePath();
@@ -97,7 +97,7 @@ public class OutputTab extends Tab {
 				}
 				filename = setCorrectExtension(filename);
 				if (new File(filename).exists()) {
-					if (JOptionPane.showConfirmDialog(mainForm, "Overwrite existing file?", "Confirm Overwrite",
+					if (JOptionPane.showConfirmDialog(mainWindow, "Overwrite existing file?", "Confirm Overwrite",
 							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.NO_OPTION)
 						return;
 				}
@@ -306,7 +306,7 @@ public class OutputTab extends Tab {
 
 			
 			public void itemStateChanged(ItemEvent e) {
-				mainForm.getInputTab().setUseTempFiles(tempfiles.isSelected());
+				mainWindow.getInputTab().setUseTempFiles(tempfiles.isSelected());
 			}
 		});
 		this.add(tempfiles, CC.xyw(1, 9, 3));
@@ -331,10 +331,10 @@ public class OutputTab extends Tab {
 			PdfToImage.setJavaLibraryPath();
 		} catch (NoSuchFieldException ex) {
 			ex.printStackTrace();
-			JOptionPane.showMessageDialog(mainForm, ex.getMessage(), "Error reading file", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Error reading file", JOptionPane.ERROR_MESSAGE);
 		} catch (IllegalAccessException ex) {
 			ex.printStackTrace();
-			JOptionPane.showMessageDialog(mainForm, ex.getMessage(), "Error reading file", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Error reading file", JOptionPane.ERROR_MESSAGE);
 		}
 		String sharedLibraryName = PdfToImage.checkForLibraries();
 		if (sharedLibraryName != null) {
@@ -874,13 +874,13 @@ public class OutputTab extends Tab {
 		if (outputFile.getText().length() == 0)
 			throw new IOException("No output file selected");
 		String outputFileName = outputFile.getText();
-		if (mainForm.getInputTab().getBatchLength() > 1) {
+		if (mainWindow.getInputTab().getBatchLength() > 1) {
 			if (!outputFileName.contains("<F>") && !outputFileName.contains("<FX>") && !outputFileName.contains("<P>")
 					&& !outputFileName.contains("<#>")) {
 				throw new IOException("Variables in output file name required for batch mode");
 			}
 		}
-		mainForm.getInputTab().setUseTempFiles(tempfiles.isSelected());
+		mainWindow.getInputTab().setUseTempFiles(tempfiles.isSelected());
 	}
 
 	

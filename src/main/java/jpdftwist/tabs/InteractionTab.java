@@ -28,7 +28,7 @@ import com.jgoodies.forms.layout.RowSpec;
 
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.ViewerPreference;
-import jpdftwist.gui.MainForm;
+import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.components.table.TableComponent;
 import jpdftwist.gui.dialogs.OutputProgressDialog;
 
@@ -39,7 +39,7 @@ public class InteractionTab extends Tab {
 	private JCheckBox addTransitions, addPrefs;
 	private JComboBox pageMode, pageLayout;
 
-	public InteractionTab(MainForm mf) {
+	public InteractionTab(MainWindow mf) {
 		super(new BorderLayout());
 		JPanel panel1 = new JPanel(new BorderLayout());
 		panel1.add(addTransitions = new JCheckBox("Add page transitions"), BorderLayout.NORTH);

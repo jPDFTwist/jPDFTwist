@@ -24,7 +24,7 @@ import jpdftwist.core.PDFTwist.PageBox;
 import jpdftwist.core.UnitTranslator;
 import jpdftwist.core.tabparams.RotateParameters;
 import jpdftwist.core.tabparams.ScaleParameters;
-import jpdftwist.gui.MainForm;
+import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.dialogs.OutputProgressDialog;
 import jpdftwist.gui.dialogs.ScaleCustomSizeDialog;
 
@@ -316,7 +316,7 @@ public class PageSizeTab extends Tab {
 		preserveHyperlinks = new JCheckBox("Preserve annotations (EXPERIMENTAL)");
 	}
 
-	public PageSizeTab(MainForm mf) {
+	public PageSizeTab(MainWindow mf) {
 		super(new FormLayout("f:p, f:p:g, 30dlu, f:p, 30dlu, f:p, f:p, f:p",
 				"f:p, 10dlu,f:p,f:p,f:p, f:p, f:p, 10dlu, f:p, 10dlu, f:p,f:p, f:p,f:p, f:p,f:p,f:p,f:p, 10dlu, f:p, f:p:g"));
 
