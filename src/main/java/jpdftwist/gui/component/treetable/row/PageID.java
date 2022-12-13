@@ -1,4 +1,4 @@
-package jpdftwist.gui.components.treetable.row;
+package jpdftwist.gui.component.treetable.row;
 
 class PageID {
 	private static Integer id;

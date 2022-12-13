@@ -1,34 +1,22 @@
 package jpdftwist.tabs;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.IOException;
-
-import javax.swing.DefaultCellEditor;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.JSplitPane;
-import javax.swing.JTextField;
-
 import com.itextpdf.text.DocumentException;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-
-import jpdftwist.core.PageDimension;
 import jpdftwist.core.PDFTwist;
+import jpdftwist.core.PageDimension;
 import jpdftwist.core.ShuffleRule;
 import jpdftwist.core.ShuffleRule.PageBase;
 import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.PreviewPanel;
-import jpdftwist.gui.components.table.TableComponent;
-import jpdftwist.gui.dialogs.OutputProgressDialog;
+import jpdftwist.gui.component.table.TableComponent;
+import jpdftwist.gui.dialog.OutputProgressDialog;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
 
 public class ShuffleTab extends Tab {
 

@@ -1,22 +1,17 @@
 package jpdftwist.tabs;
 
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+import jpdftwist.core.PDFTwist;
+import jpdftwist.gui.MainWindow;
+import jpdftwist.gui.component.table.TableComponent;
+import jpdftwist.gui.dialog.OutputProgressDialog;
+
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-
-import jpdftwist.core.PDFTwist;
-import jpdftwist.gui.MainWindow;
-import jpdftwist.gui.components.table.TableComponent;
-import jpdftwist.gui.dialogs.OutputProgressDialog;
 
 public class DocumentInfoTab extends Tab {
 

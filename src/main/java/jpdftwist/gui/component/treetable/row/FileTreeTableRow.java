@@ -1,9 +1,9 @@
-package jpdftwist.gui.components.treetable.row;
+package jpdftwist.gui.component.treetable.row;
 
 import jpdftwist.core.IntegerList;
-import jpdftwist.gui.components.treetable.TreeTableColumn;
-import jpdftwist.gui.components.treetable.TreeTableRow;
-import jpdftwist.gui.components.treetable.TreeTableRowType;
+import jpdftwist.gui.component.treetable.TreeTableColumn;
+import jpdftwist.gui.component.treetable.TreeTableRow;
+import jpdftwist.gui.component.treetable.TreeTableRowType;
 
 public abstract class FileTreeTableRow extends TreeTableRow {
 

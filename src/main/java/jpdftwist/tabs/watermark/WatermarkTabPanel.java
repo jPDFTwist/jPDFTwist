@@ -4,26 +4,23 @@
  */
 package jpdftwist.tabs.watermark;
 
-import java.awt.Dimension;
-
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.table.TableModel;
-
 import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
-
-import jpdftwist.gui.components.table.TableComponent;
+import com.jgoodies.forms.layout.FormSpecs;
+import com.jgoodies.forms.layout.RowSpec;
+import jpdftwist.gui.component.table.TableComponent;
 import jpdftwist.tabs.watermark.optionpanels.WatermarkBatesPanel;
 import jpdftwist.tabs.watermark.optionpanels.WatermarkImagePanel;
 import jpdftwist.tabs.watermark.optionpanels.WatermarkOptionsPanel;
 import jpdftwist.tabs.watermark.optionpanels.WatermarkRepeatedTextPanel;
 import jpdftwist.tabs.watermark.optionpanels.WatermarkVariableTextPanel;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormSpecs;
-import com.jgoodies.forms.layout.RowSpec;
+
+import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableModel;
+import java.awt.*;
 
 /**
  *

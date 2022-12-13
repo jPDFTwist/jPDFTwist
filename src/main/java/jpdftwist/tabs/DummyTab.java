@@ -1,11 +1,10 @@
 package jpdftwist.tabs;
 
-import java.awt.BorderLayout;
-
-import javax.swing.JLabel;
-
 import jpdftwist.core.PDFTwist;
-import jpdftwist.gui.dialogs.OutputProgressDialog;
+import jpdftwist.gui.dialog.OutputProgressDialog;
+
+import javax.swing.*;
+import java.awt.*;
 
 public class DummyTab extends Tab {
 

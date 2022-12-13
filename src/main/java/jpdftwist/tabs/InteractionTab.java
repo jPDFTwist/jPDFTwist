@@ -1,23 +1,5 @@
 package jpdftwist.tabs;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.swing.DefaultCellEditor;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.JSplitPane;
-import javax.swing.table.TableColumn;
-
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfObject;
@@ -25,12 +7,21 @@ import com.itextpdf.text.pdf.PdfWriter;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
-
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.ViewerPreference;
 import jpdftwist.gui.MainWindow;
-import jpdftwist.gui.components.table.TableComponent;
-import jpdftwist.gui.dialogs.OutputProgressDialog;
+import jpdftwist.gui.component.table.TableComponent;
+import jpdftwist.gui.dialog.OutputProgressDialog;
+
+import javax.swing.*;
+import javax.swing.table.TableColumn;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class InteractionTab extends Tab {
 	private JCheckBox[] optionalPrefCheck = new JCheckBox[ViewerPreference.SUPPORTED_VIEWER_PREFERENCES.length];

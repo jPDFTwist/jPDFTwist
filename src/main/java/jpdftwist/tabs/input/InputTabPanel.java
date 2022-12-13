@@ -4,11 +4,11 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import jpdftwist.core.IntegerList;
 import jpdftwist.gui.Preview;
-import jpdftwist.gui.components.treetable.Node;
-import jpdftwist.gui.components.treetable.TreeTableComponent;
-import jpdftwist.gui.components.treetable.TreeTableModel;
-import jpdftwist.gui.components.treetable.TreeTableRowType;
-import jpdftwist.gui.components.treetable.row.FolderTreeTableRow;
+import jpdftwist.gui.component.treetable.Node;
+import jpdftwist.gui.component.treetable.TreeTableComponent;
+import jpdftwist.gui.component.treetable.TreeTableModel;
+import jpdftwist.gui.component.treetable.TreeTableRowType;
+import jpdftwist.gui.component.treetable.row.FolderTreeTableRow;
 import org.jdesktop.swingx.treetable.MutableTreeTableNode;
 
 import javax.swing.*;

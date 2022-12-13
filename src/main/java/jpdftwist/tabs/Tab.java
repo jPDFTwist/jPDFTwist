@@ -1,14 +1,12 @@
 package jpdftwist.tabs;
 
-import java.awt.LayoutManager;
-import java.io.IOException;
-
-import javax.swing.JPanel;
-
 import com.itextpdf.text.DocumentException;
-
 import jpdftwist.core.PDFTwist;
-import jpdftwist.gui.dialogs.OutputProgressDialog;
+import jpdftwist.gui.dialog.OutputProgressDialog;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.IOException;
 
 public abstract class Tab extends JPanel {
 

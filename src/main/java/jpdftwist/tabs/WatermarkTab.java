@@ -1,29 +1,19 @@
 package jpdftwist.tabs;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.IOException;
-
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JColorChooser;
-import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JSeparator;
-import javax.swing.JTextField;
-
 import com.itextpdf.text.DocumentException;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-
 import jpdftwist.core.PDFTwist;
 import jpdftwist.gui.MainWindow;
-import jpdftwist.gui.components.table.TableComponent;
-import jpdftwist.gui.dialogs.OutputProgressDialog;
+import jpdftwist.gui.component.table.TableComponent;
+import jpdftwist.gui.dialog.OutputProgressDialog;
 import jpdftwist.tabs.input.FileChooser;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
 
 public class WatermarkTab extends Tab {
 

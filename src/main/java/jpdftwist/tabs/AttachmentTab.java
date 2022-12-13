@@ -1,22 +1,16 @@
 package jpdftwist.tabs;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
+import com.itextpdf.text.DocumentException;
+import jpdftwist.core.PDFTwist;
+import jpdftwist.gui.MainWindow;
+import jpdftwist.gui.dialog.OutputProgressDialog;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JList;
-
-import com.itextpdf.text.DocumentException;
-
-import jpdftwist.core.PDFTwist;
-import jpdftwist.gui.MainWindow;
-import jpdftwist.gui.dialogs.OutputProgressDialog;
 
 public class AttachmentTab extends Tab {
 

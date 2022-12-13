@@ -1,32 +1,25 @@
 package jpdftwist.tabs;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.math.BigDecimal;
-
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JSeparator;
-import javax.swing.JTextField;
-
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Rectangle;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-
 import jpdftwist.core.NumberField;
-import jpdftwist.core.PageDimension;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.PDFTwist.PageBox;
+import jpdftwist.core.PageDimension;
 import jpdftwist.core.UnitTranslator;
 import jpdftwist.core.tabparams.RotateParameters;
 import jpdftwist.core.tabparams.ScaleParameters;
 import jpdftwist.gui.MainWindow;
-import jpdftwist.gui.dialogs.OutputProgressDialog;
-import jpdftwist.gui.dialogs.ScaleCustomSizeDialog;
+import jpdftwist.gui.dialog.OutputProgressDialog;
+import jpdftwist.gui.dialog.ScaleCustomSizeDialog;
+
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.math.BigDecimal;
 
 public class PageSizeTab extends Tab {
 

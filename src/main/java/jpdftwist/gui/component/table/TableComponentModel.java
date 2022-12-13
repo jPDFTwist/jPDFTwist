@@ -1,4 +1,4 @@
-package jpdftwist.gui.components.table;
+package jpdftwist.gui.component.table;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;

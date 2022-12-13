@@ -1,7 +1,7 @@
-package jpdftwist.gui.components.treetable;
+package jpdftwist.gui.component.treetable;
 
 import jpdftwist.core.FilenameUtils;
-import jpdftwist.gui.components.treetable.row.FolderTreeTableRow;
+import jpdftwist.gui.component.treetable.row.FolderTreeTableRow;
 import org.jdesktop.swingx.treetable.DefaultTreeTableModel;
 
 import javax.swing.tree.TreePath;

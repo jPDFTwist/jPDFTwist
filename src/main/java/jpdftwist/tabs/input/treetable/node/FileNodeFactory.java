@@ -1,7 +1,7 @@
 package jpdftwist.tabs.input.treetable.node;
 
-import jpdftwist.gui.components.treetable.Node;
-import jpdftwist.gui.components.treetable.event.PageEventListener;
+import jpdftwist.gui.component.treetable.Node;
+import jpdftwist.gui.component.treetable.event.PageEventListener;
 
 import java.util.ArrayList;
 import java.util.List;

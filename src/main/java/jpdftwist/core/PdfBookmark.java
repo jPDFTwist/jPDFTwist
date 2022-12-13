@@ -2,7 +2,7 @@ package jpdftwist.core;
 
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.SimpleBookmark;
-import jpdftwist.gui.components.treetable.row.FileTreeTableRow;
+import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
 import jpdftwist.utils.PdfParser;
 
 import java.io.IOException;

@@ -2,10 +2,10 @@ package jpdftwist.tabs.input.treetable.node;
 
 import com.itextpdf.text.Rectangle;
 import jpdftwist.core.IntegerList;
-import jpdftwist.gui.components.treetable.Node;
-import jpdftwist.gui.components.treetable.TreeTableColumn;
-import jpdftwist.gui.components.treetable.row.FileTreeTableRow;
-import jpdftwist.gui.components.treetable.row.VirtualFileTreeTableRow;
+import jpdftwist.gui.component.treetable.Node;
+import jpdftwist.gui.component.treetable.TreeTableColumn;
+import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
+import jpdftwist.gui.component.treetable.row.VirtualFileTreeTableRow;
 
 /**
  * @author Vasilis Naskos

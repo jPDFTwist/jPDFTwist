@@ -1,4 +1,4 @@
-package jpdftwist.gui.components.treetable.event;
+package jpdftwist.gui.component.treetable.event;
 
 /**
  * @author Vasilis Naskos

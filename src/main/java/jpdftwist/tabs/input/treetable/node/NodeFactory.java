@@ -1,7 +1,7 @@
 package jpdftwist.tabs.input.treetable.node;
 
-import jpdftwist.gui.components.treetable.TreeTableRowType;
-import jpdftwist.gui.components.treetable.row.FileTreeTableRow;
+import jpdftwist.gui.component.treetable.TreeTableRowType;
+import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
 
 /**
  * @author Vasilis Naskos

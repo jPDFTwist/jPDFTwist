@@ -1,6 +1,6 @@
-package jpdftwist.gui.components.treetable;
+package jpdftwist.gui.component.treetable;
 
-import jpdftwist.gui.components.treetable.row.PageTreeTableRow;
+import jpdftwist.gui.component.treetable.row.PageTreeTableRow;
 import jpdftwist.utils.PreferencesUtil;
 import org.jdesktop.swingx.renderer.DefaultTreeRenderer;
 import org.jdesktop.swingx.renderer.StringValue;

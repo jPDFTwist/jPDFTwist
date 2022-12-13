@@ -1,8 +1,8 @@
-package jpdftwist.gui.components.treetable;
+package jpdftwist.gui.component.treetable;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoCopyable;
-import jpdftwist.gui.components.treetable.row.PageTreeTableRow;
+import jpdftwist.gui.component.treetable.row.PageTreeTableRow;
 import org.jdesktop.swingx.treetable.AbstractMutableTreeTableNode;
 import org.jdesktop.swingx.treetable.MutableTreeTableNode;
 

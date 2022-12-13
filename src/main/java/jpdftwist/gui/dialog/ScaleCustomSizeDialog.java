@@ -1,17 +1,13 @@
-package jpdftwist.gui.dialogs;
-
-import java.math.BigDecimal;
-
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+package jpdftwist.gui.dialog;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-
 import jpdftwist.core.NumberField;
 import jpdftwist.core.UnitTranslator;
+
+import javax.swing.*;
+import java.math.BigDecimal;
 
 /**
  *

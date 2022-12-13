@@ -1,8 +1,8 @@
 package jpdftwist.tabs.input.pagerange;
 
 import jpdftwist.core.PageRange;
-import jpdftwist.gui.components.treetable.Node;
-import jpdftwist.gui.components.treetable.TreeTableRowType;
+import jpdftwist.gui.component.treetable.Node;
+import jpdftwist.gui.component.treetable.TreeTableRowType;
 
 import java.util.ArrayList;
 import java.util.Enumeration;

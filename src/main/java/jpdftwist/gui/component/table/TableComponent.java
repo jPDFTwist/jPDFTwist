@@ -1,4 +1,4 @@
-package jpdftwist.gui.components.table;
+package jpdftwist.gui.component.table;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;

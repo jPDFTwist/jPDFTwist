@@ -1,9 +1,9 @@
 package jpdftwist.core;
 
-import jpdftwist.gui.components.treetable.Node;
-import jpdftwist.gui.components.treetable.TreeTableColumn;
-import jpdftwist.gui.components.treetable.row.FileTreeTableRow;
-import jpdftwist.gui.components.treetable.row.PageTreeTableRow;
+import jpdftwist.gui.component.treetable.Node;
+import jpdftwist.gui.component.treetable.TreeTableColumn;
+import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
+import jpdftwist.gui.component.treetable.row.PageTreeTableRow;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -8,7 +8,7 @@ import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 import jpdftwist.Main;
 import jpdftwist.core.PDFTwist;
-import jpdftwist.gui.dialogs.OutputProgressDialog;
+import jpdftwist.gui.dialog.OutputProgressDialog;
 import jpdftwist.tabs.AttachmentTab;
 import jpdftwist.tabs.BookmarkTab;
 import jpdftwist.tabs.DocumentInfoTab;

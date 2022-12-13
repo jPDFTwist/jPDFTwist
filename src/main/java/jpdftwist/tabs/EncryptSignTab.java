@@ -3,22 +3,16 @@ package jpdftwist.tabs;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import jpdftwist.core.PDFTwist;
+import jpdftwist.gui.MainWindow;
+import jpdftwist.gui.dialog.OutputProgressDialog;
+
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JSeparator;
-import javax.swing.JTextField;
-import javax.swing.border.TitledBorder;
-import jpdftwist.core.PDFTwist;
-import jpdftwist.gui.MainWindow;
-import jpdftwist.gui.dialogs.OutputProgressDialog;
 
 public class EncryptSignTab extends Tab {
 

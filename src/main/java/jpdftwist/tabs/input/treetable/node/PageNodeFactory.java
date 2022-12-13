@@ -1,9 +1,9 @@
 package jpdftwist.tabs.input.treetable.node;
 
 import com.itextpdf.text.Rectangle;
-import jpdftwist.gui.components.treetable.Node;
-import jpdftwist.gui.components.treetable.TreeTableColumn;
-import jpdftwist.gui.components.treetable.row.PageTreeTableRow;
+import jpdftwist.gui.component.treetable.Node;
+import jpdftwist.gui.component.treetable.TreeTableColumn;
+import jpdftwist.gui.component.treetable.row.PageTreeTableRow;
 
 /**
  * @author Vasilis Naskos

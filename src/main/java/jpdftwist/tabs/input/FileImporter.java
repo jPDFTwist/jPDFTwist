@@ -1,10 +1,10 @@
 package jpdftwist.tabs.input;
 
 import jpdftwist.core.FilenameUtils;
-import jpdftwist.gui.components.treetable.Node;
-import jpdftwist.gui.components.treetable.TreeTableRowType;
-import jpdftwist.gui.components.treetable.event.PageEventListener;
-import jpdftwist.gui.components.treetable.row.FileTreeTableRow;
+import jpdftwist.gui.component.treetable.Node;
+import jpdftwist.gui.component.treetable.TreeTableRowType;
+import jpdftwist.gui.component.treetable.event.PageEventListener;
+import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
 import jpdftwist.tabs.input.error.ErrorHandler;
 import jpdftwist.tabs.input.treetable.node.FileNodeFactory;
 import jpdftwist.tabs.input.treetable.node.NodeFactory;

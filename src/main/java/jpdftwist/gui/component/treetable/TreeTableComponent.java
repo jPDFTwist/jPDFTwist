@@ -1,4 +1,4 @@
-package jpdftwist.gui.components.treetable;
+package jpdftwist.gui.component.treetable;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -10,8 +10,8 @@ import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
 import jpdftwist.gui.Preview;
-import jpdftwist.gui.components.treetable.row.FileTreeTableRow;
-import jpdftwist.gui.components.treetable.row.PageTreeTableRow;
+import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
+import jpdftwist.gui.component.treetable.row.PageTreeTableRow;
 import jpdftwist.tabs.input.InputTabFileImporter;
 import jpdftwist.utils.JImageParser;
 import org.apache.pdfbox.pdmodel.PDDocument;

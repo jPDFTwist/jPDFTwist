@@ -1,6 +1,20 @@
 package jpdftwist.tabs;
 
-import java.awt.GridLayout;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.SimpleBookmark;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+import jpdftwist.core.PDFTwist;
+import jpdftwist.core.PdfBookmark;
+import jpdftwist.gui.MainWindow;
+import jpdftwist.gui.component.table.TableComponent;
+import jpdftwist.gui.dialog.OutputProgressDialog;
+import jpdftwist.tabs.input.FileChooser;
+import jpdftwist.utils.PdfParser;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -13,26 +27,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.SimpleBookmark;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-
-import jpdftwist.core.PdfBookmark;
-import jpdftwist.core.PDFTwist;
-import jpdftwist.gui.MainWindow;
-import jpdftwist.gui.components.table.TableComponent;
-import jpdftwist.gui.dialogs.OutputProgressDialog;
-import jpdftwist.tabs.input.FileChooser;
-import jpdftwist.utils.PdfParser;
 
 public class BookmarkTab extends Tab {
 

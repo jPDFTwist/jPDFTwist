@@ -1,4 +1,4 @@
-package jpdftwist.gui.components.treetable;
+package jpdftwist.gui.component.treetable;
 
 import jpdftwist.tabs.watermark.ColorChooserButton;
 import jpdftwist.utils.PreferencesUtil;
