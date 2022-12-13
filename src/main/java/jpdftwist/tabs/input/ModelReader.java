@@ -1,8 +1,8 @@
 package jpdftwist.tabs.input;
 
-import java.util.List;
+import jpdftwist.gui.components.treetable.Node;
 
-import jpdftwist.tabs.input.treetable.node.Node;
+import java.util.List;
 
 /**
  *

@@ -1,23 +1,22 @@
 package jpdftwist.tabs;
 
+import jpdftwist.core.PDFTwist;
+import jpdftwist.core.PageRange;
+import jpdftwist.core.PdfBookmark;
+import jpdftwist.gui.components.treetable.Node;
+import jpdftwist.gui.components.treetable.TreeTableRowType;
+import jpdftwist.gui.components.treetable.row.FolderTreeTableRow;
+import jpdftwist.tabs.input.InputTabPanel;
+import jpdftwist.tabs.input.InputValidator;
+import jpdftwist.tabs.input.ModelReader;
+import jpdftwist.tabs.input.pagerange.PageRangeGenerator;
+
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.swing.JPanel;
-
-import jpdftwist.core.PageRange;
-import jpdftwist.core.PdfBookmark;
-import jpdftwist.core.PDFTwist;
-import jpdftwist.tabs.input.InputTabPanel;
-import jpdftwist.tabs.input.InputValidator;
-import jpdftwist.tabs.input.ModelReader;
-import jpdftwist.tabs.input.pagerange.PageRangeGenerator;
-import jpdftwist.tabs.input.treetable.node.Node;
-import jpdftwist.tabs.input.treetable.node.userobject.FolderUserObject;
-import jpdftwist.tabs.input.treetable.node.userobject.UserObjectType;
 
 /**
  *
@@ -95,9 +94,9 @@ public class InputTab extends ActionTab {
 		Enumeration e = node.children();
 		while (e.hasMoreElements()) {
 			Node child = (Node) e.nextElement();
-			if (UserObjectType.isFile(child)) {
+			if (TreeTableRowType.isFile(child)) {
 				filepaths.add(child.getUserObject().getKey());
-			} else if (child.getUserObject() instanceof FolderUserObject) {
+			} else if (child.getUserObject() instanceof FolderTreeTableRow) {
 				filepaths.addAll(getFilePaths(child));
 			}
 		}

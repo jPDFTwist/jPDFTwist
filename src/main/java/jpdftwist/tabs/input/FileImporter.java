@@ -1,14 +1,14 @@
 package jpdftwist.tabs.input;
 
 import jpdftwist.core.FilenameUtils;
+import jpdftwist.gui.components.treetable.Node;
+import jpdftwist.gui.components.treetable.TreeTableRowType;
+import jpdftwist.gui.components.treetable.event.PageEventListener;
+import jpdftwist.gui.components.treetable.row.FileTreeTableRow;
 import jpdftwist.tabs.input.error.ErrorHandler;
-import jpdftwist.tabs.input.treetable.node.Node;
-import jpdftwist.tabs.input.treetable.node.factory.FileNodeFactory;
-import jpdftwist.tabs.input.treetable.node.factory.NodeFactory;
-import jpdftwist.tabs.input.treetable.node.factory.RealPdfNodeFactory;
-import jpdftwist.tabs.input.treetable.node.factory.event.PageEventListener;
-import jpdftwist.tabs.input.treetable.node.userobject.FileUserObject;
-import jpdftwist.tabs.input.treetable.node.userobject.UserObjectType;
+import jpdftwist.tabs.input.treetable.node.FileNodeFactory;
+import jpdftwist.tabs.input.treetable.node.NodeFactory;
+import jpdftwist.tabs.input.treetable.node.RealPdfNodeFactory;
 import jpdftwist.utils.SupportedFileTypes;
 
 import javax.swing.*;
@@ -166,11 +166,11 @@ public class FileImporter implements Runnable {
 	private void importFile(File file) {
 		// System.out.println("in import file:"+file);
 		try {
-			FileUserObject.SubType subType = SupportedFileTypes.isPDF(file.getAbsolutePath())
-					? FileUserObject.SubType.PDF
-							: FileUserObject.SubType.IMAGE;
+			FileTreeTableRow.SubType subType = SupportedFileTypes.isPDF(file.getAbsolutePath())
+					? FileTreeTableRow.SubType.PDF
+							: FileTreeTableRow.SubType.IMAGE;
 
-			FileNodeFactory fileNodeFactory = NodeFactory.getFileNodeFactory(UserObjectType.REAL_FILE, subType);
+			FileNodeFactory fileNodeFactory = NodeFactory.getFileNodeFactory(TreeTableRowType.REAL_FILE, subType);
 			if (fileNodeFactory instanceof RealPdfNodeFactory) {
 				((RealPdfNodeFactory) fileNodeFactory).setAutoRestrictionsNew(autoRestrioctionsNew);
 				((RealPdfNodeFactory) fileNodeFactory).setAutoRestrictionsOverwrite(autoRestrictionsOverwrite);

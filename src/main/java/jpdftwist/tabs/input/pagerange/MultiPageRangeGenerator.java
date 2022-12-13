@@ -1,12 +1,12 @@
 package jpdftwist.tabs.input.pagerange;
 
+import jpdftwist.core.PageRange;
+import jpdftwist.gui.components.treetable.Node;
+import jpdftwist.gui.components.treetable.TreeTableRowType;
+
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-
-import jpdftwist.core.PageRange;
-import jpdftwist.tabs.input.treetable.node.Node;
-import jpdftwist.tabs.input.treetable.node.userobject.UserObjectType;
 
 /**
  *
@@ -31,11 +31,11 @@ public class MultiPageRangeGenerator extends PageRangeGenerator {
 		Enumeration e = parent.children();
 		while (e.hasMoreElements()) {
 			Node child = (Node) e.nextElement();
-			if (UserObjectType.isFile(child)) {
+			if (TreeTableRowType.isFile(child)) {
 				PageRange pageRange = getPageRange(child);
 				if (pageRange != null)
 					pageRanges.add(pageRange);
-			} else if (child.getUserObject().getType() == UserObjectType.FOLDER) {
+			} else if (child.getUserObject().getType() == TreeTableRowType.FOLDER) {
 				pageRanges.addAll(getPageRanges(child));
 			}
 		}

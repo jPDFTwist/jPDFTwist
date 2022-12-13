@@ -1,7 +1,6 @@
-package jpdftwist.tabs.input.treetable.node.factory.event;
+package jpdftwist.gui.components.treetable.event;
 
 /**
- *
  * @author Vasilis Naskos
  */
 public interface PageEventListener {

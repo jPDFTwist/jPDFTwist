@@ -1,30 +1,30 @@
 package jpdftwist.core;
 
+import jpdftwist.gui.components.treetable.Node;
+import jpdftwist.gui.components.treetable.TreeTableColumn;
+import jpdftwist.gui.components.treetable.row.FileTreeTableRow;
+import jpdftwist.gui.components.treetable.row.PageTreeTableRow;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
-import jpdftwist.tabs.input.treetable.UserObjectValue;
-import jpdftwist.tabs.input.treetable.node.Node;
-import jpdftwist.tabs.input.treetable.node.userobject.FileUserObject;
-import jpdftwist.tabs.input.treetable.node.userobject.PageUserObject;
-
 public class PageRange {
 
 	private final Node node;
-	private final FileUserObject fileUO;
+	private final FileTreeTableRow fileUO;
 	private final List<Integer> pageOrder;
 
 	public PageRange(Node fileNode) {
 		this.node = fileNode;
-		fileUO = (FileUserObject) fileNode.getUserObject();
+		fileUO = (FileTreeTableRow) fileNode.getUserObject();
 		pageOrder = new ArrayList<Integer>();
 
 		Enumeration e = fileNode.children();
 		while (e.hasMoreElements()) {
 			Node n = (Node) e.nextElement();
-			PageUserObject puo = (PageUserObject) n.getUserObject();
+			PageTreeTableRow puo = (PageTreeTableRow) n.getUserObject();
 
 			int position = Integer.parseInt(puo.getKey()) - 1;
 			pageOrder.add(position);
@@ -35,16 +35,16 @@ public class PageRange {
 		return node;
 	}
 
-	public FileUserObject getFileUO() {
+	public FileTreeTableRow getFileUO() {
 		return fileUO;
 	}
 
 	public int[] getPages(int pagesBefore) {
-		IntegerList emptyBefore = fileUO.getValueAt(UserObjectValue.EMPTY_BEFORE, IntegerList.class);
-		Integer from = fileUO.getValueAt(UserObjectValue.FROM, Integer.class);
-		Integer to = fileUO.getValueAt(UserObjectValue.TO, Integer.class);
-		Boolean includeEven = fileUO.getValueAt(UserObjectValue.EVEN, Boolean.class);
-		Boolean includeOdd = fileUO.getValueAt(UserObjectValue.ODD, Boolean.class);
+		IntegerList emptyBefore = fileUO.getValueAt(TreeTableColumn.EMPTY_BEFORE, IntegerList.class);
+		Integer from = fileUO.getValueAt(TreeTableColumn.FROM, Integer.class);
+		Integer to = fileUO.getValueAt(TreeTableColumn.TO, Integer.class);
+		Boolean includeEven = fileUO.getValueAt(TreeTableColumn.EVEN, Boolean.class);
+		Boolean includeOdd = fileUO.getValueAt(TreeTableColumn.ODD, Boolean.class);
 
 		int emptyPagesBefore = emptyBefore.getValue()[pagesBefore % emptyBefore.getValue().length];
 		int[] pages = new int[emptyPagesBefore + Math.abs(to - from) + 1];

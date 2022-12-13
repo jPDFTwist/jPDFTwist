@@ -22,7 +22,6 @@ import jpdftwist.tabs.ShuffleTab;
 import jpdftwist.tabs.Tab;
 import jpdftwist.tabs.WatermarkPlusTab;
 import jpdftwist.tabs.WatermarkTab;
-import jpdftwist.tabs.input.treetable.UserObjectValue;
 
 import javax.swing.*;
 import java.awt.*;
@@ -49,8 +48,6 @@ public class MainWindow extends JFrame {
 
     private void initGUI() {
         setIconImage(Toolkit.getDefaultToolkit().createImage(MainWindow.class.getResource("/icon.png")));
-
-        UserObjectValue.initMap();
 
         getContentPane().setLayout(new FormLayout(new ColumnSpec[]{
             ColumnSpec.decode("pref:grow"),

@@ -4,11 +4,11 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import jpdftwist.core.IntegerList;
 import jpdftwist.gui.Preview;
-import jpdftwist.tabs.input.treetable.FileTreeTableModel;
-import jpdftwist.tabs.input.treetable.TreeTableComponent;
-import jpdftwist.tabs.input.treetable.node.Node;
-import jpdftwist.tabs.input.treetable.node.userobject.FolderUserObject;
-import jpdftwist.tabs.input.treetable.node.userobject.UserObjectType;
+import jpdftwist.gui.components.treetable.Node;
+import jpdftwist.gui.components.treetable.TreeTableComponent;
+import jpdftwist.gui.components.treetable.TreeTableModel;
+import jpdftwist.gui.components.treetable.TreeTableRowType;
+import jpdftwist.gui.components.treetable.row.FolderTreeTableRow;
 import org.jdesktop.swingx.treetable.MutableTreeTableNode;
 
 import javax.swing.*;
@@ -35,7 +35,7 @@ public class InputTabPanel extends JPanel {
 	private JButton clear;
 	private JButton generate;					  						  
 	private InputOptionsPanel optionsPanel;
-	private final FileTreeTableModel model;
+	private final TreeTableModel model;
 	private boolean useTempFiles;
 
 	private final GenerateInputItems generateFrame;
@@ -280,9 +280,9 @@ public class InputTabPanel extends JPanel {
 				Enumeration<? extends MutableTreeTableNode> e = root.children();
 				while (e.hasMoreElements()) {
 					Node n = (Node) e.nextElement();
-					if (UserObjectType.isFile(n)) {
+					if (TreeTableRowType.isFile(n)) {
 						files.add(n);
-					} else if (n.getUserObject() instanceof FolderUserObject) {
+					} else if (n.getUserObject() instanceof FolderTreeTableRow) {
 						files.addAll(getFiles(n));
 					}
 				}
