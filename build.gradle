@@ -4,7 +4,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
-mainClassName = "jpdftweak.Main"
+mainClassName = "jpdftwist.Main"
 
 application {
     mainClassName = "$mainClassName"
