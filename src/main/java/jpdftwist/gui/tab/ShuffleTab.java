@@ -1,4 +1,4 @@
-package jpdftwist.tabs;
+package jpdftwist.gui.tab;
 
 import com.itextpdf.text.DocumentException;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -11,22 +11,27 @@ import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.component.ShufflePreviewPanel;
 import jpdftwist.gui.component.table.TableComponent;
 import jpdftwist.gui.dialog.OutputProgressDialog;
+import jpdftwist.tabs.Tab;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
 public class ShuffleTab extends Tab {
 
-    private ShufflePreviewPanel pp;
+    private final ShufflePreviewPanel previewPanel;
 
-    private JCheckBox shufflePages, blockShuffle;
-    private JButton updatePreview, use;
-    private JComboBox previewFormat, preset;
-    private JTextField pagesPerPass, configString, blockSize;
-    private TableComponent shuffleRulesTable;
+    private final JCheckBox shufflePages;
+    private final JCheckBox blockShuffle;
+    private final JButton updatePreview;
+    private final JButton use;
+    private final JComboBox<PageDimension> previewFormatComboBox;
+    private final JComboBox<String> presetComboBox;
+    private final JTextField pagesPerPass;
+    private final JTextField configString;
+    private final JTextField blockSize;
+    private final TableComponent shuffleRulesTable;
 
     private int shufflePagesPerPass;
     private ShuffleRule[] shuffleRules;
@@ -42,59 +47,41 @@ public class ShuffleTab extends Tab {
         add(jsp = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panel1, panel2), BorderLayout.CENTER);
         jsp.setResizeWeight(0.5);
         CellConstraints CC = new CellConstraints();
-        panel2.add(previewFormat = new JComboBox(), BorderLayout.NORTH);
-        panel2.add(pp = new ShufflePreviewPanel(), BorderLayout.CENTER);
+        panel2.add(previewFormatComboBox = new JComboBox<>(), BorderLayout.NORTH);
+        panel2.add(previewPanel = new ShufflePreviewPanel(), BorderLayout.CENTER);
         for (PageDimension d : PageDimension.getCommonSizes()) {
-            previewFormat.addItem(d);
+            previewFormatComboBox.addItem(d);
         }
-        previewFormat.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                pp.setPageFormat((PageDimension) previewFormat.getSelectedItem());
-            }
-        });
-        previewFormat.setSelectedIndex(0);
-        pp.setPreferredSize(new Dimension(50, 100));
-        previewFormat.setMinimumSize(new Dimension(50, previewFormat.getMinimumSize().height));
+        previewFormatComboBox.addActionListener(e -> previewPanel.setPageFormat((PageDimension) previewFormatComboBox.getSelectedItem()));
+        previewFormatComboBox.setSelectedIndex(0);
+        previewPanel.setPreferredSize(new Dimension(50, 100));
+        previewFormatComboBox.setMinimumSize(new Dimension(50, previewFormatComboBox.getMinimumSize().height));
         panel1.add(shufflePages = new JCheckBox("Shuffle pages"), CC.xyw(1, 1, 4));
-        ActionListener l = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                updateEnabledState();
-            }
-        };
+        ActionListener l = e -> updateEnabledState();
         shufflePages.addActionListener(l);
         panel1.add(new JLabel("Preset: "), CC.xy(1, 2));
-        panel1.add(preset = new JComboBox(), CC.xyw(2, 2, 3));
+        panel1.add(presetComboBox = new JComboBox<>(), CC.xyw(2, 2, 3));
         panel1.add(new JLabel("Config string: "), CC.xy(1, 3));
         panel1.add(configString = new JTextField(), CC.xyw(2, 3, 2));
         for (String p : ShuffleRule.predefinedRuleSets) {
-            preset.addItem(p.substring(p.indexOf('=') + 1));
+            presetComboBox.addItem(p.substring(p.indexOf('=') + 1));
         }
-        preset.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                for (String p : ShuffleRule.predefinedRuleSets) {
-                    if (p.endsWith("=" + (String) preset.getSelectedItem())) {
-                        configString.setText(p.substring(0, p.indexOf('=')));
-                        parseConfigString();
-                    }
+        presetComboBox.addActionListener(e -> {
+            for (String p : ShuffleRule.predefinedRuleSets) {
+                if (p.endsWith("=" + presetComboBox.getSelectedItem())) {
+                    configString.setText(p.substring(0, p.indexOf('=')));
+                    parseConfigString();
                 }
             }
         });
         panel1.add(use = new JButton("Use"), CC.xy(4, 3));
-        use.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                parseConfigString();
-            }
-        });
+        use.addActionListener(e -> parseConfigString());
         panel1.add(new JSeparator(), CC.xyw(1, 4, 4));
         panel1.add(new JLabel("Each pass covers  "), CC.xy(1, 5));
         panel1.add(pagesPerPass = new JTextField("1"), CC.xy(2, 5));
         panel1.add(new JLabel("  page(s) "), CC.xy(3, 5));
         panel1.add(updatePreview = new JButton("Update"), CC.xy(4, 5));
-        updatePreview.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                parseGUI();
-            }
-        });
+        updatePreview.addActionListener(e -> parseGUI());
         panel1.add(blockShuffle = new JCheckBox("Shuffle blocks of  "), CC.xy(1, 6));
         panel1.add(blockSize = new JTextField("20"), CC.xy(2, 6));
         panel1.add(new JLabel(" pages individually"), CC.xyw(3, 6, 2));
@@ -104,15 +91,15 @@ public class ShuffleTab extends Tab {
             new Class[]{String.class, String.class, String.class, Double.class, String.class, Boolean.class,
                 Double.class},
             new Object[]{"+1", "0%", "0%", 1.0, "None", true, 0.0}), CC.xyw(1, 7, 4));
-        JComboBox rotateValues = new JComboBox(new String[]{"None", "Left", "Upside-Down", "Right"});
+        JComboBox<String> rotateValues = new JComboBox<>(new String[]{"None", "Left", "Upside-Down", "Right"});
         shuffleRulesTable.getTable().getColumnModel().getColumn(4).setCellEditor(new DefaultCellEditor(rotateValues));
         shuffleRulesTable.getScrollPane().setPreferredSize(new Dimension(400, 100));
-        preset.setSelectedIndex(0);
+        presetComboBox.setSelectedIndex(0);
         updateEnabledState();
     }
 
     protected void parseGUI() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         try {
             int pages = Integer.parseInt(pagesPerPass.getText());
             sb.append(pages);
@@ -154,7 +141,7 @@ public class ShuffleTab extends Tab {
                 ShuffleRule rule = new ShuffleRule(npb, pb, page, rotate, scale, ox, oxp, oy, oyp, fw);
                 if (i > 0)
                     sb.append(",");
-                sb.append(rule.toString());
+                sb.append(rule);
             }
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(mf, "Unparsable option: " + ex.getMessage());
@@ -172,10 +159,10 @@ public class ShuffleTab extends Tab {
             parseConfigStringInternal();
         } catch (NumberFormatException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(mf, "Unparsable config string: " + ex.getMessage());
+            JOptionPane.showMessageDialog(mf, "Cannot parse config string: " + ex.getMessage());
         } catch (IllegalArgumentException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(mf, "Unparsable config string: " + configString.getText());
+            JOptionPane.showMessageDialog(mf, "Cannot parse config string: " + configString.getText());
         }
     }
 
@@ -184,7 +171,7 @@ public class ShuffleTab extends Tab {
         int[] ppp = new int[2];
         ShuffleRule[] rules = ShuffleRule.parseRuleSet(cstr, ppp);
         int pages = ppp[0], size = ppp[1];
-        pp.setConfig(rules);
+        previewPanel.setConfig(rules);
         pagesPerPass.setText("" + pages);
         if (size == 0) {
             blockShuffle.setSelected(false);
@@ -193,10 +180,10 @@ public class ShuffleTab extends Tab {
             blockSize.setText("" + size);
         }
         shuffleRulesTable.clear();
-        for (int i = 0; i < rules.length; i++) {
-            shuffleRulesTable.addRow(rules[i].getPageString(), rules[i].getOffsetXString(), rules[i].getOffsetYString(),
-                rules[i].getScale(), rotateName(rules[i].getRotate()), rules[i].isNewPageBefore(),
-                rules[i].getFrameWidth());
+        for (ShuffleRule rule : rules) {
+            shuffleRulesTable.addRow(rule.getPageString(), rule.getOffsetXString(), rule.getOffsetYString(),
+                rule.getScale(), rotateName(rule.getRotate()), rule.isNewPageBefore(),
+                rule.getFrameWidth());
         }
         shufflePagesPerPass = pages;
         shuffleRules = rules;
@@ -222,8 +209,8 @@ public class ShuffleTab extends Tab {
         boolean b = shufflePages.isSelected();
         updatePreview.setEnabled(b);
         use.setEnabled(b);
-        previewFormat.setEnabled(b);
-        preset.setEnabled(b);
+        previewFormatComboBox.setEnabled(b);
+        presetComboBox.setEnabled(b);
         pagesPerPass.setEnabled(b);
         blockShuffle.setEnabled(b);
         blockSize.setEnabled(b && blockShuffle.isSelected());
@@ -231,11 +218,9 @@ public class ShuffleTab extends Tab {
         shuffleRulesTable.setEnabled(b);
     }
 
-
     public String getTabName() {
         return ("Shuffle / N-up");
     }
-
 
     public void checkRun() throws IOException {
         shuffleRulesTable.checkRun("shuffle rule");
@@ -250,17 +235,13 @@ public class ShuffleTab extends Tab {
         }
     }
 
-
     public PDFTwist run(PDFTwist pdfTwist, OutputProgressDialog outDialog) throws IOException, DocumentException {
         outDialog.updateJPDFTwistProgress(getTabName());
         if (shufflePages.isSelected()) {
             int shuffleSize = blockShuffle.isSelected() ? Integer.parseInt(blockSize.getText()) : 0;
             try {
                 pdfTwist.shufflePages(shufflePagesPerPass, shuffleSize, shuffleRules, outDialog);
-            } catch (DocumentException e) {
-                outDialog.dispose();
-                throw e;
-            } catch (IOException e) {
+            } catch (DocumentException | IOException e) {
                 outDialog.dispose();
                 throw e;
             }
