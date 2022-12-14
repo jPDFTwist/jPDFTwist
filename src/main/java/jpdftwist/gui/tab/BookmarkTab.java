@@ -11,7 +11,6 @@ import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.component.FileChooser;
 import jpdftwist.gui.component.table.TableComponent;
 import jpdftwist.gui.dialog.OutputProgressDialog;
-import jpdftwist.tabs.Tab;
 import jpdftwist.utils.PdfParser;
 
 import javax.swing.*;

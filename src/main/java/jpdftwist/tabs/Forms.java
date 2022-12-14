@@ -8,6 +8,7 @@ import com.jgoodies.forms.layout.RowSpec;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.dialog.OutputProgressDialog;
+import jpdftwist.gui.tab.Tab;
 
 import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;

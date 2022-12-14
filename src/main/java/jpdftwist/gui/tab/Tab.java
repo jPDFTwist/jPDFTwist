@@ -1,4 +1,4 @@
-package jpdftwist.tabs;
+package jpdftwist.gui.tab;
 
 import com.itextpdf.text.DocumentException;
 import jpdftwist.core.PDFTwist;

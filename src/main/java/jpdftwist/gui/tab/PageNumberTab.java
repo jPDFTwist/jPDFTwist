@@ -8,7 +8,6 @@ import jpdftwist.core.PDFTwist;
 import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.component.table.TableComponent;
 import jpdftwist.gui.dialog.OutputProgressDialog;
-import jpdftwist.tabs.Tab;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

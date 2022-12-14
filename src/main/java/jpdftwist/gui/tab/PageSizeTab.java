@@ -14,7 +14,6 @@ import jpdftwist.core.tabparams.ScaleParameters;
 import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.dialog.OutputProgressDialog;
 import jpdftwist.gui.dialog.ScaleCustomSizeDialog;
-import jpdftwist.tabs.Tab;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
