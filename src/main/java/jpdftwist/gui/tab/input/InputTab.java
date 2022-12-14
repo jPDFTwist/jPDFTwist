@@ -7,14 +7,10 @@ import jpdftwist.gui.component.ImagePreviewPanel;
 import jpdftwist.gui.component.treetable.Node;
 import jpdftwist.gui.component.treetable.TreeTableComponent;
 import jpdftwist.gui.component.treetable.TreeTableModel;
-import jpdftwist.gui.component.treetable.TreeTableRowType;
-import jpdftwist.gui.component.treetable.row.FolderTreeTableRow;
 import jpdftwist.tabs.input.FileImporter;
 import jpdftwist.tabs.input.InputTabFileImporter;
 import jpdftwist.tabs.input.ModelHandler;
-import jpdftwist.tabs.input.ModelReader;
 import jpdftwist.tabs.input.treetable.InputTabControlListener;
-import org.jdesktop.swingx.treetable.MutableTreeTableNode;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,7 +18,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.List;
 
 /**
@@ -268,33 +263,6 @@ public class InputTab extends JPanel {
         String interleaveSizeValue = optionsPanel.getInterleaveSize();
 
         return Integer.parseInt(interleaveSizeValue);
-    }
-
-    public ModelReader getModelReader() {
-        return new ModelReader() {
-            public List<Node> getFolderNodes() {
-                return null;
-            }
-
-            public List<Node> getFileNodes() {
-                Node root = model.getRoot();
-                return getFiles(root);
-            }
-
-            public List<Node> getFiles(Node root) {
-                List<Node> files = new ArrayList<>();
-                Enumeration<? extends MutableTreeTableNode> e = root.children();
-                while (e.hasMoreElements()) {
-                    Node n = (Node) e.nextElement();
-                    if (TreeTableRowType.isFile(n)) {
-                        files.add(n);
-                    } else if (n.getUserObject() instanceof FolderTreeTableRow) {
-                        files.addAll(getFiles(n));
-                    }
-                }
-                return files;
-            }
-        };
     }
 
     // TODO
