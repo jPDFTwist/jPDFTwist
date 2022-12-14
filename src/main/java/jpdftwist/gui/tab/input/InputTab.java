@@ -10,7 +10,6 @@ import jpdftwist.gui.component.treetable.TreeTableModel;
 import jpdftwist.gui.component.treetable.TreeTableRowType;
 import jpdftwist.gui.component.treetable.row.FolderTreeTableRow;
 import jpdftwist.tabs.input.FileImporter;
-import jpdftwist.tabs.input.GenerateInputItems;
 import jpdftwist.tabs.input.InputOptionsPanel;
 import jpdftwist.tabs.input.InputTabFileImporter;
 import jpdftwist.tabs.input.ModelHandler;
@@ -45,7 +44,7 @@ public class InputTab extends JPanel {
     private final TreeTableModel model;
     private boolean useTempFiles;
 
-    private final GenerateInputItems generateFrame;
+    private final GenerateInputItemsDialog generateFrame;
 
     private final InputTabFileImporter inputTabFileImporter;
 
@@ -111,7 +110,7 @@ public class InputTab extends JPanel {
 
         useTempFiles = false;
 
-        GenerateInputItems.Listener l = new GenerateInputItems.Listener() {
+        GenerateInputItemsDialog.Listener l = new GenerateInputItemsDialog.Listener() {
 
 
             public void importFileArray(final int[] places, ArrayList<File[]> files) {
@@ -164,7 +163,7 @@ public class InputTab extends JPanel {
                 model.insertNodeInto(node, parent, index);
             }
         };
-        generateFrame = new GenerateInputItems(l);
+        generateFrame = new GenerateInputItemsDialog(l);
     }
 
     int index;
