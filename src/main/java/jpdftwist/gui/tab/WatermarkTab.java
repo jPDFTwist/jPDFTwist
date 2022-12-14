@@ -1,4 +1,4 @@
-package jpdftwist.tabs;
+package jpdftwist.gui.tab;
 
 import com.itextpdf.text.DocumentException;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -8,22 +8,36 @@ import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.component.FileChooser;
 import jpdftwist.gui.component.table.TableComponent;
 import jpdftwist.gui.dialog.OutputProgressDialog;
+import jpdftwist.tabs.Tab;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
 public class WatermarkTab extends Tab {
 
-    private MainWindow mainWindow;
-    private JCheckBox pdfWatermark, textWatermark, pageNumbers, watermarkUseColor, useMask, differentPageNumbers;
-    private JTextField filename, pgnoSize, pgnoHOffset, pgnoVOffset, maskText;
-    private JTextField watermarkText, watermarkSize, watermarkOpacity;
-    private JComboBox pgnoHRef, pgnoVRef;
-    private JButton fileButton, watermarkColor, load;
-    private TableComponent pageNumberRanges;
+    private final MainWindow mainWindow;
+    private final JCheckBox pdfWatermark;
+    private final JCheckBox textWatermark;
+    private final JCheckBox pageNumbers;
+    private final JCheckBox watermarkUseColor;
+    private final JCheckBox useMask;
+    private final JCheckBox differentPageNumbers;
+    private final JTextField filename;
+    private final JTextField pgnoSize;
+    private final JTextField pgnoHOffset;
+    private final JTextField pgnoVOffset;
+    private final JTextField maskText;
+    private final JTextField watermarkText;
+    private final JTextField watermarkSize;
+    private final JTextField watermarkOpacity;
+    private final JComboBox<String> pgnoHRef;
+    private final JComboBox<String> pgnoVRef;
+    private final JButton fileButton;
+    private final JButton watermarkColor;
+    private final JButton load;
+    private final TableComponent pageNumberRanges;
 
     public WatermarkTab(MainWindow mf) {
         super(new FormLayout("f:p, f:p:g, 80dlu, f:p",
@@ -31,32 +45,22 @@ public class WatermarkTab extends Tab {
         mainWindow = mf;
         CellConstraints CC = new CellConstraints();
         add(pdfWatermark = new JCheckBox("Add first page of PDF as background watermark"), CC.xyw(1, 1, 4));
-        pdfWatermark.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                updatePDFWatermarkEnabled();
-            }
-        });
+        pdfWatermark.addActionListener(e -> updatePDFWatermarkEnabled());
         add(new JLabel("Filename: "), CC.xy(1, 2));
         add(filename = new JTextField(""), CC.xyw(2, 2, 2));
         filename.setEditable(false);
         add(fileButton = new JButton("..."), CC.xy(4, 2));
-        fileButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                FileChooser fileChooser = new FileChooser();
+        fileButton.addActionListener(e -> {
+            FileChooser fileChooser = new FileChooser();
 
-                JFileChooser pdfChooser = fileChooser.getFileChooser();
-                if (pdfChooser.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) {
-                    filename.setText(pdfChooser.getSelectedFile().getAbsolutePath());
-                }
+            JFileChooser pdfChooser = fileChooser.getFileChooser();
+            if (pdfChooser.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) {
+                filename.setText(pdfChooser.getSelectedFile().getAbsolutePath());
             }
         });
         add(new JSeparator(), CC.xyw(1, 3, 4));
         add(textWatermark = new JCheckBox("Add transparent text watermark"), CC.xyw(1, 4, 4));
-        textWatermark.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                updateTextWatermarkEnabled();
-            }
-        });
+        textWatermark.addActionListener(e -> updateTextWatermarkEnabled());
         add(new JLabel("Text:"), CC.xy(1, 5));
         add(watermarkText = new JTextField("Confidential"), CC.xyw(2, 5, 3));
         add(new JLabel("Font size:"), CC.xy(1, 6));
@@ -66,33 +70,26 @@ public class WatermarkTab extends Tab {
         add(watermarkUseColor = new JCheckBox("Color:"), CC.xy(1, 8));
         add(watermarkColor = new JButton(""), CC.xyw(2, 8, 3));
         watermarkColor.setBackground(Color.BLACK);
-        watermarkColor.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                Color c = JColorChooser.showDialog(mainWindow, "Select Color", watermarkColor.getBackground());
-                if (c != null) {
-                    watermarkColor.setBackground(c);
-                }
+        watermarkColor.addActionListener(e -> {
+            Color c = JColorChooser.showDialog(mainWindow, "Select Color", watermarkColor.getBackground());
+            if (c != null) {
+                watermarkColor.setBackground(c);
             }
         });
         add(new JSeparator(), CC.xyw(1, 9, 4));
         add(pageNumbers = new JCheckBox("Add page numbers"), CC.xyw(1, 10, 4));
-        ActionListener pageNumberListener = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                updatePageNumbersEnabled();
-            }
-        };
+        ActionListener pageNumberListener = e -> updatePageNumbersEnabled();
         pageNumbers.addActionListener(pageNumberListener);
         add(new JLabel("Font size:"), CC.xy(1, 11));
         add(pgnoSize = new JTextField("10"), CC.xyw(2, 11, 3));
         add(new JLabel("Horizontal:"), CC.xy(1, 12));
         add(pgnoHOffset = new JTextField("25"), CC.xy(2, 12));
-        add(pgnoHRef = new JComboBox(new String[]{"PS points from left margin", "PS points from center",
+        add(pgnoHRef = new JComboBox<>(new String[]{"PS points from left margin", "PS points from center",
                 "PS points from right margin", "PS points from inner margin", "PS points from outer margin"}),
             CC.xyw(3, 12, 2));
         add(new JLabel("Vertical:"), CC.xy(1, 13));
         add(pgnoVOffset = new JTextField("25"), CC.xy(2, 13));
-        add(pgnoVRef = new JComboBox(
-                new String[]{"PS points from bottom margin", "PS points from center", "PS points from top margin"}),
+        add(pgnoVRef = new JComboBox<>(new String[]{"PS points from bottom margin", "PS points from center", "PS points from top margin"}),
             CC.xyw(3, 13, 2));
         add(useMask = new JCheckBox("Mask: "), CC.xy(1, 14));
         useMask.addActionListener(pageNumberListener);
@@ -198,11 +195,10 @@ public class WatermarkTab extends Tab {
                 mask = maskText.getText();
             }
         } catch (NumberFormatException ex) {
-            throw new IOException("Unparsable value: " + ex.getMessage());
+            throw new IOException("Cannot parse value: " + ex.getMessage());
         }
         if (run) {
-            pdfTwist.addWatermark(filename.getText(), wmText, wmSize, wmOpacity, wmColor, pnPosition, pnFlipEven, pnSize,
-                pnHOff, pnVOff, mask);
+            pdfTwist.addWatermark(filename.getText(), wmText, wmSize, wmOpacity, wmColor, pnPosition, pnFlipEven, pnSize, pnHOff, pnVOff, mask);
         }
         return pdfTwist;
     }

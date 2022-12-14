@@ -9,6 +9,8 @@ import com.jgoodies.forms.layout.RowSpec;
 import jpdftwist.Main;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.gui.dialog.OutputProgressDialog;
+import jpdftwist.gui.tab.WatermarkPlusTab;
+import jpdftwist.gui.tab.WatermarkTab;
 import jpdftwist.tabs.AttachmentTab;
 import jpdftwist.tabs.BookmarkTab;
 import jpdftwist.tabs.DocumentInfoTab;
@@ -20,8 +22,6 @@ import jpdftwist.tabs.OutputTab;
 import jpdftwist.tabs.PageSizeTab;
 import jpdftwist.tabs.ShuffleTab;
 import jpdftwist.tabs.Tab;
-import jpdftwist.tabs.WatermarkPlusTab;
-import jpdftwist.tabs.WatermarkTab;
 
 import javax.swing.*;
 import java.awt.*;
