@@ -3,7 +3,7 @@ package jpdftwist.tabs.input;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import jpdftwist.core.IntegerList;
-import jpdftwist.gui.Preview;
+import jpdftwist.gui.component.ImagePreviewPanel;
 import jpdftwist.gui.component.treetable.Node;
 import jpdftwist.gui.component.treetable.TreeTableComponent;
 import jpdftwist.gui.component.treetable.TreeTableModel;
@@ -29,7 +29,7 @@ public class InputTabPanel extends JPanel {
     private final JFrame parentFrame;
     private final CellConstraints CC;
     private JTextField fileCountField;
-    private final Preview previewPanel;
+    private final ImagePreviewPanel previewPanel;
     private final TreeTableComponent inputFilesTable;
     private JButton selectFile;
     private JButton clear;
@@ -92,7 +92,7 @@ public class InputTabPanel extends JPanel {
             importFiles.start();
         };
 
-        this.previewPanel = new Preview();
+        this.previewPanel = new ImagePreviewPanel();
 
         InputTabControlListener inputTabControlListener = new InputTabControlListener(previewPanel, inputTabFileImporter);
         inputFilesTable = new TreeTableComponent(columnHeaders, itemClassType, inputTabControlListener);

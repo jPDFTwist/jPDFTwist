@@ -5,7 +5,7 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfWriter;
-import jpdftwist.gui.Preview;
+import jpdftwist.gui.component.ImagePreviewPanel;
 import jpdftwist.gui.component.treetable.Node;
 import jpdftwist.gui.component.treetable.TreeTableComponent;
 import jpdftwist.gui.component.treetable.TreeTableRowType;
@@ -36,10 +36,10 @@ import java.util.logging.Logger;
 
 public class InputTabControlListener implements ControlListener {
 
-    private final Preview previewPanel;
+    private final ImagePreviewPanel previewPanel;
     private final InputTabFileImporter inputTabFileImporter;
 
-    public InputTabControlListener(Preview previewPanel, InputTabFileImporter inputTabFileImporter) {
+    public InputTabControlListener(ImagePreviewPanel previewPanel, InputTabFileImporter inputTabFileImporter) {
         this.previewPanel = previewPanel;
         this.inputTabFileImporter = inputTabFileImporter;
     }
