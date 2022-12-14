@@ -1,10 +1,9 @@
-package jpdftwist.gui.tab;
+package jpdftwist.gui.tab.watermark;
 
 import com.itextpdf.text.DocumentException;
 import jpdftwist.core.PDFTwist;
+import jpdftwist.core.watermark.WatermarkStyle;
 import jpdftwist.tabs.ActionTab;
-import jpdftwist.tabs.watermark.WatermarkStyle;
-import jpdftwist.tabs.watermark.WatermarkTabPanel;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -17,16 +16,16 @@ import java.util.logging.Logger;
 public class WatermarkPlusTab extends ActionTab {
 
     private static final String TAB_NAME = "Watermark +";
-    private WatermarkTabPanel watermarkTabPanel;
+    private WatermarkPlusTabPanel watermarkPlusTabPanel;
 
     public String getTabName() {
         return TAB_NAME;
     }
 
     public JPanel getUserInterface() {
-        watermarkTabPanel = WatermarkTabPanel.getWatermarkTabPanel();
+        watermarkPlusTabPanel = WatermarkPlusTabPanel.getWatermarkTabPanel();
 
-        return watermarkTabPanel;
+        return watermarkPlusTabPanel;
     }
 
     public void checkRun() {
@@ -34,7 +33,7 @@ public class WatermarkPlusTab extends ActionTab {
     }
 
     public PDFTwist run(PDFTwist input) {
-        for (WatermarkStyle style : watermarkTabPanel.getStyles()) {
+        for (WatermarkStyle style : watermarkPlusTabPanel.getStyles()) {
             try {
                 input.addWatermark(style);
             } catch (DocumentException | IOException ex) {

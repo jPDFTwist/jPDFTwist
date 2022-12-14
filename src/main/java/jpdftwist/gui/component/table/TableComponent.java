@@ -2,7 +2,7 @@ package jpdftwist.gui.component.table;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import jpdftwist.tabs.watermark.WatermarkStyle;
+import jpdftwist.core.watermark.WatermarkStyle;
 
 import javax.swing.*;
 import java.awt.*;

@@ -2,37 +2,26 @@
  * Original Functions		@author Michael Schierl					Affero GNU Public License
  * Additional Functions		@author & @sponsor: E.Victor			Proprietary for in-house use only / Not released to the Public
  */
-package jpdftwist.tabs.watermark;
+package jpdftwist.gui.tab.watermark;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
+import jpdftwist.core.watermark.WatermarkStyle;
 import jpdftwist.gui.component.table.TableComponent;
-import jpdftwist.tabs.watermark.optionpanels.WatermarkBatesPanel;
-import jpdftwist.tabs.watermark.optionpanels.WatermarkImagePanel;
-import jpdftwist.tabs.watermark.optionpanels.WatermarkOptionsPanel;
-import jpdftwist.tabs.watermark.optionpanels.WatermarkRepeatedTextPanel;
-import jpdftwist.tabs.watermark.optionpanels.WatermarkVariableTextPanel;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
 import java.awt.*;
 
-/**
- *
- * @ 
- */
-public class WatermarkTabPanel extends JPanel {
+public class WatermarkPlusTabPanel extends JPanel {
 
 	private TableComponent pageNumberRanges;
-	private WatermarkPreviewBox previewBox;
+	private WatermarkPreviewComponent previewBox;
 	private final CellConstraints CC;
 	private WatermarkOptionsPanel optionsPanel;
-
 	private WatermarkVariableTextPanel variableTextPanel;
 	private WatermarkBatesPanel batesPanel;
 	private WatermarkRepeatedTextPanel repeatedTextPanel;
@@ -41,13 +30,11 @@ public class WatermarkTabPanel extends JPanel {
 
 	private JPanel styleOptionsPanel;
 
-	private StyleChangeListener styleChangeListener;
-
-	public static WatermarkTabPanel getWatermarkTabPanel() {
-		return new WatermarkTabPanel();
+	public static WatermarkPlusTabPanel getWatermarkTabPanel() {
+		return new WatermarkPlusTabPanel();
 	}
 
-	public WatermarkTabPanel() {
+	public WatermarkPlusTabPanel() {
 		super(new FormLayout(new ColumnSpec[] {
 				ColumnSpec.decode("pref:grow"),
 				FormSpecs.PREF_COLSPEC,
@@ -75,24 +62,14 @@ public class WatermarkTabPanel extends JPanel {
 				new Object[] { new WatermarkStyle(), 1, "", 1 });
 		pageNumberRanges.getScrollPane().setPreferredSize(new Dimension(400, 220));
 
-		pageNumberRanges.getTable().getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+		pageNumberRanges.getTable().getSelectionModel().addListSelectionListener(e -> setOptions());
 
-			
-			public void valueChanged(ListSelectionEvent e) {
-				setOptions();
-			}
-		});
-
-		styleChangeListener = new StyleChangeListener() {
-
-			
-			public void styleChanged(int value) {
-				replacePanel(value);
-				setOptions();
-			}
+		StyleChangeListener styleChangeListener = value -> {
+			replacePanel(value);
+			setOptions();
 		};
 
-		previewBox = WatermarkPreviewBox.createPreviewBox();
+		previewBox = WatermarkPreviewComponent.createPreviewBox();
 
 		optionsPanel = new WatermarkOptionsPanel();
 		optionsPanel.setPreviewModel(previewBox.getDefaultModel());
@@ -115,33 +92,29 @@ public class WatermarkTabPanel extends JPanel {
 	}
 
 	private void replacePanel(final int value) {
-		SwingUtilities.invokeLater(new Runnable() {
+		SwingUtilities.invokeLater(() -> {
+			remove(styleOptionsPanel);
 
-			
-			public void run() {
-				remove(styleOptionsPanel);
-
-				switch (value) {
-				case 5:
-					styleOptionsPanel = batesPanel;
-					break;
-				case 6:
-					styleOptionsPanel = repeatedTextPanel;
-					break;
-				case 7:
-					styleOptionsPanel = imagePanel;
-					break;
-				case 8:
-					styleOptionsPanel = variableTextPanel;
-					break;
-				default:
-					styleOptionsPanel = emptyPanel;
-				}
-
-				add(styleOptionsPanel, CC.xy(4, 4));
-				validate();
-				repaint();
+			switch (value) {
+			case 5:
+				styleOptionsPanel = batesPanel;
+				break;
+			case 6:
+				styleOptionsPanel = repeatedTextPanel;
+				break;
+			case 7:
+				styleOptionsPanel = imagePanel;
+				break;
+			case 8:
+				styleOptionsPanel = variableTextPanel;
+				break;
+			default:
+				styleOptionsPanel = emptyPanel;
 			}
+
+			add(styleOptionsPanel, CC.xy(4, 4));
+			validate();
+			repaint();
 		});
 	}
 
@@ -161,8 +134,6 @@ public class WatermarkTabPanel extends JPanel {
 				imagePanel.setStyle(style);
 			else if (style.getType() == WatermarkStyle.WatermarkType.BATES_NUMBERING)
 				batesPanel.setStyle(style);
-
-			// replacePanel(style.getType().getMask());
 
 			switch (style.getType()) {
 			case NUMBERS:
@@ -191,9 +162,6 @@ public class WatermarkTabPanel extends JPanel {
 				break;
 			case VARIABLE_TEXT:
 				previewBox.setText("Variable Text");
-				break;
-			case EMPTY:
-				previewBox.setText("Watermark");
 				break;
 			default:
 				previewBox.setText("Watermark");

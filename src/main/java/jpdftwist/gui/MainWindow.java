@@ -19,8 +19,8 @@ import jpdftwist.gui.tab.OutputTab;
 import jpdftwist.gui.tab.PageSizeTab;
 import jpdftwist.gui.tab.ShuffleTab;
 import jpdftwist.gui.tab.Tab;
-import jpdftwist.gui.tab.WatermarkPlusTab;
-import jpdftwist.gui.tab.WatermarkTab;
+import jpdftwist.gui.tab.watermark.WatermarkPlusTab;
+import jpdftwist.gui.tab.watermark.WatermarkTab;
 import jpdftwist.tabs.InputTabActions;
 
 import javax.swing.*;

@@ -1,4 +1,4 @@
-package jpdftwist.gui.tab;
+package jpdftwist.gui.tab.watermark;
 
 import com.itextpdf.text.DocumentException;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -8,6 +8,8 @@ import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.component.FileChooser;
 import jpdftwist.gui.component.table.TableComponent;
 import jpdftwist.gui.dialog.OutputProgressDialog;
+import jpdftwist.gui.tab.PageNumberTab;
+import jpdftwist.gui.tab.Tab;
 
 import javax.swing.*;
 import java.awt.*;
