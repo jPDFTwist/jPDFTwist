@@ -6,8 +6,8 @@ import jpdftwist.gui.component.treetable.Node;
 import jpdftwist.gui.component.treetable.TreeTableRowType;
 import jpdftwist.gui.component.treetable.event.PageEventListener;
 import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
+import jpdftwist.gui.dialog.ErrorDialog;
 import jpdftwist.gui.tab.input.InputProgressDialog;
-import jpdftwist.tabs.input.error.ErrorHandler;
 import jpdftwist.tabs.input.treetable.node.FileNodeFactory;
 import jpdftwist.tabs.input.treetable.node.NodeFactory;
 import jpdftwist.tabs.input.treetable.node.RealPdfNodeFactory;
@@ -27,36 +27,33 @@ import java.util.logging.Logger;
  */
 public class FileImporter implements Runnable {
 
-    private JFrame parentFrame;
-
     private final InputProgressDialog importDialog;
     private final ModelHandler modelHandler;
-    private final ErrorHandler errorHandler;
+    private final ErrorDialog errorDialog;
 
-    private boolean useTempFiles, optimizePDF, autoRestrictionsOverwrite, autoRestrioctionsNew;
+    private boolean optimizePDF;
+    private boolean autoRestrictionsOverwrite;
+    private boolean autoRestrioctionsNew;
 
     private List<File[]> files;
-    private ProcessCancelledListener cancelListener;
 
     private boolean cancel;
 
     public FileImporter(ModelHandler modelHandler) {
         this.cancel = false;
-        this.useTempFiles = false;
         this.optimizePDF = false;
         this.autoRestrioctionsNew = true;
         this.autoRestrictionsOverwrite = true;
 
-        this.errorHandler = new ErrorHandler();
+        this.errorDialog = new ErrorDialog();
         this.importDialog = new InputProgressDialog();
-        this.cancelListener = () -> cancel = true;
+        ProcessCancelledListener cancelListener = () -> cancel = true;
         importDialog.setCancelledListener(cancelListener);
 
         this.modelHandler = modelHandler;
     }
 
     public void setParentFrame(JFrame parentFrame) {
-        this.parentFrame = parentFrame;
     }
 
     public void setOptimizePDF(boolean optimizePDF) {
@@ -72,7 +69,6 @@ public class FileImporter implements Runnable {
     }
 
     public void setUseTempFiles(boolean useTempFiles) {
-        this.useTempFiles = useTempFiles;
     }
 
     public FileImporter(ModelHandler handler, File... f) {
@@ -99,7 +95,7 @@ public class FileImporter implements Runnable {
             }
 
             importDialog.closeDialogWithDelay();
-            errorHandler.showErrors();
+            errorDialog.showErrors();
 
             modelHandler.updateTableUI();
             return;
@@ -126,7 +122,7 @@ public class FileImporter implements Runnable {
             }
 
             importDialog.closeDialogWithDelay();
-            errorHandler.showErrors();
+            errorDialog.showErrors();
             modelHandler.updateTableUI();
             System.gc();
         });
@@ -195,7 +191,7 @@ public class FileImporter implements Runnable {
         } catch (Exception ex) {
             Logger.getLogger(FileImporter.class.getName()).log(Level.SEVERE, null, ex);
             String exceptionTrace = getExceptionTrace(ex);
-            errorHandler.reportError(file.getPath(), exceptionTrace);
+            errorDialog.reportError(file.getPath(), exceptionTrace);
         }
     }
 
