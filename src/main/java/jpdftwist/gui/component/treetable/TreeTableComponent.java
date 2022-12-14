@@ -1,49 +1,24 @@
 package jpdftwist.gui.component.treetable;
 
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.PageSize;
-import com.itextpdf.text.pdf.PdfContentByte;
-import com.itextpdf.text.pdf.PdfWriter;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
-import jpdftwist.gui.Preview;
-import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
-import jpdftwist.gui.component.treetable.row.PageTreeTableRow;
-import jpdftwist.tabs.input.InputTabFileImporter;
-import jpdftwist.utils.JImageParser;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.rendering.PDFRenderer;
+import jpdftwist.gui.component.treetable.event.ControlListener;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.BorderHighlighter;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -63,15 +38,14 @@ public class TreeTableComponent extends JPanel {
     private boolean expandCollapse;
     private boolean ascendingOrder;
     TreeTableExpansionState expansionState;
-    private final Preview previewPanel;
     private final CellConstraints CC;
-    final InputTabFileImporter inputTabFileImporter;
+    private final ControlListener controlListener;
 
-    public TreeTableComponent(final String[] headers, final Class[] classes, final InputTabFileImporter inputTabFileImporter, final Preview previewPanel) {
+    public TreeTableComponent(final String[] headers, final Class[] classes, final ControlListener controlListener) {
         this.CC = new CellConstraints();
-        this.previewPanel = previewPanel;
         this.expandCollapse = false;
         this.ascendingOrder = true;
+        this.controlListener = controlListener;
         if (headers.length != classes.length) {
             throw new IllegalArgumentException();
         }
@@ -96,7 +70,6 @@ public class TreeTableComponent extends JPanel {
         this.exportList = new JButton("ExportList");
         this.saveList = new JButton("Save");
         this.openList = new JButton("Load");
-        this.inputTabFileImporter = inputTabFileImporter;
         this.createUI();
     }
 
@@ -126,11 +99,7 @@ public class TreeTableComponent extends JPanel {
 
         this.treeTable.addMouseListener(new MouseAdapter() {
             public void mouseClicked(final MouseEvent evt) {
-                try {
-                    TreeTableComponent.this.treeTableMouseListenerAction(evt);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                treeTableMouseListenerAction(evt);
             }
         });
 
@@ -139,11 +108,7 @@ public class TreeTableComponent extends JPanel {
                 int keyCode = evt.getKeyCode();
 
                 if (keyCode == KeyEvent.VK_DOWN || keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_PAGE_DOWN || keyCode == KeyEvent.VK_PAGE_UP) {
-                    try {
-                        treeTableKeyListenerAction(evt);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    treeTableKeyListenerAction(evt);
                 }
             }
         });
@@ -151,11 +116,7 @@ public class TreeTableComponent extends JPanel {
         this.treeTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                try {
-                    updatePreview(getSelected());
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
+                controlListener.onSelectNode(getSelected());
             }
         });
 
@@ -171,43 +132,39 @@ public class TreeTableComponent extends JPanel {
             this.scrollPane.setPreferredSize(new Dimension(750, 400));
             this.add(this.scrollPane, CC.xyw(1, 1, 9));
             this.add(this.expandBtn, CC.xy(1, 2));
-            this.expandBtn.addActionListener(e -> TreeTableComponent.this.expandButtonListenerAction());
+            this.expandBtn.addActionListener(e -> expandButtonListenerAction());
             this.add(this.upBtn, CC.xy(2, 2));
-            this.upBtn.addActionListener(e -> TreeTableComponent.this.upButtonListenerAction());
+            this.upBtn.addActionListener(e -> upButtonListenerAction());
             this.add(this.downBtn, CC.xy(3, 2));
-            this.downBtn.addActionListener(e -> TreeTableComponent.this.downButtonListenerAction());
+            this.downBtn.addActionListener(e -> downButtonListenerAction());
             this.add(this.deleteBtn, CC.xy(4, 2));
             this.deleteBtn.addActionListener(e -> {
                 try {
-                    TreeTableComponent.this.deleteButtonListenerAction();
+                    deleteButtonListenerAction();
                 } catch (Exception ex) {
                     Logger.getLogger(TreeTableComponent.class.getName()).log(Level.SEVERE, null, ex);
                 }
             });
             this.add(this.orderBtn, CC.xy(5, 2));
-            this.orderBtn.addActionListener(e -> TreeTableComponent.this.sortButtonListenerAction());
+            this.orderBtn.addActionListener(e -> sortButtonListenerAction());
             this.add(this.colorBtn, CC.xy(6, 2));
-            this.colorBtn.addActionListener(e -> TreeTableComponent.this.colorButtonListenerAction());
+            this.colorBtn.addActionListener(e -> colorButtonListenerAction());
 
             this.add(this.exportList, CC.xy(7, 2));
-            this.exportList.addActionListener(e -> {
-                TreeTableComponent.this.createPdf();
-            });
+            this.exportList.addActionListener(e -> controlListener.onExport(this));
 
             this.add(this.saveList, CC.xy(8, 2));
-            this.saveList.addActionListener(e -> {
-                TreeTableComponent.this.createJSON();
-            });
+            this.saveList.addActionListener(e -> controlListener.onSave(this));
 
             this.add(this.openList, CC.xy(9, 2));
-            this.openList.addActionListener(e -> TreeTableComponent.this.loadJSON());
+            this.openList.addActionListener(e -> controlListener.onLoad(this));
 
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
     }
 
-    private void treeTableMouseListenerAction(final MouseEvent evt) throws IOException {
+    private void treeTableMouseListenerAction(final MouseEvent evt) {
         if (evt.getClickCount() != 2) {
             return;
         }
@@ -218,23 +175,14 @@ public class TreeTableComponent extends JPanel {
             return;
         }
         final Node node = (Node) path.getLastPathComponent();
-        if ((evt.getModifiers() & 0x10) != 0x10) {
+        if ((evt.getModifiers() & InputEvent.BUTTON1_DOWN_MASK) != 0) {
             return;
         }
-        if (node.getUserObject() instanceof FileTreeTableRow) {
-            try {
-                File newFile = new File(node.getUserObject().getKey());
-                if (newFile.exists()) {
-                    Desktop.getDesktop().open(newFile);
-                }
 
-            } catch (IOException ex) {
-                Logger.getLogger(TreeTableComponent.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
+        controlListener.doubleClick(node);
     }
 
-    private void treeTableKeyListenerAction(final KeyEvent evt) throws IOException {
+    private void treeTableKeyListenerAction(final KeyEvent evt) {
         int row = -1;
 
         if (evt.getKeyCode() == KeyEvent.VK_DOWN) {
@@ -257,29 +205,7 @@ public class TreeTableComponent extends JPanel {
             return;
         }
         final Node node = (Node) path.getLastPathComponent();
-        updatePreview(node);
-    }
-
-    private void updatePreview(Node node) throws IOException {
-        if (node == null || !(node.getUserObject() instanceof PageTreeTableRow)) {
-            previewPanel.clearPreview();
-            return;
-        }
-
-        final FileTreeTableRow userObject = (FileTreeTableRow) node.getParent().getUserObject();
-        String parent = userObject.getKey();
-
-        final Image previewImage;
-        if (userObject.getSubType().equals(FileTreeTableRow.SubType.PDF)) {
-            PDDocument document = PDDocument.load(new File(parent));
-            PDFRenderer pdfRenderer = new PDFRenderer(document);
-            previewImage = pdfRenderer.renderImage(Integer.parseInt(node.getUserObject().getKey()) - 1);
-            document.close();
-        } else {
-            previewImage = JImageParser.readAwtImage(parent);
-        }
-
-        this.previewPanel.preview(previewImage);
+        controlListener.onSelectNode(node);
     }
 
     private void expandButtonListenerAction() {
@@ -335,7 +261,7 @@ public class TreeTableComponent extends JPanel {
     }
 
     private void deleteButtonListenerAction() {
-        this.previewPanel.clearPreview();
+        controlListener.beforeDelete();
         for (int i = this.treeTable.getSelectedRowCount() - 1; i >= 0
             && this.treeTable.getSelectedRowCount() != 0; --i) {
             final int row = this.treeTable.getSelectedRows()[i];
@@ -365,7 +291,7 @@ public class TreeTableComponent extends JPanel {
     }
 
     public void clear() {
-        this.previewPanel.clearPreview();
+        controlListener.onClear();
         this.model.clear();
     }
 
@@ -373,7 +299,6 @@ public class TreeTableComponent extends JPanel {
         final int row = this.treeTable.getSelectedRow();
         final TreePath path = this.treeTable.getPathForRow(row);
         if (path == null) {
-
             return null;
         }
 
@@ -383,191 +308,5 @@ public class TreeTableComponent extends JPanel {
     public void updateTreeTableUI() {
         SwingUtilities.invokeLater(() -> TreeTableComponent.this.treeTable.updateUI());
     }
-
-    public byte[] loadFile(String sourcePath) throws IOException {
-        try (InputStream inputStream = new FileInputStream(sourcePath)) {
-            return readFully(inputStream);
-        }
-    }
-
-    public byte[] readFully(InputStream stream) throws IOException {
-        //byte[] buffer = new byte[8192];
-        byte[] buffer = new byte[8388608];
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-        int bytesRead;
-        while ((bytesRead = stream.read(buffer)) != -1) {
-            baos.write(buffer, 0, bytesRead);
-        }
-        return baos.toByteArray();
-    }
-
-    private void createPdf() {
-        try {
-            //Create Tree Report
-
-            final JFileChooser fc = new JFileChooser();
-            fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-            int returnVal = fc.showSaveDialog(TreeTableComponent.this);
-
-            if (returnVal != JFileChooser.APPROVE_OPTION) {
-                return;
-            }
-
-            Document document = new Document(PageSize.A1, 0, 0, 0, 0);
-            //Document document = new Document();
-            JTable table = treeTable;
-
-            LocalDateTime now = LocalDateTime.now();
-            String date = now.getDayOfMonth() + "-" + now.getMonth() + "-" + now.getYear();
-            String time = now.getHour() + "-" + now.getMinute() + "-" + now.getSecond();
-            String timestamp = date + "-" + time;
-
-            PdfWriter writer;
-
-            String filename2 = "JPDFTwist-Tree-Report-" + timestamp + ".pdf";
-            final String filepath = fc.getSelectedFile().getAbsolutePath() + File.separator + filename2;
-            writer = PdfWriter.getInstance(document, new FileOutputStream(filepath));
-
-            document.open();
-
-            BufferedImage img1 = (BufferedImage) getImageFromComponent(table.getTableHeader());
-            BufferedImage img2 = (BufferedImage) getImageFromComponent(table);
-            BufferedImage joinedImg = joinBufferedImage(img1, img2);
-            addImageToDocument(document, writer, joinedImg);
-
-            document.close();
-            JOptionPane.showMessageDialog(null, "File successfully saved at \"" + filepath + "\"");
-
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-        }
-    }
-
-    public java.awt.Image getImageFromComponent(JComponent component) {
-        BufferedImage image = new BufferedImage(treeTable.getWidth(), component.getHeight(),
-            BufferedImage.TYPE_INT_RGB);
-        component.paint(image.getGraphics());
-        return image;
-    }
-
-    public void addImageToDocument(Document document, PdfWriter writer, java.awt.Image img)
-        throws IOException, DocumentException {
-        com.itextpdf.text.Image image = com.itextpdf.text.Image.getInstance(writer, img, 1);
-
-        PdfContentByte content = writer.getDirectContent();
-        image.scaleAbsolute(PageSize.A1.getWidth(), PageSize.A1.getHeight());
-        image.setAbsolutePosition(0, 0);
-
-        float width = PageSize.A1.getWidth();
-        float heightRatio = image.getHeight() * width / image.getWidth();
-        int nPages = (int) (heightRatio / PageSize.A1.getHeight());
-        float difference = heightRatio % PageSize.A1.getHeight();
-
-        while (nPages >= 0) {
-            document.newPage();
-            content.addImage(image, width, 0, 0, heightRatio, 0, -((--nPages * PageSize.A1.getHeight()) + difference));
-        }
-    }
-
-    public static BufferedImage joinBufferedImage(BufferedImage img1, BufferedImage img2) {
-
-        int heightTotal = 0;
-        int maxWidth = 100;
-
-        ArrayList<BufferedImage> images = new ArrayList<>();
-
-        images.add(img1);
-        images.add(img2);
-
-        for (BufferedImage bufferedImage : images) {
-            heightTotal += bufferedImage.getHeight();
-            if (bufferedImage.getWidth() > maxWidth) {
-                maxWidth = bufferedImage.getWidth();
-            }
-        }
-
-        int heightCurr = 0;
-        BufferedImage concatImage = new BufferedImage(maxWidth, heightTotal, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g2d = concatImage.createGraphics();
-        for (BufferedImage bufferedImage : images) {
-            g2d.drawImage(bufferedImage, 0, heightCurr, null);
-            heightCurr += bufferedImage.getHeight();
-        }
-
-        return concatImage;
-    }
-
-    private List<String> getInputElements(Node parent) {
-        final List<String> inputElements = new ArrayList<>();
-
-        Enumeration<?> e = parent.children();
-        while (e.hasMoreElements()) {
-            final Node child = (Node) e.nextElement();
-            if (TreeTableRowType.isFile(child)) {
-                inputElements.add(child.getUserObject().getKey());
-            } else if (child.getUserObject().getType() == TreeTableRowType.FOLDER) {
-                inputElements.addAll(getInputElements(child));
-            }
-        }
-
-        return inputElements;
-    }
-
-    public void createJSON() {
-        try {
-            //Create Tree Input Structure
-
-            final JFileChooser fc = new JFileChooser();
-            fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-            int returnVal = fc.showSaveDialog(TreeTableComponent.this);
-
-            if (returnVal != JFileChooser.APPROVE_OPTION) {
-                return;
-            }
-            final org.jdesktop.swingx.treetable.TreeTableModel model = treeTable.getTreeTableModel();
-            final JSONArray inputFiles = new JSONArray(getInputElements((Node) model.getRoot()));
-            final JSONObject json = new JSONObject();
-            json.put("input-files", inputFiles);
-
-            LocalDateTime now = LocalDateTime.now();
-            String timestamp = String.format("%s-%s-%s-%s-%s-%s",
-                now.getDayOfMonth(), now.getMonth(), now.getYear(), now.getHour(), now.getMinute(), now.getSecond());
-
-            String filename1 = "JPDFTwist-Tree-Input-" + timestamp + ".json";
-            final String filepath = fc.getSelectedFile().getAbsolutePath() + File.separator + filename1;
-            FileWriter jsonFile = new FileWriter(filepath);
-
-            jsonFile.write(json.toString(4));
-            jsonFile.close();
-            JOptionPane.showMessageDialog(null, "File successfully saved at \"" + filepath + "\"");
-
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-        }
-    }
-
-    private void loadJSON() {
-        JFileChooser fc = new JFileChooser();
-        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        int returnVal = fc.showOpenDialog(TreeTableComponent.this);
-
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = fc.getSelectedFile();
-            try {
-                String content = new String(Files.readAllBytes(Paths.get(file.toURI())));
-                JSONObject json = new JSONObject(content);
-                JSONArray inputFiles = json.getJSONArray("input-files");
-                String[] files = new String[inputFiles.length()];
-                for (int i = 0; i < inputFiles.length(); i++) {
-                    files[i] = inputFiles.getString(i);
-                }
-                inputTabFileImporter.importFilesToInputTab(files);
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
-            }
-        }
-    }
-
 }
 
