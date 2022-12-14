@@ -10,7 +10,6 @@ import jpdftwist.gui.component.treetable.TreeTableModel;
 import jpdftwist.gui.component.treetable.TreeTableRowType;
 import jpdftwist.gui.component.treetable.row.FolderTreeTableRow;
 import jpdftwist.tabs.input.FileImporter;
-import jpdftwist.tabs.input.InputOptionsPanel;
 import jpdftwist.tabs.input.InputTabFileImporter;
 import jpdftwist.tabs.input.ModelHandler;
 import jpdftwist.tabs.input.ModelReader;

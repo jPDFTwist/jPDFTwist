@@ -1,4 +1,4 @@
-package jpdftwist.tabs.input;
+package jpdftwist.gui.tab.input;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.ColumnSpec;
@@ -49,13 +49,7 @@ public class InputOptionsPanel extends JPanel {
     }
 
     private ItemListener interleaveListener() {
-        return new ItemListener() {
-
-
-            public void itemStateChanged(ItemEvent e) {
-                interleaveItemStateChanged();
-            }
-        };
+        return e -> interleaveItemStateChanged();
     }
 
     private void interleaveItemStateChanged() {
@@ -63,16 +57,12 @@ public class InputOptionsPanel extends JPanel {
     }
 
     private ItemListener autoRemoveRestrictionsItemStateChanged() {
-        return new ItemListener() {
-
-
-            public void itemStateChanged(ItemEvent e) {
-                JCheckBox check = (JCheckBox) e.getSource();
-                if (check == autoRemoveRestrictionsOverwrite && e.getStateChange() == ItemEvent.SELECTED) {
-                    autoRemoveRestrictionsNew.setSelected(false);
-                } else if (check == autoRemoveRestrictionsNew && e.getStateChange() == ItemEvent.SELECTED) {
-                    autoRemoveRestrictionsOverwrite.setSelected(false);
-                }
+        return e -> {
+            JCheckBox check = (JCheckBox) e.getSource();
+            if (check == autoRemoveRestrictionsOverwrite && e.getStateChange() == ItemEvent.SELECTED) {
+                autoRemoveRestrictionsNew.setSelected(false);
+            } else if (check == autoRemoveRestrictionsNew && e.getStateChange() == ItemEvent.SELECTED) {
+                autoRemoveRestrictionsOverwrite.setSelected(false);
             }
         };
     }
