@@ -4,20 +4,20 @@ package jpdftwist.tabs.input.password;
  *
  * @author Vasilis Naskos
  */
-public class PasswordObject {
+public class Password {
 
 	private char[] password;
 	private String unlockedFilePath;
 	private boolean successfullyUnlocked = true;
 
-	public PasswordObject() {
+	public Password() {
 	}
 
-	public PasswordObject(char[] password) {
+	public Password(char[] password) {
 		this.password = password;
 	}
 
-	public PasswordObject(char[] password, String unlockedFilePath) {
+	public Password(char[] password, String unlockedFilePath) {
 		this.password = password;
 		this.unlockedFilePath = unlockedFilePath;
 	}
