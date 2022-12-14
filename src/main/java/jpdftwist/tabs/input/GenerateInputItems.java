@@ -3,6 +3,7 @@ package jpdftwist.tabs.input;
 import com.esotericsoftware.kryo.Kryo;
 import com.itextpdf.text.Rectangle;
 import jpdftwist.core.UnitTranslator;
+import jpdftwist.gui.component.ColorChooserButton;
 import jpdftwist.gui.component.FileChooser;
 import jpdftwist.gui.component.treetable.Node;
 import jpdftwist.gui.component.treetable.TreeTableRowType;
@@ -91,7 +92,7 @@ public class GenerateInputItems extends javax.swing.JFrame {
         jSpinner3 = new javax.swing.JSpinner();
         jComboBox1 = new javax.swing.JComboBox();
         jLabel3 = new javax.swing.JLabel();
-        colorChooserButton1 = new jpdftwist.tabs.watermark.ColorChooserButton();
+        colorChooserButton1 = new ColorChooserButton();
         jLabel4 = new javax.swing.JLabel();
         jSpinner4 = new javax.swing.JSpinner();
         jLabel5 = new javax.swing.JLabel();
@@ -318,7 +319,7 @@ public class GenerateInputItems extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
-    private jpdftwist.tabs.watermark.ColorChooserButton colorChooserButton1;
+    private ColorChooserButton colorChooserButton1;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton3;
     private javax.swing.JComboBox jComboBox1;

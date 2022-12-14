@@ -1,6 +1,6 @@
 package jpdftwist.gui.component.treetable;
 
-import jpdftwist.tabs.watermark.ColorChooserButton;
+import jpdftwist.gui.component.ColorChooserButton;
 import jpdftwist.utils.PreferencesUtil;
 
 import java.awt.*;
@@ -48,11 +48,11 @@ public class TreeTableColorPickerDialog extends javax.swing.JFrame {
     }
 
     private void initComponents() {
-        folderColorButton = new jpdftwist.tabs.watermark.ColorChooserButton();
-        fileColorButton = new jpdftwist.tabs.watermark.ColorChooserButton();
-        blankColorButton = new jpdftwist.tabs.watermark.ColorChooserButton();
-        existingColorButton = new jpdftwist.tabs.watermark.ColorChooserButton();
-        pageColorButton = new jpdftwist.tabs.watermark.ColorChooserButton();
+        folderColorButton = new ColorChooserButton();
+        fileColorButton = new ColorChooserButton();
+        blankColorButton = new ColorChooserButton();
+        existingColorButton = new ColorChooserButton();
+        pageColorButton = new ColorChooserButton();
         javax.swing.JButton okButton = new javax.swing.JButton();
         javax.swing.JButton defaultsButton = new javax.swing.JButton();
 
