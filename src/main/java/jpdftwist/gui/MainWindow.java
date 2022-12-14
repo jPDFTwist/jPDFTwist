@@ -15,12 +15,12 @@ import jpdftwist.gui.tab.DocumentInfoTab;
 import jpdftwist.gui.tab.EncryptSignTab;
 import jpdftwist.gui.tab.InteractionTab;
 import jpdftwist.gui.tab.OutputTab;
+import jpdftwist.gui.tab.PageSizeTab;
 import jpdftwist.gui.tab.ShuffleTab;
 import jpdftwist.gui.tab.WatermarkPlusTab;
 import jpdftwist.gui.tab.WatermarkTab;
 import jpdftwist.tabs.Forms;
 import jpdftwist.tabs.InputTabActions;
-import jpdftwist.tabs.PageSizeTab;
 import jpdftwist.tabs.Tab;
 
 import javax.swing.*;
