@@ -6,6 +6,7 @@ import jpdftwist.gui.component.treetable.Node;
 import jpdftwist.gui.component.treetable.TreeTableRowType;
 import jpdftwist.gui.component.treetable.event.PageEventListener;
 import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
+import jpdftwist.gui.tab.input.InputProgressDialog;
 import jpdftwist.tabs.input.error.ErrorHandler;
 import jpdftwist.tabs.input.treetable.node.FileNodeFactory;
 import jpdftwist.tabs.input.treetable.node.NodeFactory;
