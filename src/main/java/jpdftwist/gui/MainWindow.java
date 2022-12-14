@@ -13,6 +13,7 @@ import jpdftwist.gui.tab.AttachmentTab;
 import jpdftwist.gui.tab.BookmarkTab;
 import jpdftwist.gui.tab.DocumentInfoTab;
 import jpdftwist.gui.tab.EncryptSignTab;
+import jpdftwist.gui.tab.FormsTab;
 import jpdftwist.gui.tab.InteractionTab;
 import jpdftwist.gui.tab.OutputTab;
 import jpdftwist.gui.tab.PageSizeTab;
@@ -20,7 +21,6 @@ import jpdftwist.gui.tab.ShuffleTab;
 import jpdftwist.gui.tab.Tab;
 import jpdftwist.gui.tab.WatermarkPlusTab;
 import jpdftwist.gui.tab.WatermarkTab;
-import jpdftwist.tabs.Forms;
 import jpdftwist.tabs.InputTabActions;
 
 import javax.swing.*;
@@ -38,7 +38,7 @@ public class MainWindow extends JFrame {
 
     private final Tab[] tabs = {
         new PageSizeTab(this), new WatermarkTab(this), new ShuffleTab(this),
-        new BookmarkTab(this), new Forms(this), new AttachmentTab(this), new InteractionTab(this),
+        new BookmarkTab(this), new FormsTab(this), new AttachmentTab(this), new InteractionTab(this),
         new DocumentInfoTab(this), new EncryptSignTab(this),};
 
     public MainWindow() {
