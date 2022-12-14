@@ -1,4 +1,4 @@
-package jpdftwist.tabs.input;
+package jpdftwist.gui.tab.input;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -9,6 +9,12 @@ import jpdftwist.gui.component.treetable.TreeTableComponent;
 import jpdftwist.gui.component.treetable.TreeTableModel;
 import jpdftwist.gui.component.treetable.TreeTableRowType;
 import jpdftwist.gui.component.treetable.row.FolderTreeTableRow;
+import jpdftwist.tabs.input.FileImporter;
+import jpdftwist.tabs.input.GenerateInputItems;
+import jpdftwist.tabs.input.InputOptionsPanel;
+import jpdftwist.tabs.input.InputTabFileImporter;
+import jpdftwist.tabs.input.ModelHandler;
+import jpdftwist.tabs.input.ModelReader;
 import jpdftwist.tabs.input.treetable.InputTabControlListener;
 import org.jdesktop.swingx.treetable.MutableTreeTableNode;
 
@@ -23,8 +29,9 @@ import java.util.List;
 
 /**
  * @author Vasilis Naskos
+ * TODO: Move logic to actions
  */
-public class InputTabPanel extends JPanel {
+public class InputTab extends JPanel {
 
     private final JFrame parentFrame;
     private final CellConstraints CC;
@@ -42,11 +49,11 @@ public class InputTabPanel extends JPanel {
 
     private final InputTabFileImporter inputTabFileImporter;
 
-    public static InputTabPanel getInputPanel() {
-        return new InputTabPanel();
+    public static InputTab getInputPanel() {
+        return new InputTab();
     }
 
-    public InputTabPanel() {
+    public InputTab() {
         super(new FormLayout("f:p, f:p:g, f:p:g, f:p, f:p, f:p, f:p, f:p, f:p, f:p", "f:p, f:p, f:p:g"));
 
         this.CC = new CellConstraints();
@@ -108,7 +115,7 @@ public class InputTabPanel extends JPanel {
 
 
             public void importFileArray(final int[] places, ArrayList<File[]> files) {
-                InputTabPanel.this.index = 0;
+                InputTab.this.index = 0;
 
                 ModelHandler modelHandler = new ModelHandler() {
 

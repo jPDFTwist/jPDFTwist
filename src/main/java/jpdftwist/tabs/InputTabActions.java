@@ -6,7 +6,6 @@ import jpdftwist.core.PdfBookmark;
 import jpdftwist.gui.component.treetable.Node;
 import jpdftwist.gui.component.treetable.TreeTableRowType;
 import jpdftwist.gui.component.treetable.row.FolderTreeTableRow;
-import jpdftwist.tabs.input.InputTabPanel;
 import jpdftwist.tabs.input.InputValidator;
 import jpdftwist.tabs.input.ModelReader;
 import jpdftwist.tabs.input.pagerange.PageRangeGenerator;
@@ -22,10 +21,10 @@ import java.util.logging.Logger;
  *
  * @author Vasilis Naskos
  */
-public class InputTab extends ActionTab {
+public class InputTabActions extends ActionTab {
 
 	private static final String TAB_NAME = "Input";
-	private InputTabPanel inputTabPanel;
+	private jpdftwist.gui.tab.input.InputTab inputTab;
 	private boolean isModelEmpty, mergeByDir, batch, interleave, useTempFiles;
 	private int interleaveSize;
 	private int batchTaskSelection;
@@ -41,9 +40,9 @@ public class InputTab extends ActionTab {
 	 * @wbp.parser.entryPoint
 	 */
 	public JPanel getUserInterface() {
-		inputTabPanel = InputTabPanel.getInputPanel();
+		inputTab = jpdftwist.gui.tab.input.InputTab.getInputPanel();
 
-		return inputTabPanel;
+		return inputTab;
 	}
 
 	
@@ -57,17 +56,17 @@ public class InputTab extends ActionTab {
 	}
 
 	private void collectInputTabInfo() {
-		isModelEmpty = inputTabPanel.isModelEmpty();
-		mergeByDir = inputTabPanel.isMergeByDirSelected();
-		batch = inputTabPanel.isBatchSelected();
-		interleave = inputTabPanel.isInterleaveSelected();
+		isModelEmpty = inputTab.isModelEmpty();
+		mergeByDir = inputTab.isMergeByDirSelected();
+		batch = inputTab.isBatchSelected();
+		interleave = inputTab.isInterleaveSelected();
 
 		if (interleave)
-			interleaveSize = inputTabPanel.getInterleaveSize();
+			interleaveSize = inputTab.getInterleaveSize();
 		else
 			interleaveSize = 0;
 
-		ModelReader reader = inputTabPanel.getModelReader();
+		ModelReader reader = inputTab.getModelReader();
 	}
 
 	private void validateCollectedInfo() {
@@ -119,7 +118,7 @@ public class InputTab extends ActionTab {
 		try {
 			return new PDFTwist(ranges, useTempFiles, mergeByDir, interleaveSize);
 		} catch (Exception ex) {
-			Logger.getLogger(InputTab.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(InputTabActions.class.getName()).log(Level.SEVERE, null, ex);
 		}
 
 		return null;
@@ -127,7 +126,7 @@ public class InputTab extends ActionTab {
 
 	private List<PageRange> generatePageRanges(int taskIndex, boolean batch, boolean merge) {
 		if (generator == null) {
-			generator = PageRangeGenerator.initGenerator(inputTabPanel.getRootNode(), batch, merge);
+			generator = PageRangeGenerator.initGenerator(inputTab.getRootNode(), batch, merge);
 		}
 
 		return generator.generate(taskIndex);
@@ -139,7 +138,7 @@ public class InputTab extends ActionTab {
 	}
 
 	public int getBatchLength() {
-		return inputTabPanel.getBatchLength();
+		return inputTab.getBatchLength();
 	}
 
 	public List<PdfBookmark> loadBookmarks() {
@@ -153,6 +152,6 @@ public class InputTab extends ActionTab {
 
 	public void setUseTempFiles(boolean useTempFiles) {
 		this.useTempFiles = useTempFiles;
-		inputTabPanel.setUseTempFiles(useTempFiles);
+		inputTab.setUseTempFiles(useTempFiles);
 	}
 }

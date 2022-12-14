@@ -14,7 +14,7 @@ import jpdftwist.tabs.BookmarkTab;
 import jpdftwist.tabs.DocumentInfoTab;
 import jpdftwist.tabs.EncryptSignTab;
 import jpdftwist.tabs.Forms;
-import jpdftwist.tabs.InputTab;
+import jpdftwist.tabs.InputTabActions;
 import jpdftwist.tabs.InteractionTab;
 import jpdftwist.tabs.OutputTab;
 import jpdftwist.tabs.PageSizeTab;
@@ -32,7 +32,7 @@ import java.lang.management.MemoryUsage;
 
 public class MainWindow extends JFrame {
 
-    private InputTab inputTab;
+    private InputTabActions inputTabActions;
     private OutputTab outputTab;
     private WatermarkPlusTab watermarkPlusTab;
 
@@ -60,8 +60,8 @@ public class MainWindow extends JFrame {
         CellConstraints CC = new CellConstraints();
         JTabbedPane jtp;
         getContentPane().add(jtp = new JTabbedPane(), CC.xyw(1, 1, 3));
-        inputTab = new InputTab();
-        jtp.addTab(inputTab.getTabName(), inputTab.getUserInterface());
+        inputTabActions = new InputTabActions();
+        jtp.addTab(inputTabActions.getTabName(), inputTabActions.getUserInterface());
 
         watermarkPlusTab = new WatermarkPlusTab();
         for (Tab tab : tabs) {
@@ -108,11 +108,11 @@ public class MainWindow extends JFrame {
     protected void runTwist() {
         this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         PDFTwist pdfTwist = null;
-        int batchLength = inputTab.getBatchLength();
+        int batchLength = inputTabActions.getBatchLength();
         OutputProgressDialog outputProgress = null;
         try {
             try {
-                inputTab.checkRun();
+                inputTabActions.checkRun();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -127,8 +127,8 @@ public class MainWindow extends JFrame {
                     break;
                 }
                 outputProgress.resetTwistValue();
-                inputTab.selectBatchTask(task);
-                pdfTwist = inputTab.run(pdfTwist);
+                inputTabActions.selectBatchTask(task);
+                pdfTwist = inputTabActions.run(pdfTwist);
                 for (Tab tab : tabs) {
                     if (!outputProgress.isVisible()) {
                         break;
@@ -166,8 +166,8 @@ public class MainWindow extends JFrame {
         }
     }
 
-    public InputTab getInputTab() {
-        return inputTab;
+    public InputTabActions getInputTab() {
+        return inputTabActions;
     }
 
 }
