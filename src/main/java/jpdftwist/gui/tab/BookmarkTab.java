@@ -1,4 +1,4 @@
-package jpdftwist.tabs;
+package jpdftwist.gui.tab;
 
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.PdfReader;
@@ -11,6 +11,7 @@ import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.component.FileChooser;
 import jpdftwist.gui.component.table.TableComponent;
 import jpdftwist.gui.dialog.OutputProgressDialog;
+import jpdftwist.tabs.Tab;
 import jpdftwist.utils.PdfParser;
 
 import javax.swing.*;
@@ -20,20 +21,22 @@ import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
 public class BookmarkTab extends Tab {
 
-    private JButton load;
-    private JButton importPDF, importCSV, exportCSV;
-    private TableComponent bookmarks;
-    private JCheckBox changeBookmarks;
+    private final JButton load;
+    private final JButton importPDF;
+    private final JButton importCSV;
+    private final JButton exportCSV;
+    private final TableComponent bookmarks;
+    private final JCheckBox changeBookmarks;
     private final MainWindow mainWindow;
 
     public BookmarkTab(MainWindow mf) {
@@ -41,11 +44,7 @@ public class BookmarkTab extends Tab {
         this.mainWindow = mf;
         CellConstraints CC = new CellConstraints();
         add(changeBookmarks = new JCheckBox("Change chapter bookmarks"), CC.xy(1, 1));
-        changeBookmarks.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                updateEnabledState();
-            }
-        });
+        changeBookmarks.addActionListener(e -> updateEnabledState());
         add(load = new JButton("Load from document"), CC.xy(2, 1));
         load.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -77,30 +76,24 @@ public class BookmarkTab extends Tab {
             }
         });
         panel.add(importCSV = new JButton("Import from CSV"));
-        importCSV.addActionListener(new ActionListener() {
-
-            public void actionPerformed(ActionEvent e) {
-                JFileChooser jfc = new JFileChooser();
-                if (jfc.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) {
-                    importCSV(jfc.getSelectedFile());
-                }
+        importCSV.addActionListener(e -> {
+            JFileChooser jfc = new JFileChooser();
+            if (jfc.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) {
+                importCSV(jfc.getSelectedFile());
             }
-
         });
         panel.add(exportCSV = new JButton("Export to CSV"));
-        exportCSV.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                JFileChooser jfc = new JFileChooser();
-                if (jfc.showSaveDialog(mainWindow) == JFileChooser.APPROVE_OPTION) {
-                    File f = jfc.getSelectedFile();
-                    if (f.exists()) {
-                        if (JOptionPane.showConfirmDialog(mainWindow, "Overwrite existing file?", "Confirm Overwrite",
-                            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.NO_OPTION) {
-                            return;
-                        }
+        exportCSV.addActionListener(e -> {
+            JFileChooser jfc = new JFileChooser();
+            if (jfc.showSaveDialog(mainWindow) == JFileChooser.APPROVE_OPTION) {
+                File f = jfc.getSelectedFile();
+                if (f.exists()) {
+                    if (JOptionPane.showConfirmDialog(mainWindow, "Overwrite existing file?", "Confirm Overwrite",
+                        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.NO_OPTION) {
+                        return;
                     }
-                    exportCSV(f);
                 }
+                exportCSV(f);
             }
         });
         add(panel, CC.xyw(1, 2, 2));
@@ -114,9 +107,9 @@ public class BookmarkTab extends Tab {
 
     protected void importCSV(File selectedFile) {
         try {
-            BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(selectedFile), "UTF-8"));
+            BufferedReader r = new BufferedReader(new InputStreamReader(Files.newInputStream(selectedFile.toPath()), StandardCharsets.UTF_8));
             String line;
-            List<PdfBookmark> bmks = new ArrayList<PdfBookmark>();
+            List<PdfBookmark> bmks = new ArrayList<>();
             while ((line = r.readLine()) != null) {
                 if (line.startsWith("#")) {
                     continue;
@@ -134,7 +127,7 @@ public class BookmarkTab extends Tab {
 
     protected void exportCSV(File selectedFile) {
         try {
-            BufferedWriter w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(selectedFile), "UTF-8"));
+            BufferedWriter w = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(selectedFile.toPath()), StandardCharsets.UTF_8));
             for (int i = 0; i < bookmarks.getRowCount(); i++) {
                 PdfBookmark b = getBookmark(bookmarks.getRow(i));
                 w.write(b.toString());
@@ -147,10 +140,9 @@ public class BookmarkTab extends Tab {
         }
     }
 
-    protected void appendBookmarks(List<PdfBookmark> bm) {
-        for (PdfBookmark b : bm) {
-            bookmarks.addRow(b.getDepth(), b.isOpen(), b.getTitle(), b.getPage(), b.getPagePosition(), b.isBold(),
-                b.isItalic(), b.getMoreOptions());
+    protected void appendBookmarks(List<PdfBookmark> pdfBookmarks) {
+        for (PdfBookmark b : pdfBookmarks) {
+            bookmarks.addRow(b.getDepth(), b.isOpen(), b.getTitle(), b.getPage(), b.getPagePosition(), b.isBold(), b.isItalic(), b.getMoreOptions());
         }
     }
 
@@ -174,16 +166,13 @@ public class BookmarkTab extends Tab {
         bookmarks.setEnabled(changeBookmarks.isSelected());
     }
 
-
     public String getTabName() {
         return "Bookmarks";
     }
 
-
     public void checkRun() throws IOException {
         bookmarks.checkRun("chapter bookmarks");
     }
-
 
     public PDFTwist run(PDFTwist pdfTwist, OutputProgressDialog outDialog) throws IOException, DocumentException {
         outDialog.updateJPDFTwistProgress(getTabName());
@@ -198,5 +187,4 @@ public class BookmarkTab extends Tab {
         }
         return pdfTwist;
     }
-
 }
