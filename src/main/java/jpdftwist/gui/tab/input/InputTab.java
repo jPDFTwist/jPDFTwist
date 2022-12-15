@@ -26,7 +26,6 @@ import java.util.List;
  */
 public class InputTab extends JPanel {
 
-    private final JFrame parentFrame;
     private final CellConstraints CC;
     private JTextField fileCountField;
     private final ImagePreviewPanel previewPanel;
@@ -36,8 +35,6 @@ public class InputTab extends JPanel {
     private JButton generate;
     private InputOptionsPanel optionsPanel;
     private final TreeTableModel model;
-    private boolean useTempFiles;
-
     private final GenerateInputItemsDialog generateFrame;
 
     private final InputTabFileImporter inputTabFileImporter;
@@ -57,7 +54,6 @@ public class InputTab extends JPanel {
         Class[] itemClassType = new Class[]{String.class, String.class, String.class, String.class, String.class,
             Integer.class, Integer.class, Integer.class, Integer.class, Boolean.class, Boolean.class,
             IntegerList.class, Integer.class};
-        this.parentFrame = (JFrame) this.getParent();
 
         inputTabFileImporter = files -> {
             final ModelHandler modelHandler = new ModelHandler() {
@@ -74,19 +70,19 @@ public class InputTab extends JPanel {
                 }
             };
 
+            final ImportItemsListener importItemsListener = new DialogsImportItemsListener();
+
             final FileImporter importer;
             if (files == null) {
-                importer = new FileImporter(modelHandler);
+                importer = new FileImporter(modelHandler, importItemsListener);
             } else {
                 List<File[]> filesList = new ArrayList<>();
                 filesList.add(Arrays.stream(files).map(File::new).toArray(File[]::new));
-                importer = new FileImporter(modelHandler, filesList);
+                importer = new FileImporter(modelHandler, importItemsListener, filesList);
             }
-            importer.setParentFrame(parentFrame);
-            importer.setUseTempFiles(useTempFiles);
             importer.setOptimizePDF(optionsPanel.isOptimizePDFSelected());
             importer.setAutoRestrictionsOverwrite(optionsPanel.isAutoRestrictionsOverwriteSelected());
-            importer.setAutoRestrioctionsNew(optionsPanel.isAutoRestrictionsNewSelected());
+            importer.setAutoRestrictionsNew(optionsPanel.isAutoRestrictionsNewSelected());
 
             final Thread importFiles = new Thread(importer);
             importFiles.start();
@@ -102,68 +98,17 @@ public class InputTab extends JPanel {
         generateUserInterface();
         updateFileCount();
 
-        useTempFiles = false;
-
         GenerateInputItemsDialog.Listener l = new GenerateInputItemsDialog.Listener() {
-
-
-            public void importFileArray(final int[] places, ArrayList<File[]> files) {
-                InputTab.this.index = 0;
-
-                ModelHandler modelHandler = new ModelHandler() {
-
-
-                    public void insertFileNode(Node node) {
-                        Node parent = model.createParents(node.getUserObject().getKey());
-                        int i = getIndex();
-                        if (places[i] == -1) {
-                            model.insertNodeInto(node, parent, parent.getChildCount());
-                        } else {
-                            model.insertNodeInto(node, parent, places[i]);
-                        }
-
-                        updateFileCount();
-                    }
-
-
-                    public void updateTableUI() {
-                        inputFilesTable.updateTreeTableUI();
-                    }
-                };
-
-                final FileImporter importer = new FileImporter(modelHandler, files);
-                final Thread importFiles = new Thread(importer);
-                importFiles.start();
-            }
-
-
-            public void importFile(String name, int index) {
-                importFiles(index, new File(name));
-            }
-
-
-            public void importFile(String name) {
-                importFiles(new File(name));
-            }
-
-
             public void importNode(Node node, int index) {
                 Node parent = model.createParents(node.getUserObject().getKey());
                 model.insertNodeInto(node, parent, index);
             }
-
 
             public void insertNodeInto(Node node, Node parent, int index) {
                 model.insertNodeInto(node, parent, index);
             }
         };
         generateFrame = new GenerateInputItemsDialog(l);
-    }
-
-    int index;
-
-    private int getIndex() {
-        return index++;
     }
 
     private void generateUserInterface() {
@@ -236,7 +181,8 @@ public class InputTab extends JPanel {
     }
 
     public void setUseTempFiles(boolean useTempFiles) {
-        this.useTempFiles = useTempFiles;
+        System.out.println("Use temp files is " + useTempFiles);
+        //TODO: not supported
     }
 
     public boolean isModelEmpty() {
@@ -274,35 +220,5 @@ public class InputTab extends JPanel {
         } else {
             return 1;
         }
-    }
-
-    public void importFiles(File f) {
-        importFiles(-1, f);
-    }
-
-    public void importFiles(final int index, File f) {
-        ModelHandler modelHandler = new ModelHandler() {
-
-
-            public void insertFileNode(Node node) {
-                Node parent = model.createParents(node.getUserObject().getKey());
-                if (index == -1) {
-                    model.insertNodeInto(node, parent, parent.getChildCount());
-                } else {
-                    model.insertNodeInto(node, parent, index);
-                }
-
-                updateFileCount();
-            }
-
-
-            public void updateTableUI() {
-                inputFilesTable.updateTreeTableUI();
-            }
-        };
-
-        final FileImporter importer = new FileImporter(modelHandler, f);
-        final Thread importFiles = new Thread(importer);
-        importFiles.start();
     }
 }

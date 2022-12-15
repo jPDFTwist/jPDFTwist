@@ -6,18 +6,15 @@ import jpdftwist.gui.component.treetable.Node;
 import jpdftwist.gui.component.treetable.TreeTableRowType;
 import jpdftwist.gui.component.treetable.event.PageEventListener;
 import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
-import jpdftwist.gui.dialog.ErrorDialog;
-import jpdftwist.gui.tab.input.InputProgressDialog;
+import jpdftwist.gui.tab.input.ImportItemsListener;
 import jpdftwist.tabs.input.treetable.node.FileNodeFactory;
 import jpdftwist.tabs.input.treetable.node.NodeFactory;
 import jpdftwist.tabs.input.treetable.node.RealPdfNodeFactory;
 import jpdftwist.utils.SupportedFileTypes;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,33 +24,26 @@ import java.util.logging.Logger;
  */
 public class FileImporter implements Runnable {
 
-    private final InputProgressDialog importDialog;
     private final ModelHandler modelHandler;
-    private final ErrorDialog errorDialog;
-
-    private boolean optimizePDF;
-    private boolean autoRestrictionsOverwrite;
-    private boolean autoRestrioctionsNew;
-
+    private final ImportItemsListener importItemsListener;
     private List<File[]> files;
+    private boolean optimizePDF = false;
+    private boolean autoRestrictionsOverwrite = true;
+    private boolean autoRestrictionsNew = true;
+    private boolean cancel = false;
 
-    private boolean cancel;
-
-    public FileImporter(ModelHandler modelHandler) {
-        this.cancel = false;
-        this.optimizePDF = false;
-        this.autoRestrioctionsNew = true;
-        this.autoRestrictionsOverwrite = true;
-
-        this.errorDialog = new ErrorDialog();
-        this.importDialog = new InputProgressDialog();
+    public FileImporter(ModelHandler modelHandler, ImportItemsListener importItemsListener) {
         ProcessCancelledListener cancelListener = () -> cancel = true;
-        importDialog.setCancelledListener(cancelListener);
+
+        this.importItemsListener = importItemsListener;
+        this.importItemsListener.onInit(cancelListener);
 
         this.modelHandler = modelHandler;
     }
 
-    public void setParentFrame(JFrame parentFrame) {
+    public FileImporter(ModelHandler handler, ImportItemsListener importItemsListener, List<File[]> files) {
+        this(handler, importItemsListener);
+        this.files = files;
     }
 
     public void setOptimizePDF(boolean optimizePDF) {
@@ -64,38 +54,23 @@ public class FileImporter implements Runnable {
         this.autoRestrictionsOverwrite = autoRestrictionsOverwrite;
     }
 
-    public void setAutoRestrioctionsNew(boolean autoRestrioctionsNew) {
-        this.autoRestrioctionsNew = autoRestrioctionsNew;
-    }
-
-    public void setUseTempFiles(boolean useTempFiles) {
-    }
-
-    public FileImporter(ModelHandler handler, File... f) {
-        this(handler);
-        files = new ArrayList<>();
-        files.add(f);
-    }
-
-    public FileImporter(ModelHandler handler, List<File[]> files) {
-        this(handler);
-        this.files = files;
+    public void setAutoRestrictionsNew(boolean autoRestrictionsNew) {
+        this.autoRestrictionsNew = autoRestrictionsNew;
     }
 
     public void run() {
         if (files != null && !files.isEmpty()) {
-            showProgressDialog();
+            importItemsListener.onRunStart();
             setProgressBarLimits();
 
             for (File[] fileArray : files) {
-                if (!importDialog.isVisible()) {
+                if (!cancel) {
                     break;
                 }
                 importDirectory(fileArray);
             }
 
-            importDialog.closeDialogWithDelay();
-            errorDialog.showErrors();
+            importItemsListener.onRunFinish();
 
             modelHandler.updateTableUI();
             return;
@@ -106,7 +81,7 @@ public class FileImporter implements Runnable {
         if (selectedFiles == null)
             return;
 
-        showProgressDialog();
+        importItemsListener.onRunStart();
 
         DirectoryScanner scanner = new DirectoryScanner(selectedFiles);
         files = scanner.getFiles();
@@ -121,8 +96,8 @@ public class FileImporter implements Runnable {
                 importDirectory(directory);
             }
 
-            importDialog.closeDialogWithDelay();
-            errorDialog.showErrors();
+            importItemsListener.onRunFinish();
+
             modelHandler.updateTableUI();
             System.gc();
         });
@@ -140,13 +115,7 @@ public class FileImporter implements Runnable {
             totalFiles += filesInFolders[i];
         }
 
-        importDialog.setFileCount(totalFiles);
-        importDialog.setFoldersCount(foldersCount);
-        importDialog.setFilesInFolderCount(filesInFolders);
-    }
-
-    private void showProgressDialog() {
-        importDialog.setVisible(true);
+        importItemsListener.onRunInit(totalFiles, foldersCount, filesInFolders);
     }
 
     private void importDirectory(File[] directory) {
@@ -154,34 +123,36 @@ public class FileImporter implements Runnable {
             if (cancel) {
                 break;
             }
-            importDialog.updateCurrentFile(FilenameUtils.normalize(file.getPath()));
+            importItemsListener.onFileReadStart(FilenameUtils.normalize(file.getPath()));
             importFile(file);
-            importDialog.updateProgress();
+            importItemsListener.onFileReadFinish();
         }
     }
 
     private void importFile(File file) {
-        // System.out.println("in import file:"+file);
         try {
             FileTreeTableRow.SubType subType = SupportedFileTypes.isPDF(file.getAbsolutePath())
                 ? FileTreeTableRow.SubType.PDF
                 : FileTreeTableRow.SubType.IMAGE;
 
             FileNodeFactory fileNodeFactory = NodeFactory.getFileNodeFactory(TreeTableRowType.REAL_FILE, subType);
+            if (fileNodeFactory == null) {
+                throw new IllegalArgumentException("Cannot parse file " + file.getAbsolutePath()); // TODO: throw in the factory instead of null
+            }
+
             if (fileNodeFactory instanceof RealPdfNodeFactory) {
-                ((RealPdfNodeFactory) fileNodeFactory).setAutoRestrictionsNew(autoRestrioctionsNew);
+                ((RealPdfNodeFactory) fileNodeFactory).setAutoRestrictionsNew(autoRestrictionsNew);
                 ((RealPdfNodeFactory) fileNodeFactory).setAutoRestrictionsOverwrite(autoRestrictionsOverwrite);
             }
             fileNodeFactory.setOptimize(optimizePDF);
             fileNodeFactory.addPageEventListener(new PageEventListener() {
 
                 public void pageCountChanged(int pages) {
-                    importDialog.setPageCount(pages);
+                    importItemsListener.onPageCountChange(pages);
                 }
 
-
                 public void nextPage(int page) {
-                    importDialog.updatePageProgress();
+                    importItemsListener.onPageRead(page);
                 }
             });
             Node node = fileNodeFactory.getFileNode(file.getAbsolutePath());
@@ -191,7 +162,7 @@ public class FileImporter implements Runnable {
         } catch (Exception ex) {
             Logger.getLogger(FileImporter.class.getName()).log(Level.SEVERE, null, ex);
             String exceptionTrace = getExceptionTrace(ex);
-            errorDialog.reportError(file.getPath(), exceptionTrace);
+            importItemsListener.onError(file.getPath(), exceptionTrace);
         }
     }
 
@@ -202,10 +173,4 @@ public class FileImporter implements Runnable {
 
         return sw.toString();
     }
-
-    public void setReadPageSize(boolean readPageSizeSelected) {
-        // TODO Auto-generated method stub
-
-    }
-
 }
