@@ -587,7 +587,7 @@ public class OutputTab extends Tab {
             matchedTransparency));
         pdfTwist.writeOutput(outputFile.getText(), multiPageTiffCheckBox.isSelected(), burst.isSelected(),
             uncompressedComboBox.isSelected(), optimizeSizeComboBox.isSelected(), fullyCompressedComboBox.isSelected());
-        return null;
+        return pdfTwist;
     }
 
     private JPanel getPanel_1() {

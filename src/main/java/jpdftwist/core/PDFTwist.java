@@ -37,7 +37,6 @@ import jpdftwist.core.tabparams.ScaleParameters;
 import jpdftwist.core.watermark.TextRenderer;
 import jpdftwist.core.watermark.TextRenderer.TextAlignment;
 import jpdftwist.core.watermark.WatermarkStyle;
-import jpdftwist.gui.dialog.OutputProgressDialog;
 import jpdftwist.utils.JImageParser;
 import jpdftwist.utils.SupportedFileTypes;
 import org.apache.pdfbox.cos.COSName;
@@ -132,12 +131,11 @@ public class PDFTwist {
     private int bateIndex;
     private int bateRepeat;
     private BufferedReader br;
-    private final OutputProgressDialog outputProgressDialog;
     private final OutputEventListener outputEventListener;
+    private boolean isCanceled = false;
 
-    public PDFTwist(List<PageRange> pageRanges, boolean useTempFiles, boolean mergeByDir, int interleaveSize, OutputEventListener outputEventListener, OutputProgressDialog outputProgressDialog) throws IOException {
+    public PDFTwist(List<PageRange> pageRanges, boolean useTempFiles, boolean mergeByDir, int interleaveSize, OutputEventListener outputEventListener) throws IOException {
         this.useTempFiles = useTempFiles;
-        this.outputProgressDialog = outputProgressDialog;
         this.outputEventListener = outputEventListener;
         if (useTempFiles) {
             tryToCreateTempOutputFiles();
@@ -229,6 +227,10 @@ public class PDFTwist {
         }
 
         keepFileParents();
+    }
+
+    public void cancel() {
+        this.isCanceled = true;
     }
 
     private void tryToCreateTempOutputFiles() {
@@ -508,12 +510,12 @@ public class PDFTwist {
             document.open();
             PdfImportedPage page;
             outputEventListener.setPageCount(currentReader.getNumberOfPages());
-            if (!outputProgressDialog.isVisible()) {
+            if (isCanceled) {
                 return;
             }
             for (int i = 0; i < currentReader.getNumberOfPages(); i++) {
                 outputEventListener.updatePagesProgress();
-                if (!outputProgressDialog.isVisible()) {
+                if (isCanceled) {
                     return;
                 }
                 page = copy.getImportedPage(currentReader, i + 1);
@@ -585,7 +587,7 @@ public class PDFTwist {
                 PdfImportedPage page;
                 for (int pagenum = 1; pagenum <= currentReader.getNumberOfPages(); pagenum++) {
                     outputEventListener.updatePagesProgress();
-                    if (!outputProgressDialog.isVisible()) {
+                    if (isCanceled) {
                         return;
                     }
                     page = copy.getImportedPage(currentReader, pagenum);
@@ -608,7 +610,7 @@ public class PDFTwist {
                 ByteArrayOutputStream baos = null;
                 for (int pagenum = 1; pagenum <= currentReader.getNumberOfPages(); pagenum++) {
                     outputEventListener.updatePagesProgress();
-                    if (!outputProgressDialog.isVisible()) {
+                    if (isCanceled) {
                         return;
                     }
                     Document document = new Document(currentReader.getPageSizeWithRotation(1));
@@ -665,7 +667,7 @@ public class PDFTwist {
                 }
                 for (int i = 1; i <= total; i++) {
                     outputEventListener.updatePagesProgress();
-                    if (!outputProgressDialog.isVisible()) {
+                    if (isCanceled) {
                         return;
                     }
 

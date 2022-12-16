@@ -162,6 +162,7 @@ public class MainWindow extends JFrame {
                 outputProgressDialog.resetTwistValue();
                 inputTabActions.selectBatchTask(task);
                 pdfTwist = inputTabActions.run(pdfTwist, outputEventListener, outputProgressDialog);
+                outputProgressDialog.setDisposeListener(pdfTwist::cancel);
                 for (Tab tab : tabs) {
                     if (!outputProgressDialog.isVisible()) {
                         break;
@@ -188,7 +189,7 @@ public class MainWindow extends JFrame {
                 "JPDFTwist has run out of memory. You may configure Java so that it may use more RAM, or you can enable the Tempfile option on the output tab.",
                 "Out of memory: " + ex.getMessage(), JOptionPane.ERROR_MESSAGE);
         } finally {
-            if (outputProgressDialog != null && outputProgressDialog.isVisible()) {
+            if (outputProgressDialog.isVisible()) {
                 outputProgressDialog.dispose();
             }
             this.setCursor(null);
