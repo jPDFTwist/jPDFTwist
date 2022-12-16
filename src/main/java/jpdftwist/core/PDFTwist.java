@@ -60,6 +60,7 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
+import org.jdesktop.swingx.treetable.MutableTreeTableNode;
 import org.joda.time.DateTime;
 
 import java.awt.*;
@@ -68,12 +69,12 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.PrivateKey;
@@ -125,27 +126,26 @@ public class PDFTwist {
     private Certificate[] certChain = null;
     private int certificationLevel = 0;
     private boolean sigVisible = false;
-    private String inputFilePath, inputFileName, inputFileParent, inputFileFullName;
+    private final String inputFilePath;
+    private final String inputFileName;
+    private final String inputFileFullName;
     private boolean preserveHyperlinks;
     private File tempfile1 = null, tempfile2 = null;
     private PdfToImage pdfImages;
-    private boolean mergeByDir, useTempFiles;
-
+    private boolean mergeByDir;
+    private final boolean useTempFiles;
     private String rootFolder;
-
     private ArrayList<List<PDAnnotation>> pdAnnotations = new ArrayList<>();
-
     private ArrayList<PDDocument> pdDocuments;
     private List<PageRange> pageRanges;
-
     private int maxLength;
     private int interleaveSize;
     private int bateIndex;
     private int bateRepeat;
     private BufferedReader br;
 
-    public PDFTwist(List<PageRange> pageRanges, boolean useTempFiles, boolean mergeByDir, int interleaveSize)
-        throws IOException {
+    public PDFTwist(List<PageRange> pageRanges, boolean useTempFiles, boolean mergeByDir, int interleaveSize) throws IOException {
+        this.useTempFiles = useTempFiles;
         if (useTempFiles) {
             tryToCreateTempOutputFiles();
         }
@@ -163,7 +163,6 @@ public class PDFTwist {
                 Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
             }
             document.open();
-            PdfImportedPage page;
             if (interleaveSize == 0) {
                 int pagesBefore = 0;
 
@@ -201,11 +200,11 @@ public class PDFTwist {
                     }
 
                     int[] pages = pageRange.getPages(pagesBefore);
-                    for (int i = 0; i < pages.length; i++) {
-                        if (pages[i] == -1) {
+                    for (int page : pages) {
+                        if (page == -1) {
                             copy.addPage(currentReader.getPageSizeWithRotation(1), 0);
                         } else {
-                            copy.addPage(copy.getImportedPage(currentReader, pages[i]));
+                            copy.addPage(copy.getImportedPage(currentReader, page));
                         }
                     }
                     copy.freeReader(currentReader);
@@ -219,25 +218,10 @@ public class PDFTwist {
             }
 
             this.pageRanges = pageRanges;
-            pdDocuments = new ArrayList<PDDocument>();
-
-            //            PRAcroForm form = firstReader.getAcroForm();
-            //            if (form != null) {
-            //                try {
-            //                    copy.copyAcroForm(firstReader);
-            //                } catch(Exception e) {
-            //                    e.printStackTrace();
-            //                }
-            //            }
-            //            copyXMPMetadata(firstReader, copy);
+            pdDocuments = new ArrayList<>();
             document.close();
             currentReader = getTempPdfReader(baos);
-            //            copyInformation(firstReader, currentReader = getTempPdfReader(baos));
-        } catch (IOException ex) {
-            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (BadPdfFormatException ex) {
-            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (DocumentException ex) {
+        } catch (IOException | DocumentException ex) {
             Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {
@@ -251,7 +235,6 @@ public class PDFTwist {
         Node parentNode = (Node) firstNode.getParent();
         inputFilePath = parentNode.getUserObject().getKey();
         inputFileFullName = firstNode.getUserObject().getFileName();
-        inputFileParent = parentNode.getUserObject().getFileName();
         int pos = inputFileFullName.lastIndexOf('.');
         if (pos == -1) {
             inputFileName = inputFileFullName;
@@ -288,7 +271,7 @@ public class PDFTwist {
             if (!tempfile1.delete()) {
                 throw new IOException("Cannot delete " + tempfile1);
             }
-            return new FileOutputStream(tempfile1);
+            return Files.newOutputStream(tempfile1.toPath());
         } else {
             return new ByteArrayOutputStream();
         }
@@ -305,8 +288,6 @@ public class PDFTwist {
     }
 
     private void interleave(PdfCopy copy) throws IOException, BadPdfFormatException {
-        PdfImportedPage page = null;
-
         int[][] pagesPerRange = new int[pageRanges.size()][];
         maxLength = 0;
         for (int i = 0; i < pagesPerRange.length; i++) {
@@ -337,7 +318,7 @@ public class PDFTwist {
     private PdfReader getBlankReader(PageRange pageRange) throws IOException, DocumentException {
         PDDocument document = new PDDocument();
         PDPageContentStream cos;
-        Enumeration e = pageRange.getNode().children();
+        Enumeration<? extends MutableTreeTableNode> e = pageRange.getNode().children();
         while (e.hasMoreElements()) {
             Node n = (Node) e.nextElement();
             PageInputElement puo = (PageInputElement) n.getUserObject();
@@ -369,9 +350,7 @@ public class PDFTwist {
 
     private PdfReader getVirtualPdfReader(PageRange pageRange) throws IOException {
         VirtualFileInputElement vfuo = (VirtualFileInputElement) pageRange.getFileUO();
-        String srcFile = vfuo.getSrcFilePath();
 
-        // PDDocument document = PDDocument.load(srcFile);
         PDDocument document = PDDocument.load(new File(inputFilePath));
         PDDocument newDoc = new PDDocument();
 
@@ -382,7 +361,7 @@ public class PDFTwist {
 
         for (int r = 0; r < repeat; r++) {
             for (int i = 0; i < numberOfFilePages; i++) {
-                PDPage page = (PDPage) document.getDocumentCatalog().getPages().get(i);
+                PDPage page = document.getDocumentCatalog().getPages().get(i);
                 newDoc.addPage(page);
             }
         }
@@ -438,9 +417,7 @@ public class PDFTwist {
             baos.close();
 
             return rdr;
-        } catch (DocumentException ex) {
-            Logger.getLogger(GenerateInputItemsDialog.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
+        } catch (DocumentException | IOException ex) {
             Logger.getLogger(GenerateInputItemsDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
 
@@ -448,22 +425,18 @@ public class PDFTwist {
     }
 
     private void keepFileParents() {
-        TreeSet set = new TreeSet();
+        TreeSet<String> set = new TreeSet<>();
 
         for (PageRange pageRange : pageRanges) {
             Node parentNode = (Node) pageRange.getNode().getParent();
             set.add(parentNode.getUserObject().getKey());
         }
 
-        rootFolder = (new File((String) set.first())).getParent() + File.separator;
+        rootFolder = (new File(set.first())).getParent() + File.separator;
     }
 
     public void setPdfImages(PdfToImage pdfImages) {
         this.pdfImages = pdfImages;
-    }
-
-    public PdfToImage getPdfImages() {
-        return this.pdfImages;
     }
 
     private void copyXMPMetadata(PdfReader reader, PdfWriter writer) throws IOException {
@@ -624,10 +597,6 @@ public class PDFTwist {
                 }
             }
         }
-        // TODO
-        //        if (!burst && inputFiles.contains(new File(outputFile).getCanonicalFile())) {
-        //            throw new IOException("Output file must be different from input file(s)");
-        //        }
         cargoCult();
         try {
             if (uncompressed && pdfImages == null) {
@@ -642,7 +611,7 @@ public class PDFTwist {
                     throw new IOException("TIFF multipage filename should not contain *");
                 }
                 Document document = new Document(currentReader.getPageSizeWithRotation(1));
-                OutputStream baos = new ByteArrayOutputStream();
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 PdfCopy copy = new PdfCopy(document, baos);
                 document.open();
                 PdfImportedPage page;
@@ -661,17 +630,16 @@ public class PDFTwist {
                     copy.copyAcroForm(currentReader);
                 }
                 document.close();
-                pdfImages.convertToMultiTiff(((ByteArrayOutputStream) baos).toByteArray(), outputFile);
+                pdfImages.convertToMultiTiff(baos.toByteArray(), outputFile);
             } else if (burst) {
-                String fn = outputFile;
-                if (fn.indexOf('*') == -1) {
+                if (outputFile.indexOf('*') == -1) {
                     throw new IOException("Output filename does not contain *");
                 }
-                String prefix = fn.substring(0, fn.indexOf('*'));
-                String suffix = fn.substring(fn.indexOf('*') + 1);
+                String prefix = outputFile.substring(0, outputFile.indexOf('*'));
+                String suffix = outputFile.substring(outputFile.indexOf('*') + 1);
                 String[] pageLabels = PdfPageLabels.getPageLabels(currentReader);
-                PdfCopy copy = null;
-                OutputStream baos = null;
+                PdfCopy copy;
+                ByteArrayOutputStream baos = null;
                 for (int pagenum = 1; pagenum <= currentReader.getNumberOfPages(); pagenum++) {
                     if (outDialog != null) {
                         outDialog.updatePagesProgress();
@@ -685,10 +653,6 @@ public class PDFTwist {
                         pageNumber = pageLabels[pagenum - 1];
                     }
                     File outFile = new File(prefix + pageNumber + suffix);
-                    // TODO
-                    //                    if (inputFiles.contains(outFile.getCanonicalFile())) {
-                    //                        throw new IOException("Output file must be different from input file(s)");
-                    //                    }
                     if (!outFile.getParentFile().isDirectory()) {
                         outFile.getParentFile().mkdirs();
                     }
@@ -696,7 +660,7 @@ public class PDFTwist {
                         baos = new ByteArrayOutputStream();
                         copy = new PdfCopy(document, baos);
                     } else {
-                        copy = new PdfCopy(document, new FileOutputStream(outFile));
+                        copy = new PdfCopy(document, Files.newOutputStream(outFile.toPath()));
                         setEncryptionSettings(copy);
                         if (fullyCompressed) {
                             copy.setFullCompression();
@@ -712,15 +676,14 @@ public class PDFTwist {
                     }
                     document.close();
                     if (pdfImages.shouldExecute()) {
-                        pdfImages.convertToImage(((ByteArrayOutputStream) baos).toByteArray(),
-                            prefix + pageNumber + suffix);
+                        pdfImages.convertToImage(baos.toByteArray(), prefix + pageNumber + suffix);
                     }
                 }
             } else {
                 PdfStamper stamper;
                 if (key != null) {
                     new File(outputFile).getParentFile().mkdirs();
-                    stamper = PdfStamper.createSignature(currentReader, new FileOutputStream(outputFile), '\0', null,
+                    stamper = PdfStamper.createSignature(currentReader, Files.newOutputStream(Paths.get(outputFile)), '\0', null,
                         true);
                     PdfSignatureAppearance sap = stamper.getSignatureAppearance();
                     sap.setCrypto(key, certChain, null, PdfSignatureAppearance.WINCER_SIGNED);
@@ -730,7 +693,7 @@ public class PDFTwist {
                     }
                 } else {
                     new File(outputFile).getParentFile().mkdirs();
-                    stamper = new PdfStamper(currentReader, new FileOutputStream(outputFile));
+                    stamper = new PdfStamper(currentReader, Files.newOutputStream(Paths.get(outputFile)));
                 }
                 setEncryptionSettings(stamper);
                 if (fullyCompressed) {
@@ -785,17 +748,16 @@ public class PDFTwist {
             PDFParser parser = new PDFParser((RandomAccessRead) in);
             parser.parse();
             PDDocument document = parser.getPDDocument();
-            List<PDPage> allpages = (List<PDPage>) document.getDocumentCatalog().getPages();
-            for (int i = 0; i < allpages.size(); i++) {
-                PDPage page = allpages.get(i);
-                // page.getCOSDictionary().setInt(COSName.ROTATE, 90);
+            List<PDPage> allPages = (List<PDPage>) document.getDocumentCatalog().getPages();
+            for (int i = 0; i < allPages.size(); i++) {
+                PDPage page = allPages.get(i);
                 page.setAnnotations(pdAnnotations.get(i));
             }
             try {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 document.save(out);
                 document.close();
-                OutputStream outStream = new FileOutputStream(outputFile);
+                OutputStream outStream = Files.newOutputStream(Paths.get(outputFile));
                 out.writeTo(outStream);
                 out.close();
                 outStream.close();
@@ -851,18 +813,8 @@ public class PDFTwist {
             PdfImportedPage page = writer.getImportedPage(currentReader, i);
             cb.addTemplate(page, pageSize.getLeft() - currentSize.getLeft(),
                 pageSize.getBottom() - currentSize.getBottom());
-            /*
-             * if (preserveHyperlinks) { List links = currentReader.getLinks(i); for (int j
-             * = 0; j < links.size(); j++) { PdfAnnotation.PdfImportedLink link =
-             * (PdfAnnotation.PdfImportedLink) links.get(j); if (link.isInternal()) {
-             * link.transformDestination(1, 0, 0, 1, pageSize.getLeft() -
-             * currentSize.getLeft(), pageSize.getBottom() - currentSize.getBottom()); }
-             * link.transformRect(1, 0, 0, 1, pageSize.getLeft() - currentSize.getLeft(),
-             * pageSize.getBottom() - currentSize.getBottom());
-             * writer.addAnnotation(link.createAnnotation(writer)); } }
-             */
             if (preserveHyperlinks)
-                repositionAnnots(i, 1, 0, 0, 1, pageSize.getLeft() - currentSize.getLeft(),
+                repositionAnnotations(i, 1, 0, 0, 1, pageSize.getLeft() - currentSize.getLeft(),
                     pageSize.getBottom() - currentSize.getBottom());
         }
         copyXMPMetadata(currentReader, writer);
@@ -872,22 +824,6 @@ public class PDFTwist {
         for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
             PdfDictionary dic = currentReader.getPageN(i);
             dic.put(PdfName.ROTATE, new PdfNumber(rotations[i - 1]));
-        }
-    }
-
-    public void rotatePages(int portraitCount, int landscapeCount) {
-        for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
-            int rotation = currentReader.getPageRotation(i);
-            Rectangle r = currentReader.getPageSizeWithRotation(i);
-            int count;
-            if (r.getWidth() > r.getHeight()) { // landscape
-                count = landscapeCount;
-            } else {
-                count = portraitCount;
-            }
-            rotation = (rotation + 90 * count) % 360;
-            PdfDictionary dic = currentReader.getPageN(i);
-            dic.put(PdfName.ROTATE, new PdfNumber(rotation));
         }
     }
 
@@ -999,25 +935,8 @@ public class PDFTwist {
                 throw new IOException("Unparsable rotation value: " + rotation);
             }
             cb.addTemplate(page, a, b, c, d, e, f);
-            /*
-             * if (preserveHyperlinks) { List links = currentReader.getLinks(i); for (int j
-             * = 0; j < links.size(); j++) { PdfAnnotation.PdfImportedLink link =
-             * (PdfAnnotation.PdfImportedLink) links.get(j); if (link.isInternal()) { int
-             * dPage = link.getDestinationPage(); int dRotation =
-             * currentReader.getPageRotation(dPage); Rectangle dSize =
-             * currentReader.getPageSizeWithRotation(dPage); float aa, bb, cc, dd, ee, ff;
-             * if (dRotation == 0) { aa = 1; bb = 0; cc = 0; dd = 1; ee = 0; ff = 0; } else
-             * if (dRotation == 90) { aa = 0; bb = -1; cc = 1; dd = 0; ee = 0; ff =
-             * dSize.getHeight(); } else if (dRotation == 180) { aa = -1; bb = 0; cc = 0; dd
-             * = -1; ee = dSize.getWidth(); ff = dSize.getHeight(); } else if (dRotation ==
-             * 270) { aa = 0; bb = 1; cc = -1; dd = 0; ee = dSize.getWidth(); ff = 0; } else
-             * { throw new IOException("Unparsable rotation value: " + dRotation); }
-             * link.setDestinationPage(dPage); link.transformDestination(aa, bb, cc, dd, ee,
-             * ff); } link.transformRect(a, b, c, d, e, f);
-             * writer.addAnnotation(link.createAnnotation(writer)); } }
-             */
             if (preserveHyperlinks)
-                repositionAnnots(i, a, b, c, d, e, f);
+                repositionAnnotations(i, a, b, c, d, e, f);
         }
         copyXMPMetadata(currentReader, writer);
         document.close();
@@ -1033,7 +952,7 @@ public class PDFTwist {
             outDialog.setAction("Scaling");
             outDialog.setPageCount(currentReader.getNumberOfPages());
         }
-        //        removeRotation(outDialog);
+
         OutputStream baos = createTempOutputStream();
 
         Document document = new Document();
@@ -1054,10 +973,6 @@ public class PDFTwist {
             int rotation = currentReader.getPageRotation(i);
             PdfDictionary dic = currentReader.getPageN(i);
             dic.remove(PdfName.ROTATE);
-
-            //            if (currentReader.getPageRotation(i) != 0) {
-            //                throw new RuntimeException("" + currentReader.getPageRotation(i));
-            //            }
 
             if (!param.isLandscape() && !param.isPortrait()) {
                 if (param.getPageDim().isPercentange()) {
@@ -1144,25 +1059,9 @@ public class PDFTwist {
 
             page = writer.getImportedPage(currentReader, i);
             cb.addTemplate(page, factorX, 0, 0, factorY, offsetX, offsetY);
-            /*
-             * if (preserveHyperlinks) { List links = currentReader.getLinks(i); for (int j
-             * = 0; j < links.size(); j++) { PdfAnnotation.PdfImportedLink link =
-             * (PdfAnnotation.PdfImportedLink) links.get(j); if (link.isInternal()) { int
-             * dPage = link.getDestinationPage(); Rectangle dSize =
-             * currentReader.getPageSizeWithRotation(dPage); float dFactorX =
-             * newSize.getWidth() / dSize.getWidth(); float dFactorY = newSize.getHeight() /
-             * dSize.getHeight(); if (param.isNoEnlarge()) { if (dFactorX > 1) { dFactorX =
-             * 1; } if (dFactorY > 1) { dFactorY = 1; } } if (param.isPreserveAspectRatio())
-             * { dFactorX = Math.min(dFactorX, dFactorY); dFactorY = dFactorX; } float
-             * dOffsetX = (newSize.getWidth() - (dSize.getWidth() * dFactorX)) / 2f; float
-             * dOffsetY = (newSize.getHeight() - (dSize.getHeight() * dFactorY)) / 2f;
-             * link.setDestinationPage(dPage); link.transformDestination(dFactorX, 0, 0,
-             * dFactorY, dOffsetX, dOffsetY); } link.transformRect(factorX, 0, 0, factorY,
-             * offsetX, offsetY); writer.addAnnotation(link.createAnnotation(writer)); } }
-             */
 
             if (preserveHyperlinks) {
-                repositionAnnots(i, factorX, 0, 0, factorY, offsetX, offsetY);
+                repositionAnnotations(i, factorX, 0, 0, factorY, offsetX, offsetY);
             }
             writer.addPageDictEntry(PdfName.ROTATE, new PdfNumber(rotation));
         }
@@ -1293,11 +1192,8 @@ public class PDFTwist {
         int pl = Math.abs(passLength);
         int cnt = currentReader.getNumberOfPages();
         int passes = blockSize == 0 ? 1 : (cnt + blockSize - 1) / blockSize;
-        int[] destinationPageNumbers = null;
-        ShuffleRule[] destinationShuffleRules = null;
-        //        if (preserveHyperlinks) {
+        int[] destinationPageNumbers;
         destinationPageNumbers = new int[cnt + 1];
-        destinationShuffleRules = new ShuffleRule[cnt + 1];
         int ddPage = 0;
         for (int pass = 0; pass < passes; pass++) {
             int passcnt = pass == passes - 1 ? cnt - pass * blockSize : blockSize;
@@ -1326,13 +1222,12 @@ public class PDFTwist {
                     }
                     if (pg <= cnt) {
                         destinationPageNumbers[pg] = ddPage;
-                        destinationShuffleRules[pg] = sr;
                     }
                 }
             }
         }
-        //        }
-        ArrayList<List<PDAnnotation>> tmp = new ArrayList<List<PDAnnotation>>();
+
+        ArrayList<List<PDAnnotation>> tmp = new ArrayList<>();
 
         for (int pass = 0; pass < passes; pass++) {
             int passcnt = pass == passes - 1 ? cnt - pass * blockSize : blockSize;
@@ -1341,7 +1236,6 @@ public class PDFTwist {
             for (int i = 0; i < passcnt; i += pl) {
                 int idx = i;
                 int reverseIdx = refcnt - idx - pl;
-                ;
                 if (passLength < 0) {
                     idx = i / 2;
                     reverseIdx = refcnt - idx - pl;
@@ -1411,27 +1305,7 @@ public class PDFTwist {
                         page = writer.getImportedPage(currentReader, pg);
                         cb.addTemplate(page, a, b, c, d, e, f);
                         if (preserveHyperlinks)
-                            repositionAnnots(pg, a, b, c, d, e, f);
-                        /*
-                         * if (preserveHyperlinks) { List links = currentReader.getLinks(pg); for (int j
-                         * = 0; j < links.size(); j++) { PdfAnnotation.PdfImportedLink link =
-                         * (PdfAnnotation.PdfImportedLink) links.get(j); if (link.isInternal()) { int
-                         * dPage = link.getDestinationPage(); ShuffleRule dsr =
-                         * destinationShuffleRules[dPage]; float dS = (float) dsr.getScale(); float
-                         * dOffsetx = (float) dsr.getOffsetX(); float dOffsety = (float)
-                         * dsr.getOffsetY(); if (dsr.isOffsetXPercent()) { dOffsetx = dOffsetx *
-                         * size.getWidth() / 100; } if (dsr.isOffsetXPercent()) { dOffsety = dOffsety *
-                         * size.getHeight() / 100; } float aa, bb, cc, dd, ee, ff; switch
-                         * (dsr.getRotate()) { case 'N': aa = dS; bb = 0; cc = 0; dd = dS; ee = dOffsetx
-                         * * dS; ff = dOffsety * dS; break; case 'R': aa = 0; bb = -dS; cc = dS; dd = 0;
-                         * ee = dOffsety * dS; ff = -dOffsetx * dS; break; case 'U': aa = -dS; bb = 0;
-                         * cc = 0; dd = -dS; ee = -dOffsetx * dS; ff = -dOffsety * dS; break; case 'L':
-                         * aa = 0; bb = dS; cc = -dS; dd = 0; ee = -dOffsety * dS; ff = dOffsetx * dS;
-                         * break; default: throw new RuntimeException("" + sr.getRotate()); }
-                         * link.setDestinationPage(destinationPageNumbers[dPage]);
-                         * link.transformDestination(aa, bb, cc, dd, ee, ff); } link.transformRect(a, b,
-                         * c, d, e, f); writer.addAnnotation(link.createAnnotation(writer)); } }
-                         */
+                            repositionAnnotations(pg, a, b, c, d, e, f);
 
                         if (sr.getFrameWidth() > 0) {
                             cb.setLineWidth((float) sr.getFrameWidth());
@@ -1566,7 +1440,7 @@ public class PDFTwist {
                     pnXPosition = 2 - pnXPosition;
                 }
                 float xx = pnHOff * ((pnXPosition == 2) ? -1 : 1) + size.getWidth() * pnXPosition / 2.0f;
-                float yy = pnVOff * ((pnPosition / 3 == 2) ? -1 : 1) + size.getHeight() * (pnPosition / 3) / 2.0f;
+                float yy = pnVOff * ((pnPosition / 3 == 2) ? -1 : 1) + size.getHeight() * (pnPosition / 3f) / 2.0f;
                 String number = "" + i;
                 if (mask != null && mask.length() > 0) {
                     int pagenumber = i;
@@ -1652,8 +1526,8 @@ public class PDFTwist {
         currentReader = getTempPdfReader(baos);
     }
 
-    private void doWatermark(int i, int j, int logical, WatermarkStyle style, int pagecount, PageRange pageRange,
-                             PdfStamper stamper, List<Integer> batesList) throws FileNotFoundException, IOException {
+    private void doWatermark(int i, int j, int logical, WatermarkStyle style, int pageCount, PageRange pageRange,
+                             PdfStamper stamper, List<Integer> batesList) throws IOException {
         PdfContentByte overContent = stamper.getOverContent(i);
         Rectangle size = currentReader.getPageSizeWithRotation(i);
 
@@ -1764,7 +1638,7 @@ public class PDFTwist {
                 text = text.replace("%F", fuo.getFileName());
                 text = text.replace("%p", parent);
                 text = text.replace("\\{file_size\\}", fuo.getValueAt(TreeTableColumn.SIZE, String.class));
-                text = text.replace("%c", Integer.toString(pagecount));
+                text = text.replace("%c", Integer.toString(pageCount));
                 text = text.replace("\\{page_width\\}", Float.toString(size.getWidth()));
                 text = text.replace("\\{page_height\\}", Float.toString(size.getHeight()));
                 text = text.replace("\\{page_width_inch\\}", Float.toString(size.getWidth() / 72));
@@ -1875,7 +1749,6 @@ public class PDFTwist {
 
             if (style.getImagePath().toLowerCase().endsWith(".pdf")) {
                 PDDocument document = PDDocument.load(new File(style.getImagePath()));
-                // List<PDPage> list = (List<PDPage>) document.getDocumentCatalog().getPages();
                 PDPageTree list = document.getPages();
 
                 PDPage page = list.get(style.getPdfPage());
@@ -1957,7 +1830,7 @@ public class PDFTwist {
             ver = (int) (size.getHeight() - boxHeight) - ver;
         }
 
-        g2d.rotate(angle, hor + (boxWidth / 2), ver + (boxHeight / 2));
+        g2d.rotate(angle, hor + (boxWidth / 2f), ver + (boxHeight / 2f));
 
         Color bgColor = style.getBackgroundColor();
         bgColor = new Color(bgColor.getRed(), bgColor.getGreen(), bgColor.getBlue(), opacityValue);
@@ -2021,7 +1894,7 @@ public class PDFTwist {
 
     public void addFile(File f) {
         if (attachments == null) {
-            attachments = new ArrayList<File>();
+            attachments = new ArrayList<>();
         }
         attachments.add(f);
     }
@@ -2030,7 +1903,7 @@ public class PDFTwist {
         throws IOException {
         try {
             KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(new FileInputStream(keystoreFile), password);
+            ks.load(Files.newInputStream(keystoreFile.toPath()), password);
             key = (PrivateKey) ks.getKey(alias, password);
             if (key == null) {
                 throw new IOException("No private key found with alias " + alias);
@@ -2039,9 +1912,7 @@ public class PDFTwist {
             this.certificationLevel = certificationLevel;
             this.sigVisible = visible;
         } catch (GeneralSecurityException ex) {
-            IOException ioe = new IOException(ex.toString());
-            ioe.initCause(ex);
-            throw ioe;
+            throw new IOException(ex.toString(), ex);
         }
     }
 
@@ -2086,7 +1957,7 @@ public class PDFTwist {
                     pdAnnotations.add(null);
                     continue;
                 }
-                InputStream in = new FileInputStream(new File(filepath));
+                InputStream in = Files.newInputStream(new File(filepath).toPath());
                 PDFParser parser = new PDFParser((RandomAccessRead) in);
                 parser.parse();
                 PDDocument pdDocument = parser.getPDDocument();
@@ -2097,7 +1968,6 @@ public class PDFTwist {
                     pdAnnotations.add(annotations);
                 }
                 in.close();
-                // parser.clearResources();
             } catch (IOException ex) {
                 Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -2120,15 +1990,15 @@ public class PDFTwist {
         }
     }
 
-    private void repositionAnnots(int page, float a, float b, float c, float d, float e, float f) {
+    private void repositionAnnotations(int page, float a, float b, float c, float d, float e, float f) {
         if (page > pdAnnotations.size())
             return;
 
-        List<PDAnnotation> pageAnnots = pdAnnotations.get(page - 1);
-        if (pageAnnots == null) {
+        List<PDAnnotation> pageAnnotations = pdAnnotations.get(page - 1);
+        if (pageAnnotations == null) {
             return;
         }
-        for (PDAnnotation annot : pageAnnots) {
+        for (PDAnnotation annot : pageAnnotations) {
             PDRectangle rect = annot.getRectangle();
 
             if (rect == null)
