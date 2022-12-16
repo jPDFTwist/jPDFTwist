@@ -7,11 +7,11 @@ import com.itextpdf.text.pdf.PdfWriter;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
+import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.ViewerPreference;
 import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.component.table.TableComponent;
-import jpdftwist.gui.dialog.OutputProgressDialog;
 
 import javax.swing.*;
 import javax.swing.table.TableColumn;
@@ -90,10 +90,10 @@ public class InteractionTab extends Tab {
         transitions.checkRun("page transition");
     }
 
-    public PDFTwist run(PDFTwist pdfTwist, OutputProgressDialog outDialog) throws IOException, DocumentException {
-        outDialog.updateJPDFTwistProgress(getTabName());
-        outDialog.setAction("Interaction");
-        outDialog.resetProcessedPages();
+    public PDFTwist run(PDFTwist pdfTwist, OutputEventListener outputEventListener) throws IOException, DocumentException {
+        outputEventListener.updateJPDFTwistProgress(getTabName());
+        outputEventListener.setAction("Interaction");
+        outputEventListener.resetProcessedPages();
         if (addTransitions.isSelected()) {
             for (int i = 0; i < transitions.getRowCount(); i++) {
                 Object[] row = transitions.getRow(i);

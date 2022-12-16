@@ -4,10 +4,10 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.PdfPageLabels.PdfPageLabelFormat;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.component.table.TableComponent;
-import jpdftwist.gui.dialog.OutputProgressDialog;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -56,16 +56,15 @@ public class PageNumberTab extends Tab {
         pageNumberRanges.checkRun("page number");
     }
 
-    public PDFTwist run(PDFTwist pdfTwist, OutputProgressDialog outDialog) throws IOException, DocumentException {
-        outDialog.updateJPDFTwistProgress(getTabName());
+    public PDFTwist run(PDFTwist pdfTwist, OutputEventListener outputEventListener) throws IOException, DocumentException {
+        outputEventListener.updateJPDFTwistProgress(getTabName());
         if (changePageNumbers.isSelected()) {
-            updatePageNumberRanges(pdfTwist, pageNumberRanges, outDialog);
+            updatePageNumberRanges(pdfTwist, pageNumberRanges);
         }
         return pdfTwist;
     }
 
-    public static void updatePageNumberRanges(PDFTwist pdfTwist, TableComponent pageNumberRanges,
-                                              OutputProgressDialog outDialog) throws DocumentException, IOException {
+    public static void updatePageNumberRanges(PDFTwist pdfTwist, TableComponent pageNumberRanges) throws DocumentException, IOException {
         PdfPageLabelFormat[] fmts = new PdfPageLabelFormat[pageNumberRanges.getRowCount()];
         for (int i = 0; i < fmts.length; i++) {
             Object[] row = pageNumberRanges.getRow(i);
@@ -74,7 +73,7 @@ public class PageNumberTab extends Tab {
                 nstyle = 0;
             fmts[i] = new PdfPageLabelFormat((Integer) row[0], nstyle, (String) row[2], (Integer) row[3]);
         }
-        pdfTwist.setPageNumbers(fmts, outDialog);
+        pdfTwist.setPageNumbers(fmts);
     }
 
     public static class PageNumberLoadAction implements ActionListener {
@@ -83,17 +82,6 @@ public class PageNumberTab extends Tab {
         }
 
         public void actionPerformed(ActionEvent e) {
-            //			pageNumberRanges.clear();
-            //			if (mainForm.getInputFile() == null)
-            //				return;
-            //			PdfPageLabelFormat[] lbls = mainForm.getInputFile().getPageLabels();
-            //			if (lbls != null) {
-            //				for (PdfPageLabelFormat lbl : lbls) {
-            //					pageNumberRanges.addRow(lbl.physicalPage,
-            //							NUMBER_STYLES[lbl.numberStyle], lbl.prefix,
-            //							lbl.logicalPage);
-            //				}
-            //			}
         }
 
     }

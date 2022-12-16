@@ -5,9 +5,9 @@ import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
+import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.gui.MainWindow;
-import jpdftwist.gui.dialog.OutputProgressDialog;
 
 import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
@@ -52,7 +52,7 @@ public class FormsTab extends Tab {
     }
 
 
-    public PDFTwist run(PDFTwist pdfTwist, OutputProgressDialog outDialog) throws IOException, DocumentException {
+    public PDFTwist run(PDFTwist pdfTwist, OutputEventListener outputEventListener) throws IOException, DocumentException {
         return pdfTwist;
     }
 

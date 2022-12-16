@@ -5,6 +5,7 @@ import com.itextpdf.text.Rectangle;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import jpdftwist.core.NumberField;
+import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.PDFTwist.PageBox;
 import jpdftwist.core.PageDimension;
@@ -12,7 +13,6 @@ import jpdftwist.core.UnitTranslator;
 import jpdftwist.core.tabparams.RotateParameters;
 import jpdftwist.core.tabparams.ScaleParameters;
 import jpdftwist.gui.MainWindow;
-import jpdftwist.gui.dialog.OutputProgressDialog;
 import jpdftwist.gui.dialog.ScaleCustomSizeDialog;
 
 import javax.swing.*;
@@ -395,13 +395,13 @@ public class PageSizeTab extends Tab {
     }
 
 
-    public PDFTwist run(PDFTwist pdfTwist, OutputProgressDialog outDialog) throws IOException, DocumentException {
-        outDialog.updateJPDFTwistProgress(getTabName());
+    public PDFTwist run(PDFTwist pdfTwist, OutputEventListener outputEventListener) throws IOException, DocumentException {
+        outputEventListener.updateJPDFTwistProgress(getTabName());
         if (preserveHyperlinks.isSelected()) {
             pdfTwist.preserveHyperlinks();
         }
         if (cropPages.isSelected()) {
-            pdfTwist.cropPages((PageBox) cropTo.getSelectedItem(), outDialog);
+            pdfTwist.cropPages((PageBox) cropTo.getSelectedItem());
         }
         if (rotatePages.isSelected()) {
             RotateParameters rotateParams = new RotateParameters();
@@ -424,10 +424,10 @@ public class PageSizeTab extends Tab {
                 rotatePortraitUnits.getSelectedIndex());
             rotateParams.setPortraitLimits(portraitLimits);
 
-            pdfTwist.rotatePages(rotateParams, outDialog);
+            pdfTwist.rotatePages(rotateParams);
         }
         if (fixRotation.isSelected()) {
-            pdfTwist.removeRotation(outDialog);
+            pdfTwist.removeRotation();
         }
         if (scalePages.isSelected()) {
             float ww, hh;
@@ -470,7 +470,7 @@ public class PageSizeTab extends Tab {
             scaleParams.setJustifyPortrait(scaleJustifyPortrait.getSelectedIndex());
             scaleParams.setJustifyLandscape(scaleJustifyLandscape.getSelectedIndex());
 
-            pdfTwist.scalePages(scaleParams, outDialog);
+            pdfTwist.scalePages(scaleParams);
         }
         return pdfTwist;
     }

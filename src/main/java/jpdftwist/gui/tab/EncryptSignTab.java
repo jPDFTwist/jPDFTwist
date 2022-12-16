@@ -3,9 +3,9 @@ package jpdftwist.gui.tab;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.gui.MainWindow;
-import jpdftwist.gui.dialog.OutputProgressDialog;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -68,21 +68,6 @@ public class EncryptSignTab extends Tab {
     }
 
     protected void loadEncryptionData() {
-//            if (mainForm.getInputFile() == null) {
-//                return;
-//            }
-//            InputFile ifile = mainForm.getInputFile();
-//            int cm = ifile.getCryptoMode();
-//            if (cm != -1) {
-//                encryptMode.setSelectedIndex(cm);
-//            }
-//            noEncryptMetadata.setSelected(!ifile.isMetadataEncrypted());
-//            userPassword.setText(ifile.getUserPassword());
-//            ownerPassword.setText(ifile.getOwnerPassword());
-//            int permissions = ifile.getPermissions();
-//            for (int i = 0; i < permissionBoxes.length; i++) {
-//                permissionBoxes[i].setSelected((PDFTwist.permissionBits[i] & permissions) != 0);
-//            }
     }
 
     private void updateEncryptionControls() {
@@ -112,8 +97,8 @@ public class EncryptSignTab extends Tab {
         return "Encrypt / Sign";
     }
 
-    public PDFTwist run(PDFTwist pdfTwist, OutputProgressDialog outDialog) throws IOException {
-        outDialog.updateJPDFTwistProgress(getTabName());
+    public PDFTwist run(PDFTwist pdfTwist, OutputEventListener outputEventListener) throws IOException {
+        outputEventListener.updateJPDFTwistProgress(getTabName());
         if (encryptDocument.isSelected()) {
             int permissions = 0;
             for (int i = 0; i < permissionBoxes.length; i++) {
@@ -121,15 +106,15 @@ public class EncryptSignTab extends Tab {
                     permissions |= PDFTwist.permissionBits[i];
                 }
             }
-            outDialog.setAction("Setting encryption");
-            outDialog.resetProcessedPages();
+            outputEventListener.setAction("Setting encryption");
+            outputEventListener.resetProcessedPages();
             pdfTwist.setEncryption(encryptMode.getSelectedIndex() + (noEncryptMetadata.isSelected() ? PdfWriter.DO_NOT_ENCRYPT_METADATA : 0),
                 permissions, ownerPassword.getText().getBytes(StandardCharsets.ISO_8859_1),
                 userPassword.getText().getBytes(StandardCharsets.ISO_8859_1));
         }
         if (signDocument.isSelected()) {
-            outDialog.setAction("Setting signature");
-            outDialog.resetProcessedPages();
+            outputEventListener.setAction("Setting signature");
+            outputEventListener.resetProcessedPages();
             pdfTwist.setSignature(new File(keystore.getText()), alias.getText(), keyPassword.getPassword(), certLevel.getSelectedIndex(), sigVisible.isSelected());
         }
         return pdfTwist;

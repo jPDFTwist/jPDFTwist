@@ -5,12 +5,12 @@ import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.SimpleBookmark;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.PdfBookmark;
 import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.component.FileChooser;
 import jpdftwist.gui.component.table.TableComponent;
-import jpdftwist.gui.dialog.OutputProgressDialog;
 import jpdftwist.utils.PdfParser;
 
 import javax.swing.*;
@@ -173,10 +173,10 @@ public class BookmarkTab extends Tab {
         bookmarks.checkRun("chapter bookmarks");
     }
 
-    public PDFTwist run(PDFTwist pdfTwist, OutputProgressDialog outDialog) throws IOException, DocumentException {
-        outDialog.updateJPDFTwistProgress(getTabName());
-        outDialog.setAction("Updating bookmarks");
-        outDialog.resetProcessedPages();
+    public PDFTwist run(PDFTwist pdfTwist, OutputEventListener outputEventListener) throws IOException, DocumentException {
+        outputEventListener.updateJPDFTwistProgress(getTabName());
+        outputEventListener.setAction("Updating bookmarks");
+        outputEventListener.resetProcessedPages();
         if (changeBookmarks.isSelected()) {
             PdfBookmark[] bm = new PdfBookmark[bookmarks.getRowCount()];
             for (int i = 0; i < bm.length; i++) {

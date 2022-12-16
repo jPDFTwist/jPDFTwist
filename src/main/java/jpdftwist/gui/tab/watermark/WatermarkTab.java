@@ -3,11 +3,11 @@ package jpdftwist.gui.tab.watermark;
 import com.itextpdf.text.DocumentException;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.component.FileChooser;
 import jpdftwist.gui.component.table.TableComponent;
-import jpdftwist.gui.dialog.OutputProgressDialog;
 import jpdftwist.gui.tab.PageNumberTab;
 import jpdftwist.gui.tab.Tab;
 
@@ -146,10 +146,10 @@ public class WatermarkTab extends Tab {
     }
 
 
-    public PDFTwist run(PDFTwist pdfTwist, OutputProgressDialog outDialog) throws IOException, DocumentException {
-        outDialog.updateJPDFTwistProgress(getTabName());
-        outDialog.setAction("Adding Watermark");
-        outDialog.resetProcessedPages();
+    public PDFTwist run(PDFTwist pdfTwist, OutputEventListener outputEventListener) throws IOException, DocumentException {
+        outputEventListener.updateJPDFTwistProgress(getTabName());
+        outputEventListener.setAction("Adding Watermark");
+        outputEventListener.resetProcessedPages();
         boolean run = false;
         String wmText = null;
         int wmSize = 0, pnSize = 0, pnPosition = -1;
@@ -172,7 +172,7 @@ public class WatermarkTab extends Tab {
             }
             if (pageNumbers.isSelected()) {
                 if (differentPageNumbers.isSelected()) {
-                    PageNumberTab.updatePageNumberRanges(pdfTwist, pageNumberRanges, outDialog);
+                    PageNumberTab.updatePageNumberRanges(pdfTwist, pageNumberRanges);
                     mask = "%4$s";
                 }
                 run = true;

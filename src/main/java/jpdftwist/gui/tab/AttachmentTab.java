@@ -1,9 +1,9 @@
 package jpdftwist.gui.tab;
 
 import com.itextpdf.text.DocumentException;
+import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.gui.MainWindow;
-import jpdftwist.gui.dialog.OutputProgressDialog;
 
 import javax.swing.*;
 import java.awt.*;
@@ -47,10 +47,10 @@ public class AttachmentTab extends Tab {
         return "Attachments";
     }
 
-    public PDFTwist run(PDFTwist pdfTwist, OutputProgressDialog outDialog) throws IOException, DocumentException {
-        outDialog.updateJPDFTwistProgress(getTabName());
-        outDialog.setAction("Adding attachments");
-        outDialog.resetProcessedPages();
+    public PDFTwist run(PDFTwist pdfTwist, OutputEventListener outputEventListener) throws IOException, DocumentException {
+        outputEventListener.updateJPDFTwistProgress(getTabName());
+        outputEventListener.setAction("Adding attachments");
+        outputEventListener.resetProcessedPages();
         for (int i = 0; i < model.getSize(); i++) {
             File f = model.get(i);
             pdfTwist.addFile(f);

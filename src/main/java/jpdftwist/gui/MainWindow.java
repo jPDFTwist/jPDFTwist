@@ -7,6 +7,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 import jpdftwist.Main;
+import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.gui.dialog.OutputProgressDialog;
 import jpdftwist.gui.tab.AttachmentTab;
@@ -109,7 +110,7 @@ public class MainWindow extends JFrame {
         this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         PDFTwist pdfTwist = null;
         int batchLength = inputTabActions.getBatchLength();
-        OutputProgressDialog outputProgress = null;
+        OutputProgressDialog outputProgressDialog = new OutputProgressDialog();
         try {
             try {
                 inputTabActions.checkRun();
@@ -119,31 +120,63 @@ public class MainWindow extends JFrame {
             for (Tab tab : tabs) {
                 tab.checkRun();
             }
-            outputProgress = new OutputProgressDialog();
-            outputProgress.setFileCount(batchLength);
-            outputProgress.setVisible(rootPaneCheckingEnabled);
+            outputProgressDialog.setFileCount(batchLength);
+            outputProgressDialog.setVisible(rootPaneCheckingEnabled);
+
+            OutputEventListener outputEventListener = new OutputEventListener() {
+                @Override
+                public void setPageCount(int pageCount) {
+                    outputProgressDialog.setPageCount(pageCount);
+                }
+
+                @Override
+                public void updatePagesProgress() {
+                    outputProgressDialog.updatePagesProgress();
+                }
+
+                @Override
+                public void setAction(String action) {
+                    outputProgressDialog.setAction(action);
+                }
+
+                @Override
+                public void updateJPDFTwistProgress(String tabName) {
+                    outputProgressDialog.updateJPDFTwistProgress(tabName);
+                }
+
+                @Override
+                public void resetProcessedPages() {
+                    outputProgressDialog.resetProcessedPages();
+                }
+
+                @Override
+                public void dispose() {
+                    outputProgressDialog.dispose();
+                }
+            };
+
             for (int task = 0; task < batchLength; task++) {
-                if (!outputProgress.isVisible()) {
+                if (!outputProgressDialog.isVisible()) {
                     break;
                 }
-                outputProgress.resetTwistValue();
+                outputProgressDialog.resetTwistValue();
                 inputTabActions.selectBatchTask(task);
-                pdfTwist = inputTabActions.run(pdfTwist);
+                pdfTwist = inputTabActions.run(pdfTwist, outputEventListener, outputProgressDialog);
                 for (Tab tab : tabs) {
-                    if (!outputProgress.isVisible()) {
+                    if (!outputProgressDialog.isVisible()) {
                         break;
                     }
                     if (tab instanceof WatermarkTab) {
-                        pdfTwist = watermarkPlusTab.run(pdfTwist);
+                        pdfTwist = watermarkPlusTab.run(pdfTwist, outputEventListener, outputProgressDialog);
                     }
-                    pdfTwist = tab.run(pdfTwist, outputProgress);
+                    pdfTwist = tab.run(pdfTwist, outputEventListener);
                 }
-                pdfTwist = outputTab.run(pdfTwist, outputProgress);
-                outputProgress.updateOverallProgress();
+                pdfTwist = outputTab.run(pdfTwist, outputEventListener);
+                outputProgressDialog.updateOverallProgress();
             }
 
-            if (outputProgress.isVisible()) {
-                outputProgress.dispose();
+            if (outputProgressDialog.isVisible()) {
+                outputProgressDialog.dispose();
                 JOptionPane.showMessageDialog(this, "Finished", "JPDFTwist", JOptionPane.INFORMATION_MESSAGE);
             }
         } catch (DocumentException | IOException ex) {
@@ -155,8 +188,8 @@ public class MainWindow extends JFrame {
                 "JPDFTwist has run out of memory. You may configure Java so that it may use more RAM, or you can enable the Tempfile option on the output tab.",
                 "Out of memory: " + ex.getMessage(), JOptionPane.ERROR_MESSAGE);
         } finally {
-            if (outputProgress != null && outputProgress.isVisible()) {
-                outputProgress.dispose();
+            if (outputProgressDialog != null && outputProgressDialog.isVisible()) {
+                outputProgressDialog.dispose();
             }
             this.setCursor(null);
 

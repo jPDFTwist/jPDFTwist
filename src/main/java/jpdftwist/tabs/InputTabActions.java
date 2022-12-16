@@ -1,8 +1,10 @@
 package jpdftwist.tabs;
 
+import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.PageRange;
 import jpdftwist.core.PdfBookmark;
+import jpdftwist.gui.dialog.OutputProgressDialog;
 import jpdftwist.tabs.input.InputValidator;
 import jpdftwist.tabs.input.pagerange.PageRangeGenerator;
 
@@ -68,7 +70,7 @@ public class InputTabActions extends ActionTab {
         return ranges;
     }
 
-    public PDFTwist run(PDFTwist input) {
+    public PDFTwist run(PDFTwist input, OutputEventListener outputEventListener, OutputProgressDialog outputProgressDialog) {
         List<PageRange> ranges = generatePageRanges(batchTaskSelection, batch, mergeByDir);
 
         int n = 0;
@@ -77,7 +79,7 @@ public class InputTabActions extends ActionTab {
         }
 
         try {
-            return new PDFTwist(ranges, useTempFiles, mergeByDir, interleaveSize);
+            return new PDFTwist(ranges, useTempFiles, mergeByDir, interleaveSize, outputEventListener, outputProgressDialog);
         } catch (Exception ex) {
             Logger.getLogger(InputTabActions.class.getName()).log(Level.SEVERE, null, ex);
         }

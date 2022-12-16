@@ -2,10 +2,10 @@ package jpdftwist.gui.tab;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.component.table.TableComponent;
-import jpdftwist.gui.dialog.OutputProgressDialog;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -35,18 +35,7 @@ public class DocumentInfoTab extends Tab {
 
         this.add(infoLoad = new JButton("Load from document"), CC.xy(2, 1));
         infoLoad.setEnabled(false); // TODO
-        infoLoad.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                // TODO
-                //                infoEntries.clear();
-                //                if (mainForm.getInputFile() == null) {
-                //                    return;
-                //                }
-                //                Map<String, String> infoDictionary = mainForm.getInputFile().getInfoDictionary();
-                //                for (Map.Entry<String, String> entry : infoDictionary.entrySet()) {
-                //                    infoEntries.addRow(entry.getKey(), entry.getValue());
-                //                }
-            }
+        infoLoad.addActionListener(e -> {
         });
         this.add(infoAdd = new JButton("Add predefined..."), CC.xyw(1, 2, 2));
         infoAdd.addActionListener(new ActionListener() {
@@ -55,11 +44,9 @@ public class DocumentInfoTab extends Tab {
                 JMenuItem jmi;
                 for (String name : PDFTwist.getKnownInfoNames()) {
                     pm.add(jmi = new JMenuItem(name));
-                    jmi.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent e) {
-                            String text = ((JMenuItem) e.getSource()).getText();
-                            infoEntries.addRow(text, "");
-                        }
+                    jmi.addActionListener(e1 -> {
+                        String text = ((JMenuItem) e1.getSource()).getText();
+                        infoEntries.addRow(text, "");
                     });
                 }
                 pm.show(infoAdd, 0, infoAdd.getHeight());
@@ -76,12 +63,12 @@ public class DocumentInfoTab extends Tab {
         return "Document Info";
     }
 
-    public PDFTwist run(PDFTwist pdfTwist, OutputProgressDialog outDialog) {
-        outDialog.updateJPDFTwistProgress(getTabName());
-        outDialog.setAction("Updating info");
-        outDialog.resetProcessedPages();
+    public PDFTwist run(PDFTwist pdfTwist, OutputEventListener outputEventListener) {
+        outputEventListener.updateJPDFTwistProgress(getTabName());
+        outputEventListener.setAction("Updating info");
+        outputEventListener.resetProcessedPages();
         if (infoChange.isSelected()) {
-            Map<String, String> newInfo = new HashMap<String, String>();
+            Map<String, String> newInfo = new HashMap<>();
             for (int i = 0; i < infoEntries.getRowCount(); i++) {
                 Object[] row = infoEntries.getRow(i);
                 String key = (String) row[0], value = (String) row[1];

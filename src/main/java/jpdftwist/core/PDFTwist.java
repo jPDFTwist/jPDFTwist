@@ -59,7 +59,6 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -133,9 +132,13 @@ public class PDFTwist {
     private int bateIndex;
     private int bateRepeat;
     private BufferedReader br;
+    private final OutputProgressDialog outputProgressDialog;
+    private final OutputEventListener outputEventListener;
 
-    public PDFTwist(List<PageRange> pageRanges, boolean useTempFiles, boolean mergeByDir, int interleaveSize) throws IOException {
+    public PDFTwist(List<PageRange> pageRanges, boolean useTempFiles, boolean mergeByDir, int interleaveSize, OutputEventListener outputEventListener, OutputProgressDialog outputProgressDialog) throws IOException {
         this.useTempFiles = useTempFiles;
+        this.outputProgressDialog = outputProgressDialog;
+        this.outputEventListener = outputEventListener;
         if (useTempFiles) {
             tryToCreateTempOutputFiles();
         }
@@ -492,7 +495,7 @@ public class PDFTwist {
     }
 
     public void writeOutput(String outputFile, boolean multipageTiff, boolean burst, boolean uncompressed,
-                            boolean sizeOptimize, boolean fullyCompressed, OutputProgressDialog outDialog)
+                            boolean sizeOptimize, boolean fullyCompressed)
         throws IOException, DocumentException {
         if (!outputFile.contains(File.separator)) {
             File temp = new File(outputFile);
@@ -504,18 +507,14 @@ public class PDFTwist {
             PdfSmartCopy copy = new PdfSmartCopy(document, baos);
             document.open();
             PdfImportedPage page;
-            if (outDialog != null) {
-                outDialog.setPageCount(currentReader.getNumberOfPages());
-                if (!outDialog.isVisible()) {
-                    return;
-                }
+            outputEventListener.setPageCount(currentReader.getNumberOfPages());
+            if (!outputProgressDialog.isVisible()) {
+                return;
             }
             for (int i = 0; i < currentReader.getNumberOfPages(); i++) {
-                if (outDialog != null) {
-                    outDialog.updatePagesProgress();
-                    if (!outDialog.isVisible()) {
-                        return;
-                    }
+                outputEventListener.updatePagesProgress();
+                if (!outputProgressDialog.isVisible()) {
+                    return;
                 }
                 page = copy.getImportedPage(currentReader, i + 1);
                 copy.addPage(page);
@@ -574,9 +573,7 @@ public class PDFTwist {
                 Document.compress = false;
             }
             int total = currentReader.getNumberOfPages();
-            if (outDialog != null) {
-                outDialog.setPageCount(total);
-            }
+            outputEventListener.setPageCount(total);
             if (multipageTiff) {
                 if (outputFile.indexOf('*') != -1) {
                     throw new IOException("TIFF multipage filename should not contain *");
@@ -587,11 +584,9 @@ public class PDFTwist {
                 document.open();
                 PdfImportedPage page;
                 for (int pagenum = 1; pagenum <= currentReader.getNumberOfPages(); pagenum++) {
-                    if (outDialog != null) {
-                        outDialog.updatePagesProgress();
-                        if (!outDialog.isVisible()) {
-                            return;
-                        }
+                    outputEventListener.updatePagesProgress();
+                    if (!outputProgressDialog.isVisible()) {
+                        return;
                     }
                     page = copy.getImportedPage(currentReader, pagenum);
                     copy.addPage(page);
@@ -612,11 +607,9 @@ public class PDFTwist {
                 PdfCopy copy;
                 ByteArrayOutputStream baos = null;
                 for (int pagenum = 1; pagenum <= currentReader.getNumberOfPages(); pagenum++) {
-                    if (outDialog != null) {
-                        outDialog.updatePagesProgress();
-                        if (!outDialog.isVisible()) {
-                            return;
-                        }
+                    outputEventListener.updatePagesProgress();
+                    if (!outputProgressDialog.isVisible()) {
+                        return;
                     }
                     Document document = new Document(currentReader.getPageSizeWithRotation(1));
                     String pageNumber = "" + pagenum;
@@ -671,11 +664,9 @@ public class PDFTwist {
                     stamper.setFullCompression();
                 }
                 for (int i = 1; i <= total; i++) {
-                    if (outDialog != null) {
-                        outDialog.updatePagesProgress();
-                        if (!outDialog.isVisible()) {
-                            return;
-                        }
+                    outputEventListener.updatePagesProgress();
+                    if (!outputProgressDialog.isVisible()) {
+                        return;
                     }
 
                     currentReader.setPageContent(i, currentReader.getPageContent(i));
@@ -715,7 +706,7 @@ public class PDFTwist {
         tempfile1 = tempfile2 = null;
 
         if (preserveHyperlinks) {
-            InputStream in = new FileInputStream(outputFile);
+            InputStream in = Files.newInputStream(Paths.get(outputFile));
             PDFParser parser = new PDFParser((RandomAccessRead) in);
             parser.parse();
             PDDocument document = parser.getPDDocument();
@@ -744,20 +735,16 @@ public class PDFTwist {
         }
     }
 
-    public void cropPages(PageBox cropTo, OutputProgressDialog outDialog) throws IOException, DocumentException {
-        if (outDialog != null) {
-            outDialog.setAction("Croping");
-            outDialog.setPageCount(currentReader.getNumberOfPages());
-        }
+    public void cropPages(PageBox cropTo) throws IOException, DocumentException {
+        outputEventListener.setAction("Cropping");
+        outputEventListener.setPageCount(currentReader.getNumberOfPages());
         OutputStream baos = createTempOutputStream();
         Document document = new Document();
         PdfWriter writer = PdfWriter.getInstance(document, baos);
         PdfContentByte cb = null;
         int[] rotations = new int[currentReader.getNumberOfPages()];
         for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
-            if (outDialog != null) {
-                outDialog.updatePagesProgress();
-            }
+            outputEventListener.updatePagesProgress();
 
             PageBox box = cropTo;
             Rectangle pageSize = currentReader.getPageSize(i);
@@ -798,15 +785,11 @@ public class PDFTwist {
         }
     }
 
-    public void rotatePages(RotateParameters param, OutputProgressDialog outDialog) {
-        if (outDialog != null) {
-            outDialog.setAction("Rotating");
-            outDialog.setPageCount(currentReader.getNumberOfPages());
-        }
+    public void rotatePages(RotateParameters param) {
+        outputEventListener.setAction("Rotating");
+        outputEventListener.setPageCount(currentReader.getNumberOfPages());
         for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
-            if (outDialog != null) {
-                outDialog.updatePagesProgress();
-            }
+            outputEventListener.updatePagesProgress();
             int rotation = currentReader.getPageRotation(i);
             Rectangle r = currentReader.getPageSizeWithRotation(i);
             int count;
@@ -839,11 +822,9 @@ public class PDFTwist {
         }
     }
 
-    public void removeRotation(OutputProgressDialog outDialog) throws DocumentException, IOException {
-        if (outDialog != null) {
-            outDialog.setAction("Removing Rotation");
-            outDialog.setPageCount(currentReader.getNumberOfPages());
-        }
+    public void removeRotation() throws DocumentException, IOException {
+        outputEventListener.setAction("Removing Rotation");
+        outputEventListener.setPageCount(currentReader.getNumberOfPages());
         boolean needed = false;
         for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
             if (currentReader.getPageRotation(i) != 0) {
@@ -859,9 +840,7 @@ public class PDFTwist {
         PdfContentByte cb = null;
         PdfImportedPage page;
         for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
-            if (outDialog != null) {
-                outDialog.updatePagesProgress();
-            }
+            outputEventListener.updatePagesProgress();
             Rectangle currentSize = currentReader.getPageSizeWithRotation(i);
             currentSize = new Rectangle(currentSize.getWidth(), currentSize.getHeight()); // strip rotation
             document.setPageSize(currentSize);
@@ -917,12 +896,9 @@ public class PDFTwist {
     float offsetX;
     float offsetY;
 
-    public void scalePages(ScaleParameters param, OutputProgressDialog outDialog)
-        throws DocumentException, IOException {
-        if (outDialog != null) {
-            outDialog.setAction("Scaling");
-            outDialog.setPageCount(currentReader.getNumberOfPages());
-        }
+    public void scalePages(ScaleParameters param) throws DocumentException, IOException {
+        outputEventListener.setAction("Scaling");
+        outputEventListener.setPageCount(currentReader.getNumberOfPages());
 
         OutputStream baos = createTempOutputStream();
 
@@ -933,9 +909,7 @@ public class PDFTwist {
         PdfImportedPage page;
 
         for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
-            if (outDialog != null) {
-                outDialog.updatePagesProgress();
-            }
+            outputEventListener.updatePagesProgress();
 
             Rectangle newSize = new Rectangle(param.getPageDim().getWidth(), param.getPageDim().getHeight());
 
@@ -1133,19 +1107,14 @@ public class PDFTwist {
 
     }
 
-    public void shufflePages(int passLength, int blockSize, ShuffleRule[] shuffleRules, OutputProgressDialog outDialog)
-        throws DocumentException, IOException {
-        if (outDialog != null) {
-            outDialog.setAction("Shuffling");
-            outDialog.setPageCount(currentReader.getNumberOfPages());
-        }
-        removeRotation(outDialog);
+    public void shufflePages(int passLength, int blockSize, ShuffleRule[] shuffleRules) throws DocumentException, IOException {
+        outputEventListener.setAction("Shuffling");
+        outputEventListener.setPageCount(currentReader.getNumberOfPages());
+        removeRotation();
         OutputStream baos = createTempOutputStream();
         Rectangle size = currentReader.getPageSize(1);
         for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
-            if (outDialog != null) {
-                outDialog.updatePagesProgress();
-            }
+            outputEventListener.updatePagesProgress();
             if (currentReader.getPageSize(i).getWidth() != size.getWidth()
                 || currentReader.getPageSize(i).getHeight() != size.getHeight()) {
                 throw new IOException(
@@ -1882,7 +1851,7 @@ public class PDFTwist {
         }
     }
 
-    public void setPageNumbers(PdfPageLabelFormat[] labelFormats, OutputProgressDialog outDialog)
+    public void setPageNumbers(PdfPageLabelFormat[] labelFormats)
         throws DocumentException, IOException {
         PdfPageLabels lbls = new PdfPageLabels();
         for (PdfPageLabelFormat format : labelFormats) {
@@ -1893,14 +1862,10 @@ public class PDFTwist {
         PdfCopy copy = new PdfCopy(document, baos);
         document.open();
         PdfImportedPage page;
-        if (outDialog != null) {
-            outDialog.setAction("Adding page numbers");
-            outDialog.setPageCount(currentReader.getNumberOfPages());
-        }
+        outputEventListener.setAction("Adding page numbers");
+        outputEventListener.setPageCount(currentReader.getNumberOfPages());
         for (int i = 0; i < currentReader.getNumberOfPages(); i++) {
-            if (outDialog != null) {
-                outDialog.updatePagesProgress();
-            }
+            outputEventListener.updatePagesProgress();
             page = copy.getImportedPage(currentReader, i + 1);
             copy.addPage(page);
         }

@@ -6,11 +6,11 @@ import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
+import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.PdfToImage;
 import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.component.FileChooser;
-import jpdftwist.gui.dialog.OutputProgressDialog;
 
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
@@ -563,9 +563,9 @@ public class OutputTab extends Tab {
         mainWindow.getInputTab().setUseTempFiles(tempfilesComboBox.isSelected());
     }
 
-    public PDFTwist run(PDFTwist pdfTwist, OutputProgressDialog outDialog) throws IOException, DocumentException {
-        outDialog.updateJPDFTwistProgress(getTabName());
-        outDialog.setAction("Producing output file(s)");
+    public PDFTwist run(PDFTwist pdfTwist, OutputEventListener outputEventListener) throws IOException, DocumentException {
+        outputEventListener.updateJPDFTwistProgress(getTabName());
+        outputEventListener.setAction("Producing output file(s)");
         if (pageMarksComboBox.isSelected()) {
             if (uncompressedComboBox.isSelected()) {
                 pdfTwist.addPageMarks();
@@ -586,7 +586,7 @@ public class OutputTab extends Tab {
             selectedTiffCompression, qualitySlider.getValue(),
             matchedTransparency));
         pdfTwist.writeOutput(outputFile.getText(), multiPageTiffCheckBox.isSelected(), burst.isSelected(),
-            uncompressedComboBox.isSelected(), optimizeSizeComboBox.isSelected(), fullyCompressedComboBox.isSelected(), outDialog);
+            uncompressedComboBox.isSelected(), optimizeSizeComboBox.isSelected(), fullyCompressedComboBox.isSelected());
         return null;
     }
 

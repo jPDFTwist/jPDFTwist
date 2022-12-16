@@ -1,8 +1,10 @@
 package jpdftwist.gui.tab.watermark;
 
 import com.itextpdf.text.DocumentException;
+import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.watermark.WatermarkStyle;
+import jpdftwist.gui.dialog.OutputProgressDialog;
 import jpdftwist.tabs.ActionTab;
 
 import javax.swing.*;
@@ -32,7 +34,7 @@ public class WatermarkPlusTab extends ActionTab {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public PDFTwist run(PDFTwist input) {
+    public PDFTwist run(PDFTwist input, OutputEventListener outputEventListener, OutputProgressDialog outputProgressDialog) {
         for (WatermarkStyle style : watermarkPlusTabPanel.getStyles()) {
             try {
                 input.addWatermark(style);

@@ -3,6 +3,7 @@ package jpdftwist.gui.tab;
 import com.itextpdf.text.DocumentException;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.PageDimension;
 import jpdftwist.core.ShuffleRule;
@@ -10,7 +11,6 @@ import jpdftwist.core.ShuffleRule.PageBase;
 import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.component.ShufflePreviewPanel;
 import jpdftwist.gui.component.table.TableComponent;
-import jpdftwist.gui.dialog.OutputProgressDialog;
 
 import javax.swing.*;
 import java.awt.*;
@@ -234,14 +234,14 @@ public class ShuffleTab extends Tab {
         }
     }
 
-    public PDFTwist run(PDFTwist pdfTwist, OutputProgressDialog outDialog) throws IOException, DocumentException {
-        outDialog.updateJPDFTwistProgress(getTabName());
+    public PDFTwist run(PDFTwist pdfTwist, OutputEventListener outputEventListener) throws IOException, DocumentException {
+        outputEventListener.updateJPDFTwistProgress(getTabName());
         if (shufflePages.isSelected()) {
             int shuffleSize = blockShuffle.isSelected() ? Integer.parseInt(blockSize.getText()) : 0;
             try {
-                pdfTwist.shufflePages(shufflePagesPerPass, shuffleSize, shuffleRules, outDialog);
+                pdfTwist.shufflePages(shufflePagesPerPass, shuffleSize, shuffleRules);
             } catch (DocumentException | IOException e) {
-                outDialog.dispose();
+                outputEventListener.dispose();
                 throw e;
             }
         }
