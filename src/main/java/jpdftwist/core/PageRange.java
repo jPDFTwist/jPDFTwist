@@ -4,6 +4,7 @@ import jpdftwist.core.input.FileInputElement;
 import jpdftwist.core.input.PageInputElement;
 import jpdftwist.core.input.TreeTableColumn;
 import jpdftwist.gui.component.treetable.Node;
+import org.jdesktop.swingx.treetable.MutableTreeTableNode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,7 +12,6 @@ import java.util.Enumeration;
 import java.util.List;
 
 public class PageRange {
-
 	private final Node node;
 	private final FileInputElement fileUO;
 	private final List<Integer> pageOrder;
@@ -21,7 +21,7 @@ public class PageRange {
 		fileUO = (FileInputElement) fileNode.getUserObject();
 		pageOrder = new ArrayList<>();
 
-		Enumeration e = fileNode.children();
+		Enumeration<? extends MutableTreeTableNode> e = fileNode.children();
 		while (e.hasMoreElements()) {
 			Node n = (Node) e.nextElement();
 			PageInputElement puo = (PageInputElement) n.getUserObject();
@@ -66,9 +66,4 @@ public class PageRange {
 		}
 		return pages;
 	}
-
-	public int getPage(int i) {
-		return pageOrder.get(i);
-	}
-
 }
