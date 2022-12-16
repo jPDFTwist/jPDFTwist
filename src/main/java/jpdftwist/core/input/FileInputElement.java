@@ -1,11 +1,8 @@
-package jpdftwist.gui.component.treetable.row;
+package jpdftwist.core.input;
 
 import jpdftwist.core.IntegerList;
-import jpdftwist.gui.component.treetable.TreeTableColumn;
-import jpdftwist.gui.component.treetable.TreeTableRow;
-import jpdftwist.gui.component.treetable.TreeTableRowType;
 
-public abstract class FileTreeTableRow extends TreeTableRow {
+public abstract class FileInputElement extends InputElement {
 
     private Object id;
     private final SubType subType;
@@ -16,12 +13,12 @@ public abstract class FileTreeTableRow extends TreeTableRow {
     private boolean odd;
     private IntegerList emptyBefore;
 
-    public FileTreeTableRow() {
+    public FileInputElement() {
         super(null, null);
         this.subType = null;
     }
 
-    public FileTreeTableRow(final String key, final TreeTableRowType type, final SubType subType) {
+    public FileInputElement(final String key, final InputElementType type, final SubType subType) {
         super(key, type);
         this.subType = subType;
     }

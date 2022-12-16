@@ -5,13 +5,13 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfWriter;
+import jpdftwist.core.input.FileInputElement;
+import jpdftwist.core.input.InputElementType;
+import jpdftwist.core.input.PageInputElement;
 import jpdftwist.gui.component.ImagePreviewPanel;
 import jpdftwist.gui.component.treetable.Node;
 import jpdftwist.gui.component.treetable.TreeTableComponent;
-import jpdftwist.gui.component.treetable.TreeTableRowType;
 import jpdftwist.gui.component.treetable.event.ControlListener;
-import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
-import jpdftwist.gui.component.treetable.row.PageTreeTableRow;
 import jpdftwist.tabs.input.InputTabFileImporter;
 import jpdftwist.utils.JImageParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -46,7 +46,7 @@ public class InputTabControlListener implements ControlListener {
 
     @Override
     public void doubleClick(Node selectedNode) {
-        if (selectedNode.getUserObject() instanceof FileTreeTableRow) {
+        if (selectedNode.getUserObject() instanceof FileInputElement) {
             try {
                 File newFile = new File(selectedNode.getUserObject().getKey());
                 if (newFile.exists()) {
@@ -94,16 +94,16 @@ public class InputTabControlListener implements ControlListener {
     }
 
     private void updatePreview(Node node) throws IOException {
-        if (node == null || !(node.getUserObject() instanceof PageTreeTableRow)) {
+        if (node == null || !(node.getUserObject() instanceof PageInputElement)) {
             previewPanel.clearPreview();
             return;
         }
 
-        final FileTreeTableRow userObject = (FileTreeTableRow) node.getParent().getUserObject();
+        final FileInputElement userObject = (FileInputElement) node.getParent().getUserObject();
         String parent = userObject.getKey();
 
         final Image previewImage;
-        if (userObject.getSubType().equals(FileTreeTableRow.SubType.PDF)) {
+        if (userObject.getSubType().equals(FileInputElement.SubType.PDF)) {
             PDDocument document = PDDocument.load(new File(parent));
             PDFRenderer pdfRenderer = new PDFRenderer(document);
             previewImage = pdfRenderer.renderImage(Integer.parseInt(node.getUserObject().getKey()) - 1);
@@ -217,9 +217,9 @@ public class InputTabControlListener implements ControlListener {
         Enumeration<?> e = parent.children();
         while (e.hasMoreElements()) {
             final Node child = (Node) e.nextElement();
-            if (TreeTableRowType.isFile(child)) {
+            if (InputElementType.isFile(child)) {
                 inputElements.add(child.getUserObject().getKey());
-            } else if (child.getUserObject().getType() == TreeTableRowType.FOLDER) {
+            } else if (child.getUserObject().getType() == InputElementType.FOLDER) {
                 inputElements.addAll(getInputElements(child));
             }
         }

@@ -2,10 +2,10 @@ package jpdftwist.tabs.input.treetable.node;
 
 import com.itextpdf.text.pdf.PdfReader;
 import jpdftwist.core.IntegerList;
+import jpdftwist.core.input.FileInputElement;
+import jpdftwist.core.input.TreeTableColumn;
+import jpdftwist.core.input.VirtualFileInputElement;
 import jpdftwist.gui.component.treetable.Node;
-import jpdftwist.gui.component.treetable.TreeTableColumn;
-import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
-import jpdftwist.gui.component.treetable.row.VirtualFileTreeTableRow;
 import jpdftwist.utils.PdfParser;
 
 import java.io.IOException;
@@ -38,7 +38,7 @@ public class VirtualPdfNodeFactory extends FileNodeFactory {
             // TODO throw Exception
         }
 
-        VirtualFileTreeTableRow pdfUO = createVirtualPdfUserObject();
+        VirtualFileInputElement pdfUO = createVirtualPdfUserObject();
 
         Node file = new Node(pdfUO);
         insertPages(file);
@@ -48,8 +48,8 @@ public class VirtualPdfNodeFactory extends FileNodeFactory {
         return file;
     }
 
-    private VirtualFileTreeTableRow createVirtualPdfUserObject() {
-        VirtualFileTreeTableRow pdfUO = new VirtualFileTreeTableRow(filepath, FileTreeTableRow.SubType.PDF, "");
+    private VirtualFileInputElement createVirtualPdfUserObject() {
+        VirtualFileInputElement pdfUO = new VirtualFileInputElement(filepath, FileInputElement.SubType.PDF, "");
 
         int numberOfPages = getPageCount();
 

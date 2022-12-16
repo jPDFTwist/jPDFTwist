@@ -1,22 +1,20 @@
-package jpdftwist.gui.component.treetable.row;
+package jpdftwist.core.input;
 
 import jpdftwist.core.Utils;
-import jpdftwist.gui.component.treetable.TreeTableColumn;
-import jpdftwist.gui.component.treetable.TreeTableRowType;
 
 /**
  * @author Vasilis Naskos
  */
-public class RealFileTreeTableRow extends FileTreeTableRow {
+public class RealFileInputElement extends FileInputElement {
 
     private long filesize;
 
-    public RealFileTreeTableRow() {
-        super(null, TreeTableRowType.REAL_FILE, null);
+    public RealFileInputElement() {
+        super(null, InputElementType.REAL_FILE, null);
     }
 
-    public RealFileTreeTableRow(String key, SubType subType) {
-        super(key, TreeTableRowType.REAL_FILE, subType);
+    public RealFileInputElement(String key, SubType subType) {
+        super(key, InputElementType.REAL_FILE, subType);
     }
 
     public Object getValueAt(int columnIndex) {

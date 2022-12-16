@@ -32,18 +32,18 @@ import com.itextpdf.text.pdf.SimpleBookmark;
 import com.itextpdf.text.pdf.interfaces.PdfEncryptionSettings;
 import com.itextpdf.text.pdf.internal.PdfViewerPreferencesImp;
 import jpdftwist.core.ShuffleRule.PageBase;
+import jpdftwist.core.input.FileInputElement;
+import jpdftwist.core.input.InputElementType;
+import jpdftwist.core.input.PageInputElement;
+import jpdftwist.core.input.RealFileInputElement;
+import jpdftwist.core.input.TreeTableColumn;
+import jpdftwist.core.input.VirtualFileInputElement;
 import jpdftwist.core.tabparams.RotateParameters;
 import jpdftwist.core.tabparams.ScaleParameters;
 import jpdftwist.core.watermark.TextRenderer;
 import jpdftwist.core.watermark.TextRenderer.TextAlignment;
 import jpdftwist.core.watermark.WatermarkStyle;
 import jpdftwist.gui.component.treetable.Node;
-import jpdftwist.gui.component.treetable.TreeTableColumn;
-import jpdftwist.gui.component.treetable.TreeTableRowType;
-import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
-import jpdftwist.gui.component.treetable.row.PageTreeTableRow;
-import jpdftwist.gui.component.treetable.row.RealFileTreeTableRow;
-import jpdftwist.gui.component.treetable.row.VirtualFileTreeTableRow;
 import jpdftwist.gui.dialog.OutputProgressDialog;
 import jpdftwist.gui.tab.input.GenerateInputItemsDialog;
 import jpdftwist.utils.JImageParser;
@@ -133,7 +133,7 @@ public class PDFTwist {
 
     private String rootFolder;
 
-    private ArrayList<List<PDAnnotation>> pdAnnotations = new ArrayList<List<PDAnnotation>>();
+    private ArrayList<List<PDAnnotation>> pdAnnotations = new ArrayList<>();
 
     private ArrayList<PDDocument> pdDocuments;
     private List<PageRange> pageRanges;
@@ -168,11 +168,11 @@ public class PDFTwist {
                 int pagesBefore = 0;
 
                 for (PageRange pageRange : pageRanges) {
-                    FileTreeTableRow fuo = pageRange.getFileUO();
+                    FileInputElement fuo = pageRange.getFileUO();
 
                     switch (fuo.getType()) {
                         case VIRTUAL_FILE:
-                            VirtualFileTreeTableRow vfuo = (VirtualFileTreeTableRow) pageRange.getFileUO();
+                            VirtualFileInputElement vfuo = (VirtualFileInputElement) pageRange.getFileUO();
                             switch (vfuo.getSubType()) {
                                 case PDF:
                                     currentReader = getVirtualPdfReader(pageRange);
@@ -187,7 +187,7 @@ public class PDFTwist {
                             }
                             break;
                         case REAL_FILE:
-                            RealFileTreeTableRow rfuo = (RealFileTreeTableRow) pageRange.getFileUO();
+                            RealFileInputElement rfuo = (RealFileInputElement) pageRange.getFileUO();
                             switch (rfuo.getSubType()) {
                                 case PDF:
                                     RandomAccessFileOrArray raf = new RandomAccessFileOrArray(fuo.getKey(), false, true);
@@ -340,7 +340,7 @@ public class PDFTwist {
         Enumeration e = pageRange.getNode().children();
         while (e.hasMoreElements()) {
             Node n = (Node) e.nextElement();
-            PageTreeTableRow puo = (PageTreeTableRow) n.getUserObject();
+            PageInputElement puo = (PageInputElement) n.getUserObject();
 
             float width = (float) puo.getWidth();
             float height = (float) puo.getHeight();
@@ -368,7 +368,7 @@ public class PDFTwist {
     }
 
     private PdfReader getVirtualPdfReader(PageRange pageRange) throws IOException {
-        VirtualFileTreeTableRow vfuo = (VirtualFileTreeTableRow) pageRange.getFileUO();
+        VirtualFileInputElement vfuo = (VirtualFileInputElement) pageRange.getFileUO();
         String srcFile = vfuo.getSrcFilePath();
 
         // PDDocument document = PDDocument.load(srcFile);
@@ -408,13 +408,13 @@ public class PDFTwist {
             PdfWriter writer = PdfWriter.getInstance(document, baos);
             document.open();
 
-            FileTreeTableRow fuo = pageRange.getFileUO();
+            FileInputElement fuo = pageRange.getFileUO();
             String srcFile;
 
-            if (fuo.getType() == TreeTableRowType.REAL_FILE) {
+            if (fuo.getType() == InputElementType.REAL_FILE) {
                 srcFile = fuo.getKey();
             } else { // VIRTUAL
-                srcFile = ((VirtualFileTreeTableRow) fuo).getSrcFilePath();
+                srcFile = ((VirtualFileInputElement) fuo).getSrcFilePath();
             }
 
             com.itextpdf.text.Image pdfImage = JImageParser.readItextImage(srcFile);
@@ -1680,9 +1680,9 @@ public class PDFTwist {
             case BATES_NUMBERING:
                 if ((style.getBatesApplyTo() == 1 && i % 2 == 0) || (style.getBatesApplyTo() == 2 && i % 2 != 0)
                     || (style.getBatesApplyTo() == 3
-                    && !(pageRange.getFileUO().getSubType() == FileTreeTableRow.SubType.PDF))
+                    && !(pageRange.getFileUO().getSubType() == FileInputElement.SubType.PDF))
                     || (style.getBatesApplyTo() == 4
-                    && !(pageRange.getFileUO().getSubType() == FileTreeTableRow.SubType.PDF))
+                    && !(pageRange.getFileUO().getSubType() == FileInputElement.SubType.PDF))
                     || (style.getBatesApplyTo() == 5 && !batesList.contains(i))
                     || (style.getBatesApplyTo() == 6 && batesList.contains(i))) {
                     text = "";
@@ -1724,10 +1724,10 @@ public class PDFTwist {
                 DateTime dt = new DateTime();
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
-                FileTreeTableRow fuo = pageRange.getFileUO();
+                FileInputElement fuo = pageRange.getFileUO();
 
-                if (fuo.getSubType() == FileTreeTableRow.SubType.IMAGE) {
-                    PageTreeTableRow page = (PageTreeTableRow) pageRange.getNode().children().nextElement();
+                if (fuo.getSubType() == FileInputElement.SubType.IMAGE) {
+                    PageInputElement page = (PageInputElement) pageRange.getNode().children().nextElement();
                     double width = page.getWidth();
                     double height = page.getHeight();
 
@@ -1746,11 +1746,11 @@ public class PDFTwist {
                 String parent = "";
                 String lastModified = "";
 
-                if (fuo.getType() == TreeTableRowType.REAL_FILE) {
+                if (fuo.getType() == InputElementType.REAL_FILE) {
                     parent = new File(fuo.getKey()).getParent() + File.separator;
                     lastModified = sdf.format(new File(fuo.getKey()).lastModified());
-                } else if (fuo.getType() == TreeTableRowType.VIRTUAL_FILE) {
-                    parent = ((VirtualFileTreeTableRow) fuo).getParent() + File.separator;
+                } else if (fuo.getType() == InputElementType.VIRTUAL_FILE) {
+                    parent = ((VirtualFileInputElement) fuo).getParent() + File.separator;
                     lastModified = sdf.format(new Date());
                 }
 

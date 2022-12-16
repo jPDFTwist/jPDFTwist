@@ -1,9 +1,9 @@
 package jpdftwist.core;
 
+import jpdftwist.core.input.FileInputElement;
+import jpdftwist.core.input.PageInputElement;
+import jpdftwist.core.input.TreeTableColumn;
 import jpdftwist.gui.component.treetable.Node;
-import jpdftwist.gui.component.treetable.TreeTableColumn;
-import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
-import jpdftwist.gui.component.treetable.row.PageTreeTableRow;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,18 +13,18 @@ import java.util.List;
 public class PageRange {
 
 	private final Node node;
-	private final FileTreeTableRow fileUO;
+	private final FileInputElement fileUO;
 	private final List<Integer> pageOrder;
 
 	public PageRange(Node fileNode) {
 		this.node = fileNode;
-		fileUO = (FileTreeTableRow) fileNode.getUserObject();
-		pageOrder = new ArrayList<Integer>();
+		fileUO = (FileInputElement) fileNode.getUserObject();
+		pageOrder = new ArrayList<>();
 
 		Enumeration e = fileNode.children();
 		while (e.hasMoreElements()) {
 			Node n = (Node) e.nextElement();
-			PageTreeTableRow puo = (PageTreeTableRow) n.getUserObject();
+			PageInputElement puo = (PageInputElement) n.getUserObject();
 
 			int position = Integer.parseInt(puo.getKey()) - 1;
 			pageOrder.add(position);
@@ -35,7 +35,7 @@ public class PageRange {
 		return node;
 	}
 
-	public FileTreeTableRow getFileUO() {
+	public FileInputElement getFileUO() {
 		return fileUO;
 	}
 

@@ -1,4 +1,4 @@
-package jpdftwist.gui.component.treetable;
+package jpdftwist.core.input;
 
 import java.util.HashMap;
 import java.util.Map;

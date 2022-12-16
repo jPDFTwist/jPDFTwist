@@ -1,9 +1,11 @@
-package jpdftwist.gui.component.treetable;
+package jpdftwist.core.input;
+
+import jpdftwist.gui.component.treetable.Node;
 
 /**
  * @author Vasilis Naskos
  */
-public enum TreeTableRowType {
+public enum InputElementType {
 
     FOLDER,
     REAL_FILE,
@@ -15,8 +17,8 @@ public enum TreeTableRowType {
         return isFile(n.getUserObject());
     }
 
-    public static boolean isFile(final TreeTableRow row) {
+    public static boolean isFile(final InputElement row) {
         return row.getType() == REAL_FILE ||
-               row.getType() == VIRTUAL_FILE;
+            row.getType() == VIRTUAL_FILE;
     }
 }

@@ -41,7 +41,7 @@ public class TreeTableComponent extends JPanel {
     private final CellConstraints CC;
     private final ControlListener controlListener;
 
-    public TreeTableComponent(final String[] headers, final Class[] classes, final ControlListener controlListener) {
+    public TreeTableComponent(final String[] headers, final Class<?>[] classes, final ControlListener controlListener) {
         this.CC = new CellConstraints();
         this.expandCollapse = false;
         this.ascendingOrder = true;
@@ -269,7 +269,7 @@ public class TreeTableComponent extends JPanel {
                 return;
             }
             final TreePath path = this.treeTable.getPathForRow(row);
-            this.model.removeNodeFromParent((Node) path.getLastPathComponent(), true);
+            this.model.removeNodeFromParent((Node) path.getLastPathComponent());
         }
     }
 

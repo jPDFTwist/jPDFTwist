@@ -1,6 +1,9 @@
 package jpdftwist.gui.component.treetable;
 
-import jpdftwist.gui.component.treetable.row.PageTreeTableRow;
+import jpdftwist.core.input.InputElement;
+import jpdftwist.core.input.InputElementType;
+import jpdftwist.core.input.PageInputElement;
+import jpdftwist.core.input.TreeTableColumn;
 import jpdftwist.utils.PreferencesUtil;
 import org.jdesktop.swingx.renderer.DefaultTreeRenderer;
 import org.jdesktop.swingx.renderer.StringValue;
@@ -18,14 +21,14 @@ public class TreeTableRenderer extends DefaultTreeRenderer {
                 return "";
             }
             if (o instanceof Node) {
-                final TreeTableRow uo = ((Node) o).getUserObject();
+                final InputElement uo = ((Node) o).getUserObject();
 
                 return uo.getKey().equals(ROOT_NODE_KEY)
                     ? ROOT_NODE_KEY
                     : uo.getValueAt(TreeTableColumn.FILE, String.class);
             }
-            if (o instanceof TreeTableRow) {
-                final TreeTableRow uo = (TreeTableRow) o;
+            if (o instanceof InputElement) {
+                final InputElement uo = (InputElement) o;
 
                 return uo.getKey().equals(ROOT_NODE_KEY)
                     ? ROOT_NODE_KEY
@@ -39,16 +42,16 @@ public class TreeTableRenderer extends DefaultTreeRenderer {
                                                   final boolean expanded, final boolean leaf, final int row, final boolean hasFocus) {
         final Component C = super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
         C.setForeground(Color.BLACK);
-        final TreeTableRow uo = ((Node) value).getUserObject();
-        if (TreeTableRowType.isFile(uo)) {
-            if (uo.getType() == TreeTableRowType.VIRTUAL_FILE) {
+        final InputElement uo = ((Node) value).getUserObject();
+        if (InputElementType.isFile(uo)) {
+            if (uo.getType() == InputElementType.VIRTUAL_FILE) {
                 final Color blank = new Color(PreferencesUtil.PREFS.getInt("blankColor", -16711681));
                 C.setBackground(blank);
             } else {
                 final Color file = new Color(PreferencesUtil.PREFS.getInt("fileColor", -256));
                 C.setBackground(file);
             }
-        } else if (uo instanceof PageTreeTableRow) {
+        } else if (uo instanceof PageInputElement) {
             final Color page = new Color(PreferencesUtil.PREFS.getInt("pageColor", -855568));
             C.setBackground(page);
         } else {

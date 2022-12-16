@@ -1,8 +1,11 @@
 package jpdftwist.gui.component.treetable;
 
 import jpdftwist.core.FilenameUtils;
-import jpdftwist.gui.component.treetable.row.FolderTreeTableRow;
+import jpdftwist.core.input.FolderInputElement;
+import jpdftwist.core.input.InputElementType;
+import jpdftwist.core.input.TreeTableColumn;
 import org.jdesktop.swingx.treetable.DefaultTreeTableModel;
+import org.jdesktop.swingx.treetable.MutableTreeTableNode;
 
 import javax.swing.tree.TreePath;
 import java.io.File;
@@ -18,9 +21,9 @@ import java.util.Stack;
  */
 public class TreeTableModel extends DefaultTreeTableModel implements SwapObserver {
 
-    protected final Class[] columnClasses;
+    protected final Class<?>[] columnClasses;
 
-    public TreeTableModel(String[] columnNames, Class[] columnClasses) {
+    public TreeTableModel(String[] columnNames, Class<?>[] columnClasses) {
         super();
 
         initRoot();
@@ -30,15 +33,13 @@ public class TreeTableModel extends DefaultTreeTableModel implements SwapObserve
     }
 
     private void initRoot() {
-        setRoot(new Node(new FolderTreeTableRow("Root")));
+        setRoot(new Node(new FolderInputElement("Root")));
         Node.setObserver(this);
     }
-
 
     public Class<?> getColumnClass(int column) {
         return columnClasses[column];
     }
-
 
     public Node getRoot() {
         return (Node) super.getRoot();
@@ -52,13 +53,13 @@ public class TreeTableModel extends DefaultTreeTableModel implements SwapObserve
 
         Node n = (Node) node;
 
-        return TreeTableRowType.isFile(n) && column > 5;
+        return InputElementType.isFile(n) && column > 5;
     }
 
 
     public void notify(Node node, int index) {
         Node parent = (Node) node.getParent();
-        removeNodeFromParent(node, false);
+        removeNodeFromParent(node);
         insertNodeInto(node, parent, index);
     }
 
@@ -68,12 +69,10 @@ public class TreeTableModel extends DefaultTreeTableModel implements SwapObserve
 
         TreeTableColumn headerValue = TreeTableColumn.fromIndex(column);
 
-        switch (headerValue) {
-            case BOOKMARK_LEVEL:
-                return new TreePath(getPathToRoot(node)).getPathCount() - 1;
-            default:
-                return node.getValueAt(column);
+        if (headerValue == TreeTableColumn.BOOKMARK_LEVEL) {
+            return new TreePath(getPathToRoot(node)).getPathCount() - 1;
         }
+        return node.getValueAt(column);
     }
 
     /**
@@ -90,12 +89,9 @@ public class TreeTableModel extends DefaultTreeTableModel implements SwapObserve
         remove(rootNode);
     }
 
-    public void removeNodeFromParent(Node node, boolean recursive) {
-        // remove(node);
+    public void removeNodeFromParent(Node node) {
         super.removeNodeFromParent(node);
     }
-
-    // TODO recursivly if there is memory leak
 
     /**
      * Remove all children from a Parent Node recursively
@@ -103,8 +99,8 @@ public class TreeTableModel extends DefaultTreeTableModel implements SwapObserve
      * @param parent Starting Point/Node
      */
     private void remove(Node parent) {
-        Stack<Node> nodes = new Stack<Node>();
-        Enumeration e = parent.children();
+        Stack<Node> nodes = new Stack<>();
+        Enumeration<? extends MutableTreeTableNode> e = parent.children();
         while (e.hasMoreElements()) {
             Node nextNode = (Node) e.nextElement();
             nodes.push(nextNode);
@@ -130,7 +126,7 @@ public class TreeTableModel extends DefaultTreeTableModel implements SwapObserve
 
         int index = parent.getIndex(node);
 
-        removeNodeFromParent(node, false);
+        removeNodeFromParent(node);
         insertNodeInto(node, parent, index + offset);
 
         return new TreePath(getPathToRoot(node));
@@ -155,13 +151,13 @@ public class TreeTableModel extends DefaultTreeTableModel implements SwapObserve
     public int getFileCount(Node node) {
         int childCount = 0;
 
-        Enumeration e = node.children();
+        Enumeration<? extends MutableTreeTableNode> e = node.children();
         while (e.hasMoreElements()) {
             Node child = (Node) e.nextElement();
 
-            if (child.getUserObject() instanceof FolderTreeTableRow) {
+            if (child.getUserObject() instanceof FolderInputElement) {
                 childCount += getFileCount(child);
-            } else if (TreeTableRowType.isFile(child)) {
+            } else if (InputElementType.isFile(child)) {
                 childCount++;
             }
         }
@@ -179,11 +175,11 @@ public class TreeTableModel extends DefaultTreeTableModel implements SwapObserve
     public int getFolderCount(Node node) {
         int folderCount = 0;
 
-        Enumeration e = node.children();
+        Enumeration<? extends MutableTreeTableNode> e = node.children();
         while (e.hasMoreElements()) {
             Node child = (Node) e.nextElement();
 
-            if (child.getUserObject() instanceof FolderTreeTableRow) {
+            if (child.getUserObject() instanceof FolderInputElement) {
                 if (getFileCount(node) > 0)
                     folderCount++;
 
@@ -223,7 +219,7 @@ public class TreeTableModel extends DefaultTreeTableModel implements SwapObserve
             if (potentialParent != null && potentialParent.getAllowsChildren()) {
                 parentNode = potentialParent;
             } else {
-                Node newNode = new Node(new FolderTreeTableRow(parent), true);
+                Node newNode = new Node(new FolderInputElement(parent), true);
 
                 insertNodeInto(newNode, parentNode, parentNode.getChildCount());
                 parentNode = newNode;

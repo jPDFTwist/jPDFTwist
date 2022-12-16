@@ -1,14 +1,14 @@
 package jpdftwist.tabs.input.treetable.node;
 
-import jpdftwist.gui.component.treetable.TreeTableRowType;
-import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
+import jpdftwist.core.input.FileInputElement;
+import jpdftwist.core.input.InputElementType;
 
 /**
  * @author Vasilis Naskos
  */
 public class NodeFactory {
 
-    public static FileNodeFactory getFileNodeFactory(TreeTableRowType type, FileTreeTableRow.SubType subType) {
+    public static FileNodeFactory getFileNodeFactory(InputElementType type, FileInputElement.SubType subType) {
         switch (type) {
             case REAL_FILE:
                 return getRealFileNodeFactory(subType);
@@ -19,7 +19,7 @@ public class NodeFactory {
         }
     }
 
-    private static FileNodeFactory getRealFileNodeFactory(FileTreeTableRow.SubType subType) {
+    private static FileNodeFactory getRealFileNodeFactory(FileInputElement.SubType subType) {
         switch (subType) {
             case PDF:
                 return new RealPdfNodeFactory();
@@ -30,7 +30,7 @@ public class NodeFactory {
         }
     }
 
-    private static FileNodeFactory getVirtualFileNodeFactory(FileTreeTableRow.SubType subType) {
+    private static FileNodeFactory getVirtualFileNodeFactory(FileInputElement.SubType subType) {
         switch (subType) {
             case PDF:
                 return new VirtualPdfNodeFactory();

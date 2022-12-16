@@ -3,10 +3,10 @@ package jpdftwist.tabs.input.treetable.node;
 import com.itextpdf.text.Rectangle;
 import jpdftwist.core.IntegerList;
 import jpdftwist.core.UnitTranslator;
+import jpdftwist.core.input.FileInputElement;
+import jpdftwist.core.input.RealFileInputElement;
+import jpdftwist.core.input.TreeTableColumn;
 import jpdftwist.gui.component.treetable.Node;
-import jpdftwist.gui.component.treetable.TreeTableColumn;
-import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
-import jpdftwist.gui.component.treetable.row.RealFileTreeTableRow;
 import jpdftwist.utils.JImageParser;
 
 import java.io.File;
@@ -24,7 +24,7 @@ public class RealImageNodeFactory extends FileNodeFactory {
     public Node getFileNode(String filepath) {
         this.filepath = filepath;
 
-        RealFileTreeTableRow pdfUO = createRealPdfUserObject();
+        RealFileInputElement pdfUO = createRealPdfUserObject();
 
         try {
             Node file = new Node(pdfUO);
@@ -38,10 +38,10 @@ public class RealImageNodeFactory extends FileNodeFactory {
         return null;
     }
 
-    private RealFileTreeTableRow createRealPdfUserObject() {
+    private RealFileInputElement createRealPdfUserObject() {
         long fileSize = new File(filepath).length();
 
-        RealFileTreeTableRow imgUO = new RealFileTreeTableRow(filepath, FileTreeTableRow.SubType.IMAGE);
+        RealFileInputElement imgUO = new RealFileInputElement(filepath, FileInputElement.SubType.IMAGE);
 
         imgUO.setValueAt(fileSize, TreeTableColumn.SIZE);
         imgUO.setValueAt(1, TreeTableColumn.PAGES);

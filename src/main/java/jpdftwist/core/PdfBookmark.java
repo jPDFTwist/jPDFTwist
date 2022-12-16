@@ -2,7 +2,7 @@ package jpdftwist.core;
 
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.SimpleBookmark;
-import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
+import jpdftwist.core.input.FileInputElement;
 import jpdftwist.utils.PdfParser;
 
 import java.io.IOException;
@@ -245,7 +245,7 @@ public class PdfBookmark {
 			}
 			result.add(new PdfBookmark(1, range.getFileUO().getFileName(), true, offset + 1 + initialEmptyPages));
 			List<PdfBookmark> bs = Collections.emptyList();
-			if (range.getFileUO().getSubType() == FileTreeTableRow.SubType.PDF) {
+			if (range.getFileUO().getSubType() == FileInputElement.SubType.PDF) {
 				PdfReader reader = PdfParser.open(range.getFileUO().getKey());
 				List bmk = SimpleBookmark.getBookmark(reader);
 				bs = PdfBookmark.parseBookmarks(bmk, 2);

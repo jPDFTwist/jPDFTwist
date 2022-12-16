@@ -1,13 +1,9 @@
-package jpdftwist.gui.component.treetable.row;
-
-import jpdftwist.gui.component.treetable.TreeTableColumn;
-import jpdftwist.gui.component.treetable.TreeTableRow;
-import jpdftwist.gui.component.treetable.TreeTableRowType;
+package jpdftwist.core.input;
 
 import java.awt.*;
 import java.text.DecimalFormat;
 
-public class PageTreeTableRow extends TreeTableRow {
+public class PageInputElement extends InputElement {
     private double width;
     private double height;
     private String orientation;
@@ -15,12 +11,12 @@ public class PageTreeTableRow extends TreeTableRow {
     private int backgroundColor;
     private String id;
 
-    public PageTreeTableRow() {
-        super(null, TreeTableRowType.PAGE);
+    public PageInputElement() {
+        super(null, InputElementType.PAGE);
     }
 
-    public PageTreeTableRow(final String key) {
-        super(key, TreeTableRowType.PAGE);
+    public PageInputElement(final String key) {
+        super(key, InputElementType.PAGE);
     }
 
     public Object getValueAt(final int column) {

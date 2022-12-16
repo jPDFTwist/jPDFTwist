@@ -2,7 +2,8 @@ package jpdftwist.gui.component.treetable;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoCopyable;
-import jpdftwist.gui.component.treetable.row.PageTreeTableRow;
+import jpdftwist.core.input.InputElement;
+import jpdftwist.core.input.TreeTableColumn;
 import org.jdesktop.swingx.treetable.AbstractMutableTreeTableNode;
 import org.jdesktop.swingx.treetable.MutableTreeTableNode;
 
@@ -20,11 +21,11 @@ public class Node extends AbstractMutableTreeTableNode implements KryoCopyable<N
     public Node() {
     }
 
-    public Node(TreeTableRow data) {
+    public Node(InputElement data) {
         this(data, true);
     }
 
-    public Node(TreeTableRow data, boolean allowChildren) {
+    public Node(InputElement data, boolean allowChildren) {
         super(data);
         this.allowsChildren = allowChildren;
     }
@@ -33,26 +34,22 @@ public class Node extends AbstractMutableTreeTableNode implements KryoCopyable<N
         Node.observer = observer;
     }
 
-    public static SwapObserver getObserver() {
-        return observer;
+    @Override
+    public InputElement getUserObject() {
+        return (InputElement) userObject;
     }
 
-
-    public TreeTableRow getUserObject() {
-        return (TreeTableRow) userObject;
-    }
-
-
+    @Override
     public Object getValueAt(int i) {
-        return ((TreeTableRow) userObject).getValueAt(i);
+        return ((InputElement) userObject).getValueAt(i);
     }
 
-
+    @Override
     public void setValueAt(Object aValue, int column) {
-        ((TreeTableRow) userObject).setValueAt(aValue, column);
+        ((InputElement) userObject).setValueAt(aValue, column);
     }
 
-
+    @Override
     public int getColumnCount() {
         return TreeTableColumn.values().length;
     }
@@ -73,14 +70,14 @@ public class Node extends AbstractMutableTreeTableNode implements KryoCopyable<N
 
         for (int i = 0; i < childCount; i++) {
             Node child = (Node) this.getChildAt(i);
-            if (child.getUserObject() instanceof PageTreeTableRow) {
+            if (!child.isLeaf()) {
                 return;
             }
 
             if (child.getChildCount() > 0 && recursive) {
                 child.sortNode(sortColumn, sortAscending, recursive);
             }
-            TreeTableRow u = child.getUserObject();
+            InputElement u = child.getUserObject();
             nodeData.put(u.getKey(), child);
         }
 
@@ -114,17 +111,8 @@ public class Node extends AbstractMutableTreeTableNode implements KryoCopyable<N
         return null;
     }
 
-    public int getFirstLevelChildrenCount() {
-        if (!allowsChildren) {
-            return 0;
-        }
-
-        return children.size();
-    }
-
-
     public Node copy(Kryo kryo) {
-        TreeTableRow uo = (TreeTableRow) kryo.copy(userObject);
+        InputElement uo = (InputElement) kryo.copy(userObject);
 
         return new Node(uo);
     }

@@ -2,10 +2,10 @@ package jpdftwist.tabs.input.treetable.node;
 
 import com.itextpdf.text.pdf.PdfReader;
 import jpdftwist.core.IntegerList;
+import jpdftwist.core.input.FileInputElement;
+import jpdftwist.core.input.RealFileInputElement;
+import jpdftwist.core.input.TreeTableColumn;
 import jpdftwist.gui.component.treetable.Node;
-import jpdftwist.gui.component.treetable.TreeTableColumn;
-import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
-import jpdftwist.gui.component.treetable.row.RealFileTreeTableRow;
 import jpdftwist.utils.PdfParser;
 
 import java.io.File;
@@ -38,7 +38,7 @@ public class RealPdfNodeFactory extends FileNodeFactory {
             // TODO throw Exception
         }
 
-        RealFileTreeTableRow pdfUO = createRealPdfUserObject();
+        RealFileInputElement pdfUO = createRealPdfUserObject();
 
         Node file = new Node(pdfUO);
         insertPages(file);
@@ -48,11 +48,11 @@ public class RealPdfNodeFactory extends FileNodeFactory {
         return file;
     }
 
-    private RealFileTreeTableRow createRealPdfUserObject() {
+    private RealFileInputElement createRealPdfUserObject() {
         // System.out.println("filepath:"+this.filepath);
         long fileSize = new File(filepath).length();
 
-        RealFileTreeTableRow pdfUO = new RealFileTreeTableRow(filepath, FileTreeTableRow.SubType.PDF);
+        RealFileInputElement pdfUO = new RealFileInputElement(filepath, FileInputElement.SubType.PDF);
 
         pdfUO.setValueAt(fileSize, TreeTableColumn.SIZE);
         pdfUO.setValueAt(reader.getNumberOfPages(), TreeTableColumn.PAGES);

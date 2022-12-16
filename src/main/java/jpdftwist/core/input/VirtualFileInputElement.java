@@ -1,23 +1,20 @@
-package jpdftwist.gui.component.treetable.row;
-
-import jpdftwist.gui.component.treetable.TreeTableColumn;
-import jpdftwist.gui.component.treetable.TreeTableRowType;
+package jpdftwist.core.input;
 
 import java.io.File;
 
 /**
  * @author Vasilis Naskos
  */
-public class VirtualFileTreeTableRow extends FileTreeTableRow {
+public class VirtualFileInputElement extends FileInputElement {
 
     private String parent;
     private String srcFilePath; //TODO: Check how do we use that
 
-    public VirtualFileTreeTableRow() {
+    public VirtualFileInputElement() {
     }
 
-    public VirtualFileTreeTableRow(String key, SubType subType, String parent) {
-        super(key, TreeTableRowType.VIRTUAL_FILE, subType);
+    public VirtualFileInputElement(String key, SubType subType, String parent) {
+        super(key, InputElementType.VIRTUAL_FILE, subType);
         this.parent = parent;
     }
 
