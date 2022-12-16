@@ -1,7 +1,6 @@
 package jpdftwist.tabs.input;
 
 import jpdftwist.core.FilenameUtils;
-import jpdftwist.gui.component.FileChooser;
 import jpdftwist.gui.component.treetable.Node;
 import jpdftwist.gui.component.treetable.TreeTableRowType;
 import jpdftwist.gui.component.treetable.event.PageEventListener;
@@ -26,23 +25,20 @@ public class FileImporter implements Runnable {
 
     private final ModelHandler modelHandler;
     private final ImportItemsListener importItemsListener;
-    private List<File[]> files;
+    private final File[] files;
     private boolean optimizePDF = false;
     private boolean autoRestrictionsOverwrite = true;
     private boolean autoRestrictionsNew = true;
     private boolean cancel = false;
 
-    public FileImporter(ModelHandler modelHandler, ImportItemsListener importItemsListener) {
+    public FileImporter(ModelHandler modelHandler, ImportItemsListener importItemsListener, File[] files) {
         ProcessCancelledListener cancelListener = () -> cancel = true;
 
         this.importItemsListener = importItemsListener;
         this.importItemsListener.onInit(cancelListener);
 
         this.modelHandler = modelHandler;
-    }
 
-    public FileImporter(ModelHandler handler, ImportItemsListener importItemsListener, List<File[]> files) {
-        this(handler, importItemsListener);
         this.files = files;
     }
 
@@ -59,53 +55,27 @@ public class FileImporter implements Runnable {
     }
 
     public void run() {
-        if (files != null && !files.isEmpty()) {
-            importItemsListener.onRunStart();
-            setProgressBarLimits();
-
-            for (File[] fileArray : files) {
-                if (!cancel) {
-                    break;
-                }
-                importDirectory(fileArray);
-            }
-
-            importItemsListener.onRunFinish();
-
-            modelHandler.updateTableUI();
+        if (files == null || files.length == 0) {
             return;
         }
-
-        FileChooser fileChooser = new FileChooser();
-        File[] selectedFiles = fileChooser.getSelectedFiles();
-        if (selectedFiles == null)
-            return;
-
         importItemsListener.onRunStart();
 
-        DirectoryScanner scanner = new DirectoryScanner(selectedFiles);
-        files = scanner.getFiles();
+        DirectoryScanner scanner = new DirectoryScanner();
+        List<File[]> allFiles = scanner.getFiles(files);
+        setProgressBarLimits(allFiles);
 
-        setProgressBarLimits();
-
-        Thread t = new Thread(() -> {
-            for (File[] directory : files) {
-                if (cancel) {
-                    break;
-                }
-                importDirectory(directory);
+        for (File[] fileArray : allFiles) {
+            if (cancel) {
+                break;
             }
+            importDirectory(fileArray);
+        }
 
-            importItemsListener.onRunFinish();
-
-            modelHandler.updateTableUI();
-            System.gc();
-        });
-
-        t.start();
+        importItemsListener.onRunFinish();
+        modelHandler.updateTableUI();
     }
 
-    private void setProgressBarLimits() {
+    private void setProgressBarLimits(List<File[]> files) {
         int foldersCount = files.size();
         int[] filesInFolders = new int[foldersCount];
         int totalFiles = 0;

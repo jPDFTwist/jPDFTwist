@@ -1,6 +1,8 @@
 package jpdftwist.tabs.input;
 
+import java.io.File;
+
 public interface InputTabFileImporter {
 
-    void importFilesToInputTab(String[] files);
+    void importFilesToInputTab(File[] files);
 }

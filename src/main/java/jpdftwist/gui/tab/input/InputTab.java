@@ -3,6 +3,7 @@ package jpdftwist.gui.tab.input;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import jpdftwist.core.IntegerList;
+import jpdftwist.gui.component.FileChooser;
 import jpdftwist.gui.component.ImagePreviewPanel;
 import jpdftwist.gui.component.treetable.Node;
 import jpdftwist.gui.component.treetable.TreeTableComponent;
@@ -16,9 +17,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author Vasilis Naskos
@@ -55,7 +53,7 @@ public class InputTab extends JPanel {
             Integer.class, Integer.class, Integer.class, Integer.class, Boolean.class, Boolean.class,
             IntegerList.class, Integer.class};
 
-        inputTabFileImporter = files -> {
+        inputTabFileImporter = new InputTabFileImporter() {
             final ModelHandler modelHandler = new ModelHandler() {
 
                 public void insertFileNode(Node node) {
@@ -70,22 +68,15 @@ public class InputTab extends JPanel {
                 }
             };
 
-            final ImportItemsListener importItemsListener = new DialogsImportItemsListener();
-
-            final FileImporter importer;
-            if (files == null) {
-                importer = new FileImporter(modelHandler, importItemsListener);
-            } else {
-                List<File[]> filesList = new ArrayList<>();
-                filesList.add(Arrays.stream(files).map(File::new).toArray(File[]::new));
-                importer = new FileImporter(modelHandler, importItemsListener, filesList);
+            @Override
+            public void importFilesToInputTab(File[] files) {
+                final ImportItemsListener importItemsListener = new DialogsImportItemsListener();
+                final FileImporter importer = new FileImporter(modelHandler, importItemsListener, files);
+                importer.setOptimizePDF(optionsPanel.isOptimizePDFSelected());
+                importer.setAutoRestrictionsOverwrite(optionsPanel.isAutoRestrictionsOverwriteSelected());
+                importer.setAutoRestrictionsNew(optionsPanel.isAutoRestrictionsNewSelected());
+                new Thread(importer).start();
             }
-            importer.setOptimizePDF(optionsPanel.isOptimizePDFSelected());
-            importer.setAutoRestrictionsOverwrite(optionsPanel.isAutoRestrictionsOverwriteSelected());
-            importer.setAutoRestrictionsNew(optionsPanel.isAutoRestrictionsNewSelected());
-
-            final Thread importFiles = new Thread(importer);
-            importFiles.start();
         };
 
         this.previewPanel = new ImagePreviewPanel();
@@ -137,7 +128,12 @@ public class InputTab extends JPanel {
     }
 
     private void importFilesActionPerformed() {
-        inputTabFileImporter.importFilesToInputTab(null);
+        FileChooser fileChooser = new FileChooser();
+        File[] selectedFiles = fileChooser.getSelectedFiles();
+        if (selectedFiles == null) {
+            return;
+        }
+        inputTabFileImporter.importFilesToInputTab(selectedFiles);
     }
 
     private ActionListener clearButtonListener() {

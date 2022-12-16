@@ -238,9 +238,9 @@ public class InputTabControlListener implements ControlListener {
                 String content = new String(Files.readAllBytes(Paths.get(file.toURI())));
                 JSONObject json = new JSONObject(content);
                 JSONArray inputFiles = json.getJSONArray("input-files");
-                String[] files = new String[inputFiles.length()];
+                File[] files = new File[inputFiles.length()];
                 for (int i = 0; i < inputFiles.length(); i++) {
-                    files[i] = inputFiles.getString(i);
+                    files[i] = new File(inputFiles.getString(i));
                 }
                 inputTabFileImporter.importFilesToInputTab(files);
             } catch (Exception e) {

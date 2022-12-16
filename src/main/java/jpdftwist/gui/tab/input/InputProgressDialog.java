@@ -25,7 +25,6 @@ public class InputProgressDialog extends JFrame {
     private JLabel currentFile, waitIcon;
     private JScrollPane tableScroll;
     private DefaultTableModel model;
-
     private int currentFolderIndex;
     private int filesCount;
     private int foldersCount;
@@ -233,8 +232,10 @@ public class InputProgressDialog extends JFrame {
     }
 
     private void clean() {
-        waitImage.flush();
-        waitImage = null;
+        if (waitImage != null) {
+            waitImage.flush();
+            waitImage = null;
+        }
         removeAll();
         validate();
         repaint();
