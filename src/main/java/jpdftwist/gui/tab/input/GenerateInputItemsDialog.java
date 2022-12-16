@@ -449,7 +449,7 @@ public class GenerateInputItemsDialog extends JFrame {
             parent = (Node) parent.getParent();
         }
 
-        if (InputElementType.isFile(parent)) {
+        if (parent.isFile()) {
             FolderInputElement parentUO = (FolderInputElement) parent.getParent().getUserObject();
             placeholders.add(new Placeholder(parentUO.getKey(), getIndex(parent) + 1));
             return placeholders;

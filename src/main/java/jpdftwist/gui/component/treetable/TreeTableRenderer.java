@@ -43,7 +43,7 @@ public class TreeTableRenderer extends DefaultTreeRenderer {
         final Component C = super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
         C.setForeground(Color.BLACK);
         final InputElement uo = ((Node) value).getUserObject();
-        if (InputElementType.isFile(uo)) {
+        if (((Node) value).isFile()) {
             if (uo.getType() == InputElementType.VIRTUAL_FILE) {
                 final Color blank = new Color(PreferencesUtil.PREFS.getInt("blankColor", -16711681));
                 C.setBackground(blank);

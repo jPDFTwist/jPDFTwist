@@ -217,7 +217,7 @@ public class InputTabControlListener implements ControlListener {
         Enumeration<?> e = parent.children();
         while (e.hasMoreElements()) {
             final Node child = (Node) e.nextElement();
-            if (InputElementType.isFile(child)) {
+            if (child.isFile()) {
                 inputElements.add(child.getUserObject().getKey());
             } else if (child.getUserObject().getType() == InputElementType.FOLDER) {
                 inputElements.addAll(getInputElements(child));

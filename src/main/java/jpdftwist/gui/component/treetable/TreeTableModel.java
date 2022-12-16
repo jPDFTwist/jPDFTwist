@@ -2,7 +2,6 @@ package jpdftwist.gui.component.treetable;
 
 import jpdftwist.core.FilenameUtils;
 import jpdftwist.core.input.FolderInputElement;
-import jpdftwist.core.input.InputElementType;
 import jpdftwist.core.input.TreeTableColumn;
 import org.jdesktop.swingx.treetable.DefaultTreeTableModel;
 import org.jdesktop.swingx.treetable.MutableTreeTableNode;
@@ -53,7 +52,7 @@ public class TreeTableModel extends DefaultTreeTableModel implements SwapObserve
 
         Node n = (Node) node;
 
-        return InputElementType.isFile(n) && column > 5;
+        return n.isFile() && column > 5;
     }
 
 
@@ -157,7 +156,7 @@ public class TreeTableModel extends DefaultTreeTableModel implements SwapObserve
 
             if (child.getUserObject() instanceof FolderInputElement) {
                 childCount += getFileCount(child);
-            } else if (InputElementType.isFile(child)) {
+            } else if (child.isFile()) {
                 childCount++;
             }
         }

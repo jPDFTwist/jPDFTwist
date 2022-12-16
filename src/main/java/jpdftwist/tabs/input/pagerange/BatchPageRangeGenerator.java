@@ -35,7 +35,7 @@ public class BatchPageRangeGenerator extends PageRangeGenerator {
         Enumeration<? extends MutableTreeTableNode> e = parent.children();
         while (e.hasMoreElements()) {
             Node child = (Node) e.nextElement();
-            if (InputElementType.isFile(child)) {
+            if (child.isFile()) {
                 PageRange pageRange = getPageRange(child);
                 if (pageRange != null) {
                     pageRanges.add(pageRange);

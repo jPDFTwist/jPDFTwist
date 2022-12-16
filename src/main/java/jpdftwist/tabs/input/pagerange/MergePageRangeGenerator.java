@@ -29,7 +29,7 @@ public class MergePageRangeGenerator extends PageRangeGenerator {
         Enumeration<? extends MutableTreeTableNode> e = parent.children();
         while (e.hasMoreElements()) {
             Node node = (Node) e.nextElement();
-            if (InputElementType.isFile(node)) {
+            if (node.isFile()) {
                 PageRange pageRange = getPageRange(node);
                 if (pageRange != null) {
                     ranges.add(pageRange);

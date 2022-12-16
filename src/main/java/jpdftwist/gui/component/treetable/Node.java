@@ -3,6 +3,7 @@ package jpdftwist.gui.component.treetable;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoCopyable;
 import jpdftwist.core.input.InputElement;
+import jpdftwist.core.input.InputElementType;
 import jpdftwist.core.input.TreeTableColumn;
 import org.jdesktop.swingx.treetable.AbstractMutableTreeTableNode;
 import org.jdesktop.swingx.treetable.MutableTreeTableNode;
@@ -109,6 +110,13 @@ public class Node extends AbstractMutableTreeTableNode implements KryoCopyable<N
         }
 
         return null;
+    }
+
+    public boolean isFile() {
+        InputElement inputElement = getUserObject();
+
+        return inputElement.getType() == InputElementType.REAL_FILE ||
+            inputElement.getType() == InputElementType.VIRTUAL_FILE;
     }
 
     public Node copy(Kryo kryo) {

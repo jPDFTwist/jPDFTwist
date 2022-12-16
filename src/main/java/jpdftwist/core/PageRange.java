@@ -118,7 +118,7 @@ public class PageRange {
 	}
 
 	public Page getFirstPage() {
-		if (!InputElementType.isFile(node)) {
+		if (!node.isFile()) {
 			return null; // FIXME: Throw instead of returning
 		}
 
