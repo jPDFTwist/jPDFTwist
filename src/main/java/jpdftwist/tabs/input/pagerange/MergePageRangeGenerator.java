@@ -1,8 +1,8 @@
 package jpdftwist.tabs.input.pagerange;
 
 import jpdftwist.core.PageRange;
-import jpdftwist.core.input.InputElementType;
 import jpdftwist.gui.component.treetable.Node;
+import jpdftwist.gui.component.treetable.row.TreeTableRowType;
 import org.jdesktop.swingx.treetable.MutableTreeTableNode;
 
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ public class MergePageRangeGenerator extends PageRangeGenerator {
         Enumeration<? extends MutableTreeTableNode> e = parent.children();
         while (e.hasMoreElements()) {
             Node child = (Node) e.nextElement();
-            if (child.getUserObject().getType() == InputElementType.FOLDER) {
+            if (child.getUserObject().getType() == TreeTableRowType.FOLDER) {
                 folderNodes.add(child);
                 folderNodes.addAll(getFolders(child));
             }

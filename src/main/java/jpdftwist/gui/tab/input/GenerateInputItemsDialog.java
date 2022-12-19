@@ -3,14 +3,14 @@ package jpdftwist.gui.tab.input;
 import com.esotericsoftware.kryo.Kryo;
 import com.itextpdf.text.Rectangle;
 import jpdftwist.core.UnitTranslator;
-import jpdftwist.core.input.FileInputElement;
-import jpdftwist.core.input.FolderInputElement;
-import jpdftwist.core.input.InputElementType;
-import jpdftwist.core.input.PageInputElement;
-import jpdftwist.core.input.VirtualFileInputElement;
 import jpdftwist.gui.component.ColorChooserButton;
 import jpdftwist.gui.component.FileChooser;
 import jpdftwist.gui.component.treetable.Node;
+import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
+import jpdftwist.gui.component.treetable.row.FolderTreeTableRow;
+import jpdftwist.gui.component.treetable.row.PageTreeTableRow;
+import jpdftwist.gui.component.treetable.row.TreeTableRowType;
+import jpdftwist.gui.component.treetable.row.VirtualFileTreeTableRow;
 import jpdftwist.tabs.input.treetable.node.NodeFactory;
 import jpdftwist.tabs.input.treetable.node.VirtualBlankNodeFactory;
 import jpdftwist.tabs.input.treetable.node.VirtualImageNodeFactory;
@@ -232,9 +232,9 @@ public class GenerateInputItemsDialog extends JFrame {
         if (node == null) {
             parentPath = System.getProperty("java.io.tmpdir");
 
-        } else if (node.getUserObject() instanceof FolderInputElement) {
+        } else if (node.getUserObject() instanceof FolderTreeTableRow) {
             parentPath = node.getUserObject().getKey();
-        } else if (node.getUserObject() instanceof PageInputElement) {
+        } else if (node.getUserObject() instanceof PageTreeTableRow) {
             Node folderNode = (Node) node.getParent().getParent();
             parentPath = folderNode.getUserObject().getKey();
         } else {
@@ -249,7 +249,7 @@ public class GenerateInputItemsDialog extends JFrame {
             templateNode = createFromExistingFileNode();
         }
 
-        ((VirtualFileInputElement) templateNode.getUserObject()).setParent(parentPath);
+        ((VirtualFileTreeTableRow) templateNode.getUserObject()).setParent(parentPath);
 
         try {
             if (node == null) {
@@ -371,7 +371,7 @@ public class GenerateInputItemsDialog extends JFrame {
         Rectangle size = new Rectangle(getPagePostscriptValue(width1), getPagePostscriptValue(height1));
 
         VirtualBlankNodeFactory virtualBlankNodeFactory = (VirtualBlankNodeFactory) NodeFactory
-            .getFileNodeFactory(InputElementType.VIRTUAL_FILE, FileInputElement.SubType.BLANK);
+            .getFileNodeFactory(TreeTableRowType.VIRTUAL_FILE, FileTreeTableRow.SubType.BLANK);
         virtualBlankNodeFactory.setPageCount(numberOfPages);
         virtualBlankNodeFactory.setColor(color);
         virtualBlankNodeFactory.setSize(size);
@@ -407,7 +407,7 @@ public class GenerateInputItemsDialog extends JFrame {
         int repeat = Integer.parseInt(jSpinner4.getValue().toString());
 
         VirtualPdfNodeFactory fileNodeFactory = (VirtualPdfNodeFactory) NodeFactory
-            .getFileNodeFactory(InputElementType.VIRTUAL_FILE, FileInputElement.SubType.PDF);
+            .getFileNodeFactory(TreeTableRowType.VIRTUAL_FILE, FileTreeTableRow.SubType.PDF);
 
         fileNodeFactory.setSrcFile(srcFile.getAbsolutePath());
         fileNodeFactory.setRepeat(repeat);
@@ -420,7 +420,7 @@ public class GenerateInputItemsDialog extends JFrame {
         int repeat = Integer.parseInt(jSpinner4.getValue().toString());
 
         VirtualImageNodeFactory fileNodeFactory = (VirtualImageNodeFactory) NodeFactory
-            .getFileNodeFactory(InputElementType.VIRTUAL_FILE, FileInputElement.SubType.IMAGE);
+            .getFileNodeFactory(TreeTableRowType.VIRTUAL_FILE, FileTreeTableRow.SubType.IMAGE);
 
         fileNodeFactory.setSrcFile(srcFile.getAbsolutePath());
         fileNodeFactory.setRepeat(repeat);
@@ -445,12 +445,12 @@ public class GenerateInputItemsDialog extends JFrame {
     private List<Placeholder> calculatePlaceholders(Node parent, int level) {
         List<Placeholder> placeholders = new ArrayList<Placeholder>();
 
-        if (parent.getUserObject().getType() == InputElementType.PAGE) {
+        if (parent.getUserObject().getType() == TreeTableRowType.PAGE) {
             parent = (Node) parent.getParent();
         }
 
         if (parent.isFile()) {
-            FolderInputElement parentUO = (FolderInputElement) parent.getParent().getUserObject();
+            FolderTreeTableRow parentUO = (FolderTreeTableRow) parent.getParent().getUserObject();
             placeholders.add(new Placeholder(parentUO.getKey(), getIndex(parent) + 1));
             return placeholders;
         }
@@ -459,16 +459,16 @@ public class GenerateInputItemsDialog extends JFrame {
         while (e.hasMoreElements()) {
             Node child = (Node) e.nextElement();
 
-            if (child.getUserObject() instanceof PageInputElement) {
+            if (child.getUserObject() instanceof PageTreeTableRow) {
                 continue;
             }
 
-            FolderInputElement parentUO = (FolderInputElement) child.getParent().getUserObject();
+            FolderTreeTableRow parentUO = (FolderTreeTableRow) child.getParent().getUserObject();
             int index = getIndex(child);
             index = (2 * index) + 1;
             placeholders.add(new Placeholder(parentUO.getKey(), index));
 
-            if (child.getUserObject() instanceof FolderInputElement && level > 1) {
+            if (child.getUserObject() instanceof FolderTreeTableRow && level > 1) {
                 placeholders.addAll(calculatePlaceholders(child, level - 1));
             }
         }
@@ -486,7 +486,7 @@ public class GenerateInputItemsDialog extends JFrame {
 
         for (Placeholder p : placeholders) {
             Node cloneNode = kryo.copy(node);
-            VirtualFileInputElement vfuo = (VirtualFileInputElement) cloneNode.getUserObject();
+            VirtualFileTreeTableRow vfuo = (VirtualFileTreeTableRow) cloneNode.getUserObject();
             vfuo.setParent(p.getParent());
             l.importNode(cloneNode, p.getIndex());
             for (int i = 0; i < pages.size(); i++) {

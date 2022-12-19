@@ -1,16 +1,16 @@
-package jpdftwist.core.input;
+package jpdftwist.gui.component.treetable.row;
 
 /**
  * @author Vasilis Naskos
  */
-public class FolderInputElement extends InputElement {
+public class FolderTreeTableRow extends TreeTableRow {
 
-    public FolderInputElement() {
-        super(null, InputElementType.FOLDER);
+    public FolderTreeTableRow() {
+        super(null, TreeTableRowType.FOLDER);
     }
 
-    public FolderInputElement(final String key) {
-        super(key, InputElementType.FOLDER);
+    public FolderTreeTableRow(final String key) {
+        super(key, TreeTableRowType.FOLDER);
     }
 
     public Object getValueAt(final int columnIndex) {

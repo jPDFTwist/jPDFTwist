@@ -2,9 +2,9 @@ package jpdftwist.gui.component.treetable;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoCopyable;
-import jpdftwist.core.input.InputElement;
-import jpdftwist.core.input.InputElementType;
-import jpdftwist.core.input.TreeTableColumn;
+import jpdftwist.gui.component.treetable.row.TreeTableColumn;
+import jpdftwist.gui.component.treetable.row.TreeTableRow;
+import jpdftwist.gui.component.treetable.row.TreeTableRowType;
 import org.jdesktop.swingx.treetable.AbstractMutableTreeTableNode;
 import org.jdesktop.swingx.treetable.MutableTreeTableNode;
 
@@ -22,11 +22,11 @@ public class Node extends AbstractMutableTreeTableNode implements KryoCopyable<N
     public Node() {
     }
 
-    public Node(InputElement data) {
+    public Node(TreeTableRow data) {
         this(data, true);
     }
 
-    public Node(InputElement data, boolean allowChildren) {
+    public Node(TreeTableRow data, boolean allowChildren) {
         super(data);
         this.allowsChildren = allowChildren;
     }
@@ -36,18 +36,18 @@ public class Node extends AbstractMutableTreeTableNode implements KryoCopyable<N
     }
 
     @Override
-    public InputElement getUserObject() {
-        return (InputElement) userObject;
+    public TreeTableRow getUserObject() {
+        return (TreeTableRow) userObject;
     }
 
     @Override
     public Object getValueAt(int i) {
-        return ((InputElement) userObject).getValueAt(i);
+        return ((TreeTableRow) userObject).getValueAt(i);
     }
 
     @Override
     public void setValueAt(Object aValue, int column) {
-        ((InputElement) userObject).setValueAt(aValue, column);
+        ((TreeTableRow) userObject).setValueAt(aValue, column);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class Node extends AbstractMutableTreeTableNode implements KryoCopyable<N
             if (child.getChildCount() > 0 && recursive) {
                 child.sortNode(sortColumn, sortAscending, recursive);
             }
-            InputElement u = child.getUserObject();
+            TreeTableRow u = child.getUserObject();
             nodeData.put(u.getKey(), child);
         }
 
@@ -113,14 +113,14 @@ public class Node extends AbstractMutableTreeTableNode implements KryoCopyable<N
     }
 
     public boolean isFile() {
-        InputElement inputElement = getUserObject();
+        TreeTableRow treeTableRow = getUserObject();
 
-        return inputElement.getType() == InputElementType.REAL_FILE ||
-            inputElement.getType() == InputElementType.VIRTUAL_FILE;
+        return treeTableRow.getType() == TreeTableRowType.REAL_FILE ||
+            treeTableRow.getType() == TreeTableRowType.VIRTUAL_FILE;
     }
 
     public Node copy(Kryo kryo) {
-        InputElement uo = (InputElement) kryo.copy(userObject);
+        TreeTableRow uo = (TreeTableRow) kryo.copy(userObject);
 
         return new Node(uo);
     }

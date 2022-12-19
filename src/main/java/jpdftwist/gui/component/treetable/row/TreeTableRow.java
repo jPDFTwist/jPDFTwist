@@ -1,16 +1,16 @@
-package jpdftwist.core.input;
+package jpdftwist.gui.component.treetable.row;
 
 import java.io.File;
 
 /**
  * @author Vasilis Naskos
  */
-public abstract class InputElement {
+public abstract class TreeTableRow {
 
     protected final String key;
-    private final InputElementType type;
+    private final TreeTableRowType type;
 
-    public InputElement(String key, InputElementType type) {
+    public TreeTableRow(String key, TreeTableRowType type) {
         this.key = key;
         this.type = type;
     }
@@ -19,7 +19,7 @@ public abstract class InputElement {
         return key;
     }
 
-    public InputElementType getType() {
+    public TreeTableRowType getType() {
         return type;
     }
 

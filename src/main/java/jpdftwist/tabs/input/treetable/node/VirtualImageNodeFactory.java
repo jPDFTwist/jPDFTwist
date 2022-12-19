@@ -3,10 +3,10 @@ package jpdftwist.tabs.input.treetable.node;
 import com.itextpdf.text.Rectangle;
 import jpdftwist.core.IntegerList;
 import jpdftwist.core.UnitTranslator;
-import jpdftwist.core.input.FileInputElement;
-import jpdftwist.core.input.TreeTableColumn;
-import jpdftwist.core.input.VirtualFileInputElement;
 import jpdftwist.gui.component.treetable.Node;
+import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
+import jpdftwist.gui.component.treetable.row.TreeTableColumn;
+import jpdftwist.gui.component.treetable.row.VirtualFileTreeTableRow;
 import jpdftwist.utils.JImageParser;
 
 import java.io.IOException;
@@ -24,7 +24,7 @@ public class VirtualImageNodeFactory extends FileNodeFactory {
     public Node getFileNode(String filepath) {
         this.filepath = filepath;
 
-        VirtualFileInputElement pdfUO = createVirtualPdfUserObject();
+        VirtualFileTreeTableRow pdfUO = createVirtualPdfUserObject();
 
         try {
             Node file = new Node(pdfUO);
@@ -38,8 +38,8 @@ public class VirtualImageNodeFactory extends FileNodeFactory {
         return null;
     }
 
-    private VirtualFileInputElement createVirtualPdfUserObject() {
-        VirtualFileInputElement imgUO = new VirtualFileInputElement(filepath, FileInputElement.SubType.IMAGE, "");
+    private VirtualFileTreeTableRow createVirtualPdfUserObject() {
+        VirtualFileTreeTableRow imgUO = new VirtualFileTreeTableRow(filepath, FileTreeTableRow.SubType.IMAGE, "");
 
         imgUO.setValueAt(repeat, TreeTableColumn.PAGES);
         imgUO.setValueAt(1, TreeTableColumn.FROM);

@@ -1,11 +1,11 @@
 package jpdftwist.core;
 
-import jpdftwist.core.input.FileInputElement;
-import jpdftwist.core.input.InputElementType;
-import jpdftwist.core.input.PageInputElement;
-import jpdftwist.core.input.TreeTableColumn;
-import jpdftwist.core.input.VirtualFileInputElement;
 import jpdftwist.gui.component.treetable.Node;
+import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
+import jpdftwist.gui.component.treetable.row.PageTreeTableRow;
+import jpdftwist.gui.component.treetable.row.TreeTableColumn;
+import jpdftwist.gui.component.treetable.row.TreeTableRowType;
+import jpdftwist.gui.component.treetable.row.VirtualFileTreeTableRow;
 import org.jdesktop.swingx.treetable.MutableTreeTableNode;
 
 import java.awt.*;
@@ -17,18 +17,18 @@ import java.util.List;
 
 public class PageRange {
 	private final Node node;
-	private final FileInputElement fileInputElement;
+	private final FileTreeTableRow fileInputElement;
 	private final List<Integer> pageOrder;
 
 	public PageRange(Node fileNode) {
 		this.node = fileNode;
-		fileInputElement = (FileInputElement) fileNode.getUserObject();
+		fileInputElement = (FileTreeTableRow) fileNode.getUserObject();
 		pageOrder = new ArrayList<>();
 
 		Enumeration<? extends MutableTreeTableNode> e = fileNode.children();
 		while (e.hasMoreElements()) {
 			Node n = (Node) e.nextElement();
-			PageInputElement puo = (PageInputElement) n.getUserObject();
+			PageTreeTableRow puo = (PageTreeTableRow) n.getUserObject();
 
 			int position = Integer.parseInt(puo.getKey()) - 1;
 			pageOrder.add(position);
@@ -75,32 +75,32 @@ public class PageRange {
 		return ((Node) node.getParent()).getUserObject().getKey();
 	}
 
-	public InputElementType getType() {
+	public TreeTableRowType getType() {
 		return fileInputElement.getType();
 	}
 
-	public FileInputElement.SubType getSubType() {
+	public FileTreeTableRow.SubType getSubType() {
 		return fileInputElement.getSubType();
 	}
 
 	public boolean isPDF() {
-		return fileInputElement.getSubType() == FileInputElement.SubType.PDF;
+		return fileInputElement.getSubType() == FileTreeTableRow.SubType.PDF;
 	}
 
 	public boolean isImage() {
-		return fileInputElement.getSubType() == FileInputElement.SubType.IMAGE;
+		return fileInputElement.getSubType() == FileTreeTableRow.SubType.IMAGE;
 	}
 
 	public boolean isRealFile() {
-		return fileInputElement.getType() == InputElementType.REAL_FILE;
+		return fileInputElement.getType() == TreeTableRowType.REAL_FILE;
 	}
 
 	public boolean isVirtualFile() {
-		return fileInputElement.getType() == InputElementType.VIRTUAL_FILE;
+		return fileInputElement.getType() == TreeTableRowType.VIRTUAL_FILE;
 	}
 
 	public List<VirtualPage> getVirtualBlankPages() {
-		if (fileInputElement.getType() != InputElementType.VIRTUAL_FILE && fileInputElement.getSubType() != FileInputElement.SubType.BLANK) {
+		if (fileInputElement.getType() != TreeTableRowType.VIRTUAL_FILE && fileInputElement.getSubType() != FileTreeTableRow.SubType.BLANK) {
 			return Collections.emptyList(); // FIXME: Throw instead of returning
 		}
 
@@ -109,7 +109,7 @@ public class PageRange {
 		Enumeration<? extends MutableTreeTableNode> e = node.children();
 		while (e.hasMoreElements()) {
 			Node pageNode = (Node) e.nextElement();
-			PageInputElement page = (PageInputElement) pageNode.getUserObject();
+			PageTreeTableRow page = (PageTreeTableRow) pageNode.getUserObject();
 			VirtualPage virtualPage = new VirtualPage(page.getWidth(), page.getHeight(), page.getBackgroundColor());
 			virtualBlankPages.add(virtualPage);
 		}
@@ -122,12 +122,12 @@ public class PageRange {
 			return null; // FIXME: Throw instead of returning
 		}
 
-		PageInputElement page = (PageInputElement) node.children().nextElement();
+		PageTreeTableRow page = (PageTreeTableRow) node.children().nextElement();
 		return new Page(page.getWidth(), page.getHeight());
 	}
 	
 	public Integer getVirtualFilePageCount() {
-		if (fileInputElement.getType() != InputElementType.VIRTUAL_FILE) {
+		if (fileInputElement.getType() != TreeTableRowType.VIRTUAL_FILE) {
 			return null; // FIXME: Throw instead of returning
 		}
 
@@ -135,15 +135,15 @@ public class PageRange {
 	}
 
 	public String getVirtualFileSrcFilePath() {
-		if (fileInputElement.getType() != InputElementType.VIRTUAL_FILE) {
+		if (fileInputElement.getType() != TreeTableRowType.VIRTUAL_FILE) {
 			return null; // FIXME: Throw instead of returning
 		}
 
-		return ((VirtualFileInputElement) fileInputElement).getSrcFilePath();
+		return ((VirtualFileTreeTableRow) fileInputElement).getSrcFilePath();
 	}
 
 	public String getFileSize() {
-		if (fileInputElement.getType() != InputElementType.REAL_FILE) {
+		if (fileInputElement.getType() != TreeTableRowType.REAL_FILE) {
 			return "NaN"; // FIXME: Throw instead of returning
 		}
 
@@ -151,7 +151,7 @@ public class PageRange {
 	}
 
 	public String getImageColorDepth() {
-		if (fileInputElement.getSubType() != FileInputElement.SubType.IMAGE) {
+		if (fileInputElement.getSubType() != FileTreeTableRow.SubType.IMAGE) {
 			return "NaN"; // FIXME: Throw instead of returning
 		}
 

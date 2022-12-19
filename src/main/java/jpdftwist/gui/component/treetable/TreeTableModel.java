@@ -1,8 +1,8 @@
 package jpdftwist.gui.component.treetable;
 
 import jpdftwist.core.FilenameUtils;
-import jpdftwist.core.input.FolderInputElement;
-import jpdftwist.core.input.TreeTableColumn;
+import jpdftwist.gui.component.treetable.row.FolderTreeTableRow;
+import jpdftwist.gui.component.treetable.row.TreeTableColumn;
 import org.jdesktop.swingx.treetable.DefaultTreeTableModel;
 import org.jdesktop.swingx.treetable.MutableTreeTableNode;
 
@@ -32,7 +32,7 @@ public class TreeTableModel extends DefaultTreeTableModel implements SwapObserve
     }
 
     private void initRoot() {
-        setRoot(new Node(new FolderInputElement("Root")));
+        setRoot(new Node(new FolderTreeTableRow("Root")));
         Node.setObserver(this);
     }
 
@@ -154,7 +154,7 @@ public class TreeTableModel extends DefaultTreeTableModel implements SwapObserve
         while (e.hasMoreElements()) {
             Node child = (Node) e.nextElement();
 
-            if (child.getUserObject() instanceof FolderInputElement) {
+            if (child.getUserObject() instanceof FolderTreeTableRow) {
                 childCount += getFileCount(child);
             } else if (child.isFile()) {
                 childCount++;
@@ -178,7 +178,7 @@ public class TreeTableModel extends DefaultTreeTableModel implements SwapObserve
         while (e.hasMoreElements()) {
             Node child = (Node) e.nextElement();
 
-            if (child.getUserObject() instanceof FolderInputElement) {
+            if (child.getUserObject() instanceof FolderTreeTableRow) {
                 if (getFileCount(node) > 0)
                     folderCount++;
 
@@ -218,7 +218,7 @@ public class TreeTableModel extends DefaultTreeTableModel implements SwapObserve
             if (potentialParent != null && potentialParent.getAllowsChildren()) {
                 parentNode = potentialParent;
             } else {
-                Node newNode = new Node(new FolderInputElement(parent), true);
+                Node newNode = new Node(new FolderTreeTableRow(parent), true);
 
                 insertNodeInto(newNode, parentNode, parentNode.getChildCount());
                 parentNode = newNode;

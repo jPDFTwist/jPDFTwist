@@ -2,10 +2,10 @@ package jpdftwist.tabs.input.treetable.node;
 
 import com.itextpdf.text.Rectangle;
 import jpdftwist.core.IntegerList;
-import jpdftwist.core.input.FileInputElement;
-import jpdftwist.core.input.TreeTableColumn;
-import jpdftwist.core.input.VirtualFileInputElement;
 import jpdftwist.gui.component.treetable.Node;
+import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
+import jpdftwist.gui.component.treetable.row.TreeTableColumn;
+import jpdftwist.gui.component.treetable.row.VirtualFileTreeTableRow;
 
 /**
  * @author Vasilis Naskos
@@ -20,7 +20,7 @@ public class VirtualBlankNodeFactory extends FileNodeFactory {
     public Node getFileNode(String filepath) {
         this.filepath = filepath;
 
-        VirtualFileInputElement pdfUO = createVirtualBlankUserObject();
+        VirtualFileTreeTableRow pdfUO = createVirtualBlankUserObject();
 
         Node file = new Node(pdfUO);
         insertPages(file);
@@ -28,8 +28,8 @@ public class VirtualBlankNodeFactory extends FileNodeFactory {
         return file;
     }
 
-    private VirtualFileInputElement createVirtualBlankUserObject() {
-        VirtualFileInputElement pdfUO = new VirtualFileInputElement(filepath, FileInputElement.SubType.BLANK, "");
+    private VirtualFileTreeTableRow createVirtualBlankUserObject() {
+        VirtualFileTreeTableRow pdfUO = new VirtualFileTreeTableRow(filepath, FileTreeTableRow.SubType.BLANK, "");
 
         pdfUO.setValueAt(pageCount, TreeTableColumn.PAGES);
         pdfUO.setValueAt(1, TreeTableColumn.FROM);

@@ -1,9 +1,9 @@
-package jpdftwist.core.input;
+package jpdftwist.gui.component.treetable.row;
 
 /**
  * @author Vasilis Naskos
  */
-public enum InputElementType {
+public enum TreeTableRowType {
 
     FOLDER,
     REAL_FILE,

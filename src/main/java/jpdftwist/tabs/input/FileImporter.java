@@ -1,10 +1,10 @@
 package jpdftwist.tabs.input;
 
 import jpdftwist.core.FilenameUtils;
-import jpdftwist.core.input.FileInputElement;
-import jpdftwist.core.input.InputElementType;
 import jpdftwist.gui.component.treetable.Node;
 import jpdftwist.gui.component.treetable.event.PageEventListener;
+import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
+import jpdftwist.gui.component.treetable.row.TreeTableRowType;
 import jpdftwist.gui.tab.input.ImportItemsListener;
 import jpdftwist.tabs.input.treetable.node.FileNodeFactory;
 import jpdftwist.tabs.input.treetable.node.NodeFactory;
@@ -101,11 +101,11 @@ public class FileImporter implements Runnable {
 
     private void importFile(File file) {
         try {
-            FileInputElement.SubType subType = SupportedFileTypes.isPDF(file.getAbsolutePath())
-                ? FileInputElement.SubType.PDF
-                : FileInputElement.SubType.IMAGE;
+            FileTreeTableRow.SubType subType = SupportedFileTypes.isPDF(file.getAbsolutePath())
+                ? FileTreeTableRow.SubType.PDF
+                : FileTreeTableRow.SubType.IMAGE;
 
-            FileNodeFactory fileNodeFactory = NodeFactory.getFileNodeFactory(InputElementType.REAL_FILE, subType);
+            FileNodeFactory fileNodeFactory = NodeFactory.getFileNodeFactory(TreeTableRowType.REAL_FILE, subType);
             if (fileNodeFactory == null) {
                 throw new IllegalArgumentException("Cannot parse file " + file.getAbsolutePath()); // TODO: throw in the factory instead of null
             }

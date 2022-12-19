@@ -1,9 +1,9 @@
 package jpdftwist.tabs.input.treetable.node;
 
 import com.itextpdf.text.Rectangle;
-import jpdftwist.core.input.PageInputElement;
-import jpdftwist.core.input.TreeTableColumn;
 import jpdftwist.gui.component.treetable.Node;
+import jpdftwist.gui.component.treetable.row.PageTreeTableRow;
+import jpdftwist.gui.component.treetable.row.TreeTableColumn;
 
 /**
  * @author Vasilis Naskos
@@ -20,7 +20,7 @@ public class PageNodeFactory {
 	}
 
 	public Node getPageNode(int index) {
-		PageInputElement pageRow = new PageInputElement(Integer.toString(index));
+		PageTreeTableRow pageRow = new PageTreeTableRow(Integer.toString(index));
 
 		if (size != null) {
 			pageRow.setValueAt(getPageOrientation(), TreeTableColumn.ORIENTATION);
