@@ -32,6 +32,8 @@ import com.itextpdf.text.pdf.SimpleBookmark;
 import com.itextpdf.text.pdf.interfaces.PdfEncryptionSettings;
 import com.itextpdf.text.pdf.internal.PdfViewerPreferencesImp;
 import jpdftwist.core.ShuffleRule.PageBase;
+import jpdftwist.core.input.PageDimensions;
+import jpdftwist.core.input.VirtualBlankPage;
 import jpdftwist.core.tabparams.RotateParameters;
 import jpdftwist.core.tabparams.ScaleParameters;
 import jpdftwist.core.watermark.TextRenderer;
@@ -158,31 +160,21 @@ public class PDFTwist {
                 int pagesBefore = 0;
 
                 for (PageRange pageRange : pageRanges) {
-                    switch (pageRange.getType()) {
-                        case VIRTUAL_FILE:
-                            switch (pageRange.getSubType()) {
-                                case PDF:
-                                    currentReader = getVirtualPdfReader(pageRange);
-                                    break;
-                                case IMAGE:
-                                    currentReader = getImagePdfReader(pageRange, pageRange.getVirtualFilePageCount());
-                                    break;
-                                case BLANK:
-                                    currentReader = getBlankReader(pageRange);
-                                    break;
-                            }
-                            break;
-                        case REAL_FILE:
-                            switch (pageRange.getSubType()) {
-                                case PDF:
-                                    RandomAccessFileOrArray raf = new RandomAccessFileOrArray(pageRange.getName(), false, true);
-                                    currentReader = new PdfReader(raf, ownerPassword);
-                                    break;
-                                case IMAGE:
-                                    currentReader = getImagePdfReader(pageRange);
-                                    break;
-                            }
-                            break;
+                    if (pageRange.isVirtualFile()) {
+                        if (pageRange.isPDF()) {
+                            currentReader = getVirtualPdfReader(pageRange);
+                        } else if (pageRange.isImage()) {
+                            currentReader = getImagePdfReader(pageRange, pageRange.getVirtualFilePageCount());
+                        } else { // FIXME: Assumes the else is BLANK, too restrictive
+                            currentReader = getBlankReader(pageRange);
+                        }
+                    } else {
+                        if (pageRange.isPDF()) {
+                            RandomAccessFileOrArray raf = new RandomAccessFileOrArray(pageRange.getName(), false, true);
+                            currentReader = new PdfReader(raf, ownerPassword);
+                        } else if (pageRange.isImage()) {
+                            currentReader = getImagePdfReader(pageRange);
+                        } // FIXME: Else throw error
                     }
 
                     int[] pages = pageRange.getPages(pagesBefore);
@@ -306,15 +298,16 @@ public class PDFTwist {
     private PdfReader getBlankReader(PageRange pageRange) throws IOException, DocumentException {
         PDDocument document = new PDDocument();
 
-        for (PageRange.VirtualPage virtualBlankPage : pageRange.getVirtualBlankPages()) {
-            float width = (float) virtualBlankPage.getWidth();
-            float height = (float) virtualBlankPage.getHeight();
+        VirtualBlankPage pageTemplate = pageRange.getVirtualBlankPageTemplate();
+        for (int i=0; i<pageRange.getVirtualFilePageCount(); i++) {
+            float width = (float) pageTemplate.getWidth();
+            float height = (float) pageTemplate.getHeight();
 
             PDPage page = new PDPage(new PDRectangle(width, height));
             document.addPage(page);
 
             PDPageContentStream cos = new PDPageContentStream(document, page);
-            cos.setNonStrokingColor(virtualBlankPage.getBackgroundColor());
+            cos.setNonStrokingColor(pageTemplate.getBackgroundColor());
             cos.addRect(0, 0, width, height);
             cos.fill();
             cos.close();
@@ -367,10 +360,10 @@ public class PDFTwist {
 
             String srcFile;
 
-            if (pageRange.isRealFile()) {
-                srcFile = pageRange.getName();
-            } else { // VIRTUAL
+            if (pageRange.isVirtualFile()) {
                 srcFile = pageRange.getVirtualFileSrcFilePath();
+            } else {
+                srcFile = pageRange.getName();
             }
 
             com.itextpdf.text.Image pdfImage = JImageParser.readItextImage(srcFile);
@@ -1539,7 +1532,7 @@ public class PDFTwist {
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
                 if (pageRange.isImage()) {
-                    PageRange.Page page = pageRange.getFirstPage();
+                    PageDimensions page = pageRange.getImageSize();
                     double width = page.getWidth();
                     double height = page.getHeight();
 
@@ -1557,12 +1550,12 @@ public class PDFTwist {
                 String parent = "";
                 String lastModified = "";
 
-                if (pageRange.isRealFile()) {
-                    parent = new File(pageRange.getName()).getParent() + File.separator;
-                    lastModified = sdf.format(new File(pageRange.getName()).lastModified());
-                } else if (pageRange.isVirtualFile()) {
+                if (pageRange.isVirtualFile()) {
                     parent = pageRange.getParentName() + File.separator;
                     lastModified = sdf.format(new Date());
+                } else {
+                    parent = new File(pageRange.getName()).getParent() + File.separator;
+                    lastModified = sdf.format(new File(pageRange.getName()).lastModified());
                 }
 
                 text = text.replace("%h", Integer.toString(dt.getHourOfDay()));

@@ -27,6 +27,5 @@ public abstract class PageRangeGenerator {
         }
 
         return new PageRange(node);
-
     }
 }
