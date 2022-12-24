@@ -150,7 +150,7 @@ public class FileInputElement {
         if (isVirtual() && isBlank()) {
             return virtualBlankPage;
         }
-        
+
         return null; //FIXME: Throw instead of returning
     }
 

@@ -8,7 +8,17 @@ import com.sun.media.jai.codec.ImageDecoder;
 import com.sun.media.jai.codec.SeekableStream;
 import ij.IJ;
 import ij.ImagePlus;
-import java.awt.Graphics2D;
+import loci.formats.FormatException;
+import loci.plugins.BF;
+import org.apache.sanselan.ImageInfo;
+import org.apache.sanselan.ImageReadException;
+import org.apache.sanselan.Sanselan;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.FileImageInputStream;
+import javax.imageio.stream.ImageInputStream;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.RenderedImage;
@@ -19,41 +29,31 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.FileImageInputStream;
-import javax.imageio.stream.ImageInputStream;
-import loci.formats.FormatException;
-import loci.plugins.BF;
-import org.apache.sanselan.ImageInfo;
-import org.apache.sanselan.ImageReadException;
-import org.apache.sanselan.Sanselan;
 
 /**
- *
  * @author Vasilis Naskos
  */
 public class ImageParser {
-    
+
     public static ImageObject tryToReadImage(File file) {
         return tryToReadImage(file.getAbsolutePath());
     }
-    
+
     public static ImageObject tryToReadImage(String filepath) {
         try {
             return readImage(filepath);
         } catch (BadElementException ex) {
             Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
-            return  null;
+            return null;
         } catch (IOException ex) {
             Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
     }
-    
+
     public static ImageObject readImage(String filepath)
-            throws BadElementException, IOException {
-        
+        throws BadElementException, IOException {
+
         java.awt.Image awtImage = readAwtImage(filepath);
 
         if (awtImage == null) {
@@ -62,7 +62,7 @@ public class ImageParser {
 
         int physicalWidthDpi = 72;
         int physicalHeightDpi = 72;
-            
+
         try {
             ImageInfo imageInfo = Sanselan.getImageInfo(new File(filepath));
             physicalWidthDpi = imageInfo.getPhysicalWidthDpi();
@@ -70,7 +70,7 @@ public class ImageParser {
         } catch (ImageReadException ex) {
             Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         ImageObject imgObj = new ImageObject(Image.getInstance(awtImage, null));
         try {
             imgObj.setPhysicalWidthDpi(physicalWidthDpi);
@@ -81,13 +81,13 @@ public class ImageParser {
         } catch (Exception ex) {
             Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         awtImage.flush();
 
         return imgObj;
-        
+
     }
-    
+
     public static Image readItextImage(String filepath) {
         try {
             java.awt.Image awtImage = readAwtImage(filepath);
@@ -99,7 +99,7 @@ public class ImageParser {
         }
         return null;
     }
-        
+
     public static java.awt.Image readAwtImage(String filepath) {
         java.awt.Image awtImage = readImageIJ(filepath);
         if (awtImage != null) {
@@ -124,26 +124,26 @@ public class ImageParser {
         awtImage = readImageImageIO(filepath);
         return awtImage;
     }
-        
+
     private static java.awt.Image readImageIJ(String filepath) {
         try {
             ImagePlus imp = IJ.openImage(filepath);
             return imp.getImage();
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
     }
-    
+
     private static java.awt.Image readImageBF(String filepath) {
         try {
             java.awt.Image awtImage = null;
             ImagePlus[] imps = BF.openImagePlus(filepath);
-            
+
             for (ImagePlus imp : imps) {
                 awtImage = imp.getImage();
             }
-            
+
             return awtImage;
         } catch (FormatException ex) {
             Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
@@ -153,7 +153,7 @@ public class ImageParser {
             return null;
         }
     }
-    
+
     private static java.awt.Image readImageMultiTiff(String filepath) {
         try {
             RenderedImage[] r = readMultiPageTiff(filepath);
@@ -163,7 +163,7 @@ public class ImageParser {
             return null;
         }
     }
-    
+
     private static java.awt.Image readImageJPEGReader(String filepath) {
         try {
             JpegReader jpeg = new JpegReader();
@@ -176,7 +176,7 @@ public class ImageParser {
             return null;
         }
     }
-    
+
     private static java.awt.Image readImageImageIO(String filepath) {
         try {
             return tryWithImageIO(filepath);
@@ -185,47 +185,47 @@ public class ImageParser {
             return null;
         }
     }
-    
+
     private static java.awt.Image tryWithImageIO(String filepath) throws IOException {
         ImageInputStream iis = null;
         try {
             java.awt.Image awtImage = null;
-            
+
             iis = new FileImageInputStream(new File(filepath));
             for (Iterator<ImageReader> i = ImageIO.getImageReaders(iis);
-                    awtImage == null && i.hasNext();) {
+                 awtImage == null && i.hasNext(); ) {
                 ImageReader r = i.next();
                 r.setInput(iis);
                 awtImage = r.read(0);
             }
-            
+
             return awtImage;
         } finally {
-            if(iis != null) {
+            if (iis != null) {
                 iis.close();
             }
         }
     }
-    
+
     private static RenderedImage[] readMultiPageTiff(String filename) throws IOException {
         if (!(filename.toLowerCase().endsWith(".tiff")
-                || filename.toLowerCase().endsWith(".tif"))) {
+            || filename.toLowerCase().endsWith(".tif"))) {
             return null;
         }
-        
+
         File file = new File(filename);
         SeekableStream ss = new FileSeekableStream(file);
         ImageDecoder decoder = ImageCodec.createImageDecoder("tiff", ss, null);
         int numPages = decoder.getNumPages();
         RenderedImage images[] = new RenderedImage[numPages];
-        
+
         for (int i = 0; i < numPages; i++) {
             images[i] = decoder.decodeAsRenderedImage(i);
         }
-        
+
         return images;
     }
-    
+
     public static BufferedImage convertRenderedImage(RenderedImage img) {
         if (img instanceof BufferedImage) {
             return (BufferedImage) img;
@@ -246,7 +246,7 @@ public class ImageParser {
         img.copyData(raster);
         return result;
     }
-    
+
     /**
      * Converts a given Image into a BufferedImage
      *
@@ -269,7 +269,7 @@ public class ImageParser {
         // Return the buffered image
         return bimage;
     }
-    
+
     public static int getBitDepth(java.awt.Image img) throws IOException {
         ImageInputStream in = ImageIO.createImageInputStream(img);
         if (in == null) {
@@ -287,16 +287,16 @@ public class ImageParser {
             }
             reader.setInput(in, true, true);
             int bitDepth = reader.getImageTypes(0).next()
-                    .getColorModel().getPixelSize();
+                .getColorModel().getPixelSize();
             reader.dispose();
             return bitDepth;
         } finally {
             in.close();
         }
     }
-    
+
     public static class ImageObject {
-        
+
         private final Image image;
         private int physicalWidthDpi;
         private int physicalHeightDpi;
@@ -351,8 +351,8 @@ public class ImageParser {
         public void setHeight(int height) {
             this.height = height;
         }
-        
-        
+
+
     }
-    
+
 }

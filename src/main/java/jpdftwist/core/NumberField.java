@@ -6,7 +6,7 @@
 
 package jpdftwist.core;
 
-import javax.swing.JTextField;
+import javax.swing.*;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
@@ -19,53 +19,53 @@ import javax.swing.text.PlainDocument;
  */
 public class NumberField extends JTextField {
 
-	public NumberField() {
-		super();
-	}
+    public NumberField() {
+        super();
+    }
 
-	public NumberField(int cols) {
-		super(cols);
-	}
+    public NumberField(int cols) {
+        super(cols);
+    }
 
-	public NumberField(String text) {
-		super(text);
-	}
+    public NumberField(String text) {
+        super(text);
+    }
 
-	
-	protected Document createDefaultModel() {
-		return new DoubleNumberDocument();
-	}
 
-	static class DoubleNumberDocument extends PlainDocument {
+    protected Document createDefaultModel() {
+        return new DoubleNumberDocument();
+    }
 
-		
-		public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
+    static class DoubleNumberDocument extends PlainDocument {
 
-			if (str == null) {
-				return;
-			}
 
-			char[] chars = str.toCharArray();
-			boolean ok = true;
+        public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
 
-			for (int i = 0; i < chars.length; i++) {
+            if (str == null) {
+                return;
+            }
 
-				if (chars[i] == '.' && !super.getText(0, super.getLength()).contains("."))
-					continue;
+            char[] chars = str.toCharArray();
+            boolean ok = true;
 
-				try {
-					Double.parseDouble(String.valueOf(chars[i]));
-				} catch (NumberFormatException exc) {
-					ok = false;
-					break;
-				}
+            for (int i = 0; i < chars.length; i++) {
 
-			}
+                if (chars[i] == '.' && !super.getText(0, super.getLength()).contains("."))
+                    continue;
 
-			if (ok) {
-				super.insertString(offs, new String(chars), a);
-			}
+                try {
+                    Double.parseDouble(String.valueOf(chars[i]));
+                } catch (NumberFormatException exc) {
+                    ok = false;
+                    break;
+                }
 
-		}
-	}
+            }
+
+            if (ok) {
+                super.insertString(offs, new String(chars), a);
+            }
+
+        }
+    }
 }

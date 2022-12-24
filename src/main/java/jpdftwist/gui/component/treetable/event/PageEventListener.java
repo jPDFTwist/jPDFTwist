@@ -5,7 +5,7 @@ package jpdftwist.gui.component.treetable.event;
  */
 public interface PageEventListener {
 
-	void pageCountChanged(int pages);
+    void pageCountChanged(int pages);
 
-	void nextPage(int page);
+    void nextPage(int page);
 }

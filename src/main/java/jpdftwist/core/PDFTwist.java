@@ -299,7 +299,7 @@ public class PDFTwist {
         PDDocument document = new PDDocument();
 
         VirtualBlankPage pageTemplate = pageRange.getVirtualBlankPageTemplate();
-        for (int i=0; i<pageRange.getVirtualFilePageCount(); i++) {
+        for (int i = 0; i < pageRange.getVirtualFilePageCount(); i++) {
             float width = (float) pageTemplate.getWidth();
             float height = (float) pageTemplate.getHeight();
 
