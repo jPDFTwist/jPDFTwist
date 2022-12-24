@@ -3,6 +3,7 @@ package jpdftwist.core.input;
 import jpdftwist.core.IntegerList;
 
 import java.io.File;
+import java.util.List;
 
 public class FileInputElement {
 
@@ -21,8 +22,9 @@ public class FileInputElement {
     private String colorDepth; // Only for image
     private PageDimensions imageSize; // Only for image
     private VirtualBlankPage virtualBlankPage;
+    private final List<Integer> pageIndices;
 
-    public FileInputElement(String filePath, String parentFilePath, boolean virtual, FileInputElementType type, IntegerList emptyBefore, Integer from, Integer to, Boolean includeEven, Boolean includeOdd) {
+    public FileInputElement(String filePath, String parentFilePath, boolean virtual, FileInputElementType type, IntegerList emptyBefore, Integer from, Integer to, Boolean includeEven, Boolean includeOdd, List<Integer> pageIndices) {
         this.filePath = filePath;
         this.parentFilePath = parentFilePath;
         this.virtual = virtual;
@@ -32,6 +34,7 @@ public class FileInputElement {
         this.to = to;
         this.includeEven = includeEven;
         this.includeOdd = includeOdd;
+        this.pageIndices = pageIndices;
     }
 
     public String getFileName() {
@@ -153,5 +156,9 @@ public class FileInputElement {
 
     public void setVirtualBlankPage(VirtualBlankPage virtualBlankPage) {
         this.virtualBlankPage = virtualBlankPage;
+    }
+
+    public List<Integer> getPageIndices() {
+        return pageIndices;
     }
 }
