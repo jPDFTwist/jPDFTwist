@@ -335,7 +335,9 @@ public class OutputTab extends Tab {
 
         if (outputType.equals(PdfToImage.ImageType.PAM) ||
             outputType.equals(PdfToImage.ImageType.PNM) ||
-            outputType.equals(PdfToImage.ImageType.GIF)) { // PDF format
+            outputType.equals(PdfToImage.ImageType.GIF) ||
+            outputType.equals(PdfToImage.ImageType.JPG) ||
+            outputType.equals(PdfToImage.ImageType.PNG)) {
             colorMode.setModel(grayAndRGBModel);
         } else if (outputType.equals(PdfToImage.ImageType.BMP)) {
             colorMode.setModel(bmpModel);
