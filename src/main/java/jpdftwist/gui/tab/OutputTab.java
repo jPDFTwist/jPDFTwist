@@ -98,9 +98,9 @@ public class OutputTab extends Tab {
                 fileTypeComboBox.setEnabled(false);
                 burst.setSelected(false);
                 if (!multiPageTiffCheckBox.isSelected()) {
-                    whichToEnable(0);
+                    onOutputTypeChanged(PdfToImage.ImageType.PDF);
                 } else {
-                    whichToEnable(100);
+                    onOutputTypeChanged(PdfToImage.ImageType.TIFF);
                 }
                 String filename = outputFile.getText();
                 filename = setCorrectExtension(filename);
@@ -133,11 +133,9 @@ public class OutputTab extends Tab {
                 warning.setIcon(null);
                 warning.setToolTipText("");
                 if (!burst.isSelected()) {
-
-                    whichToEnable(0);
-                    setOptionsEnabled(true, false, false, false, true, true, true, true, true);
+                    onOutputTypeChanged(PdfToImage.ImageType.PDF);
                 } else {
-                    whichToEnable(fileTypeComboBox.getSelectedIndex());
+                    onOutputTypeChanged(fileTypeComboBox.getModel().getElementAt(fileTypeComboBox.getSelectedIndex()));
 
                     if (fileTypeComboBox.getSelectedIndex() != 0) {
                         findSharedLibrary();
@@ -153,14 +151,13 @@ public class OutputTab extends Tab {
         this.add(
             fileTypeComboBox = new JComboBox<>(new javax.swing.DefaultComboBoxModel<>(
                 new PdfToImage.ImageType[]{
-//								Vector formats
+                    // Vector formats
                     PdfToImage.ImageType.PDF,
                     PdfToImage.ImageType.PSD,
                     PdfToImage.ImageType.SVG,
                     PdfToImage.ImageType.EMF,
                     PdfToImage.ImageType.WMF,
-
-//								Raster formats
+                    // Raster formats
                     PdfToImage.ImageType.JPG,
                     PdfToImage.ImageType.JP2,
                     PdfToImage.ImageType.PNG,
@@ -176,11 +173,9 @@ public class OutputTab extends Tab {
         fileTypeComboBox.setSelectedIndex(0);
         fileTypeComboBox.setMaximumRowCount(15);
         fileTypeComboBox.addItemListener(arg0 -> {
-            whichToEnable(fileTypeComboBox.getSelectedIndex());
+            onOutputTypeChanged(fileTypeComboBox.getModel().getElementAt(fileTypeComboBox.getSelectedIndex()));
 
             if (fileTypeComboBox.getSelectedIndex() == 0) {
-                setOptionsEnabled(true, false, false, false, true, true, true, true, true);
-
                 if (warning.getToolTipText().equals("<html>Images will be exported with selected Resolution")) {
                     warning.setIcon(null);
                     warning.setToolTipText("");
@@ -204,7 +199,7 @@ public class OutputTab extends Tab {
                     RowSpec.decode("24px"),})),
             CC.xyw(1, 5, 3));
         imagePanel.add(colorLabel = new JLabel("Color Mode:"), CC.xy(1, 1));
-        imagePanel.add(colorMode = new JComboBox<>(new javax.swing.DefaultComboBoxModel<>(new PdfToImage.ColorMode[]{})),
+        imagePanel.add(colorMode = new JComboBox<>(),
 
             CC.xyw(2, 1, 2));
         colorMode.setMaximumRowCount(24);
@@ -228,7 +223,7 @@ public class OutputTab extends Tab {
             }
         });
         imagePanel.add(compressionLabel = new JLabel("Compression:"), CC.xy(1, 2));
-        imagePanel.add(compressionType = new JComboBox<>(new javax.swing.DefaultComboBoxModel<>(new PdfToImage.TiffCompression[]{})),
+        imagePanel.add(compressionType = new JComboBox<>(),
 
             CC.xyw(2, 2, 2));
         compressionType.addItemListener(arg0 -> {
@@ -267,7 +262,7 @@ public class OutputTab extends Tab {
         label_1.setFont(new Font("Tahoma", Font.PLAIN, 11));
         this.add(label_1, "1, 13, 3, 1, left, top");
         add(getPanel_1(), "1, 12, 3, 1");
-        setOptionsEnabled(true, false, false, false, true, true, true, true, true);
+        onOutputTypeChanged(PdfToImage.ImageType.PDF);
     }
 
     private void findSharedLibrary() {
@@ -325,186 +320,81 @@ public class OutputTab extends Tab {
         return filename;
     }
 
-    private void whichToEnable(int option) {
+    private void onOutputTypeChanged(PdfToImage.ImageType newOutputType) {
+        resetColorModeModel(newOutputType);
+        resetCompressionType(newOutputType);
+        resetOptions(newOutputType);
+    }
+
+    private void resetColorModeModel(PdfToImage.ImageType outputType) {
         javax.swing.DefaultComboBoxModel<PdfToImage.ColorMode> emptyModel = new javax.swing.DefaultComboBoxModel<>(new PdfToImage.ColorMode[]{});
         javax.swing.DefaultComboBoxModel<PdfToImage.ColorMode> grayAndRGBModel = new javax.swing.DefaultComboBoxModel<>(new PdfToImage.ColorMode[]
             {PdfToImage.ColorMode.GRAY, PdfToImage.ColorMode.RGB});
         javax.swing.DefaultComboBoxModel<PdfToImage.ColorMode> bmpModel = new javax.swing.DefaultComboBoxModel<>(new PdfToImage.ColorMode[]
             {PdfToImage.ColorMode.BNW, PdfToImage.ColorMode.BNWI, PdfToImage.ColorMode.GRAY, PdfToImage.ColorMode.RGB});
 
-        if (option == 0) { // PDF format
-            if (colorMode.getModel().getSize() != 64) {
-                colorMode.setModel(emptyModel);
-            }
-        } else if (option == 1) { // PSD format
-            if (colorMode.getModel().getSize() != 64) {
-                colorMode.setModel(emptyModel);
-            }
-        } else if (option == 2) { // SVG format
-            if (colorMode.getModel().getSize() != 64) {
-                colorMode.setModel(emptyModel);
-            }
-        } else if (option == 3) { // EMF format
-            if (colorMode.getModel().getSize() != 64) {
-                colorMode.setModel(emptyModel);
-            }
-        } else if (option == 4) { // WMF format
-            if (colorMode.getModel().getSize() != 64) {
-                colorMode.setModel(emptyModel);
-            }
-        } else if (option == 5) { // JPG format
-            if (colorMode.getModel().getSize() != 64) {
-                colorMode.setModel(emptyModel);
-            }
-        } else if (option == 6) { // JP2 format
-            if (colorMode.getModel().getSize() != 64) {
-                colorMode.setModel(emptyModel);
-            }
-        } else if (option == 7) { // PNG format
-            if (colorMode.getModel().getSize() != 64) {
-                colorMode.setModel(emptyModel);
-            }
-        } else if (option == 8) { // PAM format
-            if (colorMode.getModel().getSize() != 64) {
-                colorMode.setModel(grayAndRGBModel);
-            }
-        } else if (option == 9) { // PNM format
-            if (colorMode.getModel().getSize() != 64) {
-                colorMode.setModel(grayAndRGBModel);
-            }
-        } else if (option == 10) { // BMP format
-            if (colorMode.getModel().getSize() != 64) {
-                colorMode.setModel(bmpModel);
-            }
-        } else if (option == 11) { // GIF format
-            if (colorMode.getModel().getSize() != 64) {
-                colorMode.setModel(grayAndRGBModel);
-            }
-        } else if (option == 12) { // PCX format
-            if (colorMode.getModel().getSize() != 64) {
-                colorMode.setModel(emptyModel);
-            }
-        } else if (option == 13) { // TGA format
-            if (colorMode.getModel().getSize() != 64) {
-                colorMode.setModel(emptyModel);
-            }
-        } else if (option == 14) { // TIFF format
-            if (colorMode.getModel().getSize() != 64) {
-                colorMode.setModel(emptyModel);
-            }
-        } else if (option == 100) { // multiTIFF format
-            if (colorMode.getModel().getSize() != 64) {
-                colorMode.setModel(emptyModel);
-            }
+        if (outputType.equals(PdfToImage.ImageType.PAM) ||
+            outputType.equals(PdfToImage.ImageType.PNM) ||
+            outputType.equals(PdfToImage.ImageType.GIF)) { // PDF format
+            colorMode.setModel(grayAndRGBModel);
+        } else if (outputType.equals(PdfToImage.ImageType.BMP)) {
+            colorMode.setModel(bmpModel);
+        } else {
+            colorMode.setModel(emptyModel);
         }
+    }
 
-        // Selecting Compression Types
+    private void resetCompressionType(PdfToImage.ImageType outputType) {
         javax.swing.DefaultComboBoxModel<PdfToImage.TiffCompression> emptyCompressionModel = new javax.swing.DefaultComboBoxModel<>(new PdfToImage.TiffCompression[]{});
         javax.swing.DefaultComboBoxModel<PdfToImage.TiffCompression> noneCompressionModel = new javax.swing.DefaultComboBoxModel<>(new PdfToImage.TiffCompression[]
             // TODO: Replace with PNG/TGA Compression
             {PdfToImage.TiffCompression.NONE});
-        javax.swing.DefaultComboBoxModel<PdfToImage.TiffCompression> tiffCompressionModel = new javax.swing.DefaultComboBoxModel<>(new PdfToImage.TiffCompression[]
-            {PdfToImage.TiffCompression.NONE,
-                PdfToImage.TiffCompression.LZW,
-                PdfToImage.TiffCompression.JPEG,
-                PdfToImage.TiffCompression.ZLIB,
-                PdfToImage.TiffCompression.PACKBITS,
-                PdfToImage.TiffCompression.DEFLATE,
-                PdfToImage.TiffCompression.RLE
-            });
+        javax.swing.DefaultComboBoxModel<PdfToImage.TiffCompression> tiffCompressionModel = new javax.swing.DefaultComboBoxModel<>(new PdfToImage.TiffCompression[]{
+            PdfToImage.TiffCompression.NONE,
+            PdfToImage.TiffCompression.LZW,
+            PdfToImage.TiffCompression.JPEG,
+            PdfToImage.TiffCompression.ZLIB,
+            PdfToImage.TiffCompression.PACKBITS,
+            PdfToImage.TiffCompression.DEFLATE,
+            PdfToImage.TiffCompression.RLE
+        });
 
-        if (option == 0) { // PDF format
-            if (compressionType.getModel().getSize() != 64) {
-                compressionType.setModel(emptyCompressionModel);
-            }
-        } else if (option == 1) { // PSD format
-            if (compressionType.getModel().getSize() != 64) {
-                compressionType.setModel(emptyCompressionModel);
-            }
-        } else if (option == 2) { // SVG format
-            if (compressionType.getModel().getSize() != 64) {
-                compressionType.setModel(emptyCompressionModel);
-            }
-        } else if (option == 3) { // EMF format
-            if (compressionType.getModel().getSize() != 64) {
-                compressionType.setModel(emptyCompressionModel);
-            }
-        } else if (option == 4) { // WMF format
-            if (compressionType.getModel().getSize() != 64) {
-                compressionType.setModel(emptyCompressionModel);
-            }
-        } else if (option == 5) { // JPG format
-            if (compressionType.getModel().getSize() != 64) {
-                compressionType.setModel(emptyCompressionModel);
-            }
-        } else if (option == 6) { // JP2 format
-            if (compressionType.getModel().getSize() != 64) {
-                compressionType.setModel(emptyCompressionModel);
-            }
-        } else if (option == 7) { // PNG format
-            if (compressionType.getModel().getSize() != 64) {
-                compressionType.setModel(noneCompressionModel);
-            }
-        } else if (option == 8) { // PAM format
-            if (compressionType.getModel().getSize() != 64) {
-                compressionType.setModel(emptyCompressionModel);
-            }
-        } else if (option == 9) { // PNM format
-            if (compressionType.getModel().getSize() != 64) {
-                compressionType.setModel(emptyCompressionModel);
-            }
-        } else if (option == 10) { // BMP format
-            if (compressionType.getModel().getSize() != 64) {
-                compressionType.setModel(emptyCompressionModel);
-            }
-        } else if (option == 11) { // GIF format
-            if (compressionType.getModel().getSize() != 64) {
-                compressionType.setModel(emptyCompressionModel);
-            }
-        } else if (option == 12) { // PCX format
-            if (compressionType.getModel().getSize() != 64) {
-                compressionType.setModel(emptyCompressionModel);
-            }
-        } else if (option == 13) { // TGA format
-            if (compressionType.getModel().getSize() != 64) {
-                compressionType.setModel(noneCompressionModel);
-            }
-        } else if (option == 14) { // TIFF format
-            if (compressionType.getModel().getSize() != 64) {
-                compressionType.setModel(tiffCompressionModel);
-            }
-        } else if (option == 100) { // multiTIFF format
-            if (compressionType.getModel().getSize() != 64) {
-                compressionType.setModel(tiffCompressionModel);
-            }
+        if (outputType.equals(PdfToImage.ImageType.PNG) ||
+            outputType.equals(PdfToImage.ImageType.TGA)) {
+            compressionType.setModel(noneCompressionModel);
+        } else if (outputType.equals(PdfToImage.ImageType.TIFF)) {
+            compressionType.setModel(tiffCompressionModel);
+        } else {
+            compressionType.setModel(emptyCompressionModel);
         }
+    }
 
-        switch (option) {
-            case 1: // PSD format
-            case 2: // SVG format
+    private void resetOptions(PdfToImage.ImageType outputType) {
+        switch (outputType) {
+            case PSD:
+            case SVG:
                 setOptionsEnabled(true, false, false, false, true, false, false, false, false);
                 break;
-            case 3: // EMF format
-            case 4: // WMF format
+            case EMF:
+            case WMF:
                 setOptionsEnabled(false, false, false, false, false, false, false, false, false);
                 break;
-            case 5: // JPG format
-            case 6: // JP2 format
+            case JPG:
+            case JP2:
                 setOptionsEnabled(true, false, true, true, false, false, false, false, false);
                 break;
-            case 7: // PNG format
-            case 13: // TGA format
-            case 14: // TIFF format
-            case 100: // multiPageTiff enabled
+            case PNG:
+            case TGA:
+            case TIFF:
                 setOptionsEnabled(true, true, true, true, true, false, false, false, false);
                 break;
-            case 8: // PAM format
-            case 9: // PNM format
-            case 12: // PCX format
-            case 10: // BMP format
+            case PAM:
+            case PNM:
+            case PCX:
+            case BMP:
                 setOptionsEnabled(true, false, false, true, false, false, false, false, false);
                 break;
-            case 11: // GIF format
+            case GIF:
                 setOptionsEnabled(true, false, false, true, true, false, false, false, false);
                 break;
             default:
