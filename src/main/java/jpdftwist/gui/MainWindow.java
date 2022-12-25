@@ -19,10 +19,10 @@ import jpdftwist.gui.tab.InteractionTab;
 import jpdftwist.gui.tab.PageSizeTab;
 import jpdftwist.gui.tab.ShuffleTab;
 import jpdftwist.gui.tab.Tab;
-import jpdftwist.gui.tab.output.OutputTab;
 import jpdftwist.gui.tab.watermark.WatermarkPlusTab;
 import jpdftwist.gui.tab.watermark.WatermarkTab;
 import jpdftwist.tabs.InputTabActions;
+import jpdftwist.tabs.OutputTabActions;
 
 import javax.swing.*;
 import java.awt.*;
@@ -34,7 +34,7 @@ import java.lang.management.MemoryUsage;
 public class MainWindow extends JFrame {
 
     private InputTabActions inputTabActions;
-    private OutputTab outputTab;
+    private OutputTabActions outputTabActions;
     private WatermarkPlusTab watermarkPlusTab;
 
     private final Tab[] tabs = {
@@ -72,8 +72,8 @@ public class MainWindow extends JFrame {
             }
         }
 
-        outputTab = new OutputTab(this);
-        jtp.addTab(outputTab.getTabName(), outputTab);
+        outputTabActions = new OutputTabActions(this);
+        jtp.addTab(outputTabActions.getTabName(), outputTabActions.getUserInterface());
 
         JButton run;
         getContentPane().add(run = new JButton("Run"), CC.xy(2, 2));
@@ -120,6 +120,8 @@ public class MainWindow extends JFrame {
             for (Tab tab : tabs) {
                 tab.checkRun();
             }
+            outputTabActions.checkRun();
+
             outputProgressDialog.setFileCount(batchLength);
             outputProgressDialog.setVisible(rootPaneCheckingEnabled);
 
@@ -172,7 +174,8 @@ public class MainWindow extends JFrame {
                     }
                     pdfTwist = tab.run(pdfTwist, outputEventListener);
                 }
-                pdfTwist = outputTab.run(pdfTwist, outputEventListener);
+
+                pdfTwist = outputTabActions.run(pdfTwist, outputEventListener, outputProgressDialog);
                 outputProgressDialog.updateOverallProgress();
             }
 

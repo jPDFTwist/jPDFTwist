@@ -1,17 +1,13 @@
 package jpdftwist.gui.tab.output;
 
-import com.itextpdf.text.DocumentException;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
-import jpdftwist.core.OutputEventListener;
-import jpdftwist.core.PDFTwist;
 import jpdftwist.core.PdfToImage;
-import jpdftwist.gui.MainWindow;
+import jpdftwist.core.tabparams.OutputParameters;
 import jpdftwist.gui.component.FileChooser;
-import jpdftwist.gui.tab.Tab;
 
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
@@ -19,10 +15,11 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 
-public class OutputTab extends Tab {
+public class OutputTab extends JPanel {
 
     private final JTextField outputFile;
     private final JSlider qualitySlider;
@@ -41,14 +38,12 @@ public class OutputTab extends Tab {
     private final JComboBox<PdfToImage.ImageType> fileTypeComboBox;
     private final JComboBox<PdfToImage.ColorMode> colorMode;
     private final JComboBox<PdfToImage.TiffCompression> compressionType;
-    private final MainWindow mainWindow;
     private final JPanel splitOptionsPanel;
     private final JComboBox<String> dpiComboBox;
     private final JLabel dpiLabel;
 
-    public OutputTab(MainWindow mf) {
+    public OutputTab() {
         super(new FormLayout("f:p, f:p:g, f:p", "f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p:g" + ""));
-        this.mainWindow = mf;
         CellConstraints CC = new CellConstraints();
         warning = new JLabel("");
         this.add(new JLabel("Filename:"), CC.xy(1, 1));
@@ -61,7 +56,7 @@ public class OutputTab extends Tab {
             FileChooser fileChooser = new FileChooser();
             JFileChooser pdfChooser = fileChooser.getFileChooser();
 
-            if (pdfChooser.showSaveDialog(mainWindow) != JFileChooser.APPROVE_OPTION) {
+            if (pdfChooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
                 return;
             }
             String filename = pdfChooser.getSelectedFile().getAbsolutePath();
@@ -70,7 +65,7 @@ public class OutputTab extends Tab {
             }
             filename = replaceFileExtension(filename);
             if (new File(filename).exists()) {
-                if (JOptionPane.showConfirmDialog(mainWindow, "Overwrite existing file?", "Confirm Overwrite",
+                if (JOptionPane.showConfirmDialog(this, "Overwrite existing file?", "Confirm Overwrite",
                     JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.NO_OPTION)
                     return;
             }
@@ -222,7 +217,6 @@ public class OutputTab extends Tab {
         this.add(pageMarksComboBox = new JCheckBox("Remove PdfTk page marks"), CC.xyw(1, 8, 3));
         uncompressedComboBox.addActionListener(e -> pageMarksComboBox.setText((uncompressedComboBox.isSelected() ? "Add" : "Remove") + " PdfTk page marks"));
         tempfilesComboBox = new JCheckBox("Use temporary files for intermediary results (saves RAM)");
-        tempfilesComboBox.addItemListener(e -> mainWindow.getInputTab().setUseTempFiles(tempfilesComboBox.isSelected()));
         this.add(tempfilesComboBox, CC.xyw(1, 9, 3));
         this.add(optimizeSizeComboBox = new JCheckBox("Optimize PDF size (will need a lot of RAM)"), CC.xyw(1, 10, 3));
         this.add(fullyCompressedComboBox = new JCheckBox("Use better compression (Acrobat 6.0+)"), CC.xyw(1, 11, 3));
@@ -241,12 +235,20 @@ public class OutputTab extends Tab {
         onOutputTypeChanged(PdfToImage.ImageType.PDF);
     }
 
+    public void setTempFileListener(ItemListener itemListener) {
+        tempfilesComboBox.addItemListener(itemListener);
+    }
+
+    public boolean isTempFilesComboBoxSelected() {
+        return tempfilesComboBox.isSelected();
+    }
+
     private void findSharedLibrary() {
         try {
             PdfToImage.setJavaLibraryPath();
         } catch (NoSuchFieldException | IllegalAccessException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Error reading file", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error reading file", JOptionPane.ERROR_MESSAGE);
         }
         String sharedLibraryName = PdfToImage.checkForLibraries();
         if (sharedLibraryName != null) {
@@ -417,28 +419,10 @@ public class OutputTab extends Tab {
     }
 
     public void checkRun() throws IOException {
-        if (outputFile.getText().length() == 0)
-            throw new IOException("No output file selected");
-        String outputFileName = outputFile.getText();
-        if (mainWindow.getInputTab().getBatchLength() > 1) {
-            if (!outputFileName.contains("<F>") && !outputFileName.contains("<FX>") && !outputFileName.contains("<P>")
-                && !outputFileName.contains("<#>")) {
-                throw new IOException("Variables in output file name required for batch mode");
-            }
-        }
-        mainWindow.getInputTab().setUseTempFiles(tempfilesComboBox.isSelected());
+
     }
 
-    public PDFTwist run(PDFTwist pdfTwist, OutputEventListener outputEventListener) throws IOException, DocumentException {
-        outputEventListener.updateJPDFTwistProgress(getTabName());
-        outputEventListener.setAction("Producing output file(s)");
-        if (pageMarksComboBox.isSelected()) {
-            if (uncompressedComboBox.isSelected()) {
-                pdfTwist.addPageMarks();
-            } else {
-                pdfTwist.removePageMarks();
-            }
-        }
+    public OutputParameters getParameters() {
         boolean matchedTransparency = matchTransparency(transparent.isSelected());
 
         boolean burstImages = (fileTypeComboBox.getSelectedIndex() != 0 && !multiPageTiffCheckBox.isSelected());
@@ -448,10 +432,15 @@ public class OutputTab extends Tab {
         }
         PdfToImage.ColorMode selectedColorMode = colorMode.getModel().getElementAt(colorMode.getSelectedIndex());
         PdfToImage.TiffCompression selectedTiffCompression = compressionType.getModel().getElementAt(compressionType.getSelectedIndex());
-        pdfTwist.setPdfImages(new PdfToImage(burstImages, selectedColorMode, type, selectedTiffCompression, qualitySlider.getValue(),
-            matchedTransparency));
-        pdfTwist.writeOutput(outputFile.getText(), multiPageTiffCheckBox.isSelected(), burst.isSelected(),
-            uncompressedComboBox.isSelected(), optimizeSizeComboBox.isSelected(), fullyCompressedComboBox.isSelected());
-        return pdfTwist;
+
+        return new OutputParameters(
+            outputFile.getText(),
+            multiPageTiffCheckBox.isSelected(),
+            burst.isSelected(),
+            uncompressedComboBox.isSelected(),
+            optimizeSizeComboBox.isSelected(),
+            fullyCompressedComboBox.isSelected(),
+            pageMarksComboBox.isSelected(),
+            new PdfToImage(burstImages, selectedColorMode, type, selectedTiffCompression, qualitySlider.getValue(), matchedTransparency));
     }
 }
