@@ -1,4 +1,4 @@
-package jpdftwist.gui.tab;
+package jpdftwist.gui.tab.output;
 
 import com.itextpdf.text.DocumentException;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -11,6 +11,7 @@ import jpdftwist.core.PDFTwist;
 import jpdftwist.core.PdfToImage;
 import jpdftwist.gui.MainWindow;
 import jpdftwist.gui.component.FileChooser;
+import jpdftwist.gui.tab.Tab;
 
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
@@ -42,24 +43,9 @@ public class OutputTab extends Tab {
     private final JComboBox<PdfToImage.TiffCompression> compressionType;
     private final MainWindow mainWindow;
     private String currentExtension = ".pdf";
-    private JPanel panel;
-    private JRadioButton splitByPageTextRadioButton;
-    private JRadioButton splitByOddPagesRadioButton;
-    private JRadioButton splitByEvenPagesRadioButton;
-    private JRadioButton splitBySpecificPageRadioButton;
-    private JRadioButton splitByChunkRadioButton;
-    private JRadioButton splitBySizeRadioButton;
-    private JRadioButton splitByBookmarkLevelRadioButton;
-    private JRadioButton splitByBookmarkTextRadioButton;
-    private JComboBox<String> dpiComboBox;
-    private JLabel dpiLabel;
-    private JTextField textField_3;
-    private JTextField textField_4;
-    private JTextField textField_5;
-    private JTextField textField_6;
-    private JTextField textField_7;
-    private JComboBox<String> textField_8;
-
+    private final JPanel splitOptionsPanel;
+    private final JComboBox<String> dpiComboBox;
+    private final JLabel dpiLabel;
 
     public OutputTab(MainWindow mf) {
         super(new FormLayout("f:p, f:p:g, f:p", "f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p:g" + ""));
@@ -113,22 +99,7 @@ public class OutputTab extends Tab {
             public void actionPerformed(ActionEvent e) {
                 multiPageTiffCheckBox.setSelected(false);
                 fileTypeComboBox.setEnabled(burst.isSelected());
-
-                splitByOddPagesRadioButton.setEnabled(burst.isSelected());
-                splitByEvenPagesRadioButton.setEnabled(burst.isSelected());
-                splitBySpecificPageRadioButton.setEnabled(burst.isSelected());
-                splitByChunkRadioButton.setEnabled(burst.isSelected());
-                splitByPageTextRadioButton.setEnabled(burst.isSelected());
-                splitByBookmarkLevelRadioButton.setEnabled(burst.isSelected());
-                splitByBookmarkTextRadioButton.setEnabled(burst.isSelected());
-                splitBySizeRadioButton.setEnabled(burst.isSelected());
-
-                textField_3.setEnabled(burst.isSelected());
-                textField_4.setEnabled(burst.isSelected());
-                textField_5.setEnabled(burst.isSelected());
-                textField_6.setEnabled(burst.isSelected());
-                textField_7.setEnabled(burst.isSelected());
-                textField_8.setEnabled(burst.isSelected());
+                splitOptionsPanel.setEnabled(burst.isSelected());
 
                 warning.setIcon(null);
                 warning.setToolTipText("");
@@ -240,8 +211,13 @@ public class OutputTab extends Tab {
         transparent.setSelected(true);
         imagePanel.add(warning, CC.xy(7, 4));
         imagePanel.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "Burst Options", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-        imagePanel.add(getDpiLabel(), "5, 3, fill, default");
-        imagePanel.add(getDpiComboBox(), "7, 3, fill, default");
+        dpiLabel = new JLabel("Resolution:");
+        dpiLabel.setToolTipText("Image resolution in DPI");
+        imagePanel.add(dpiLabel, "5, 3, fill, default");
+        dpiComboBox = new JComboBox<>();
+        dpiComboBox.setModel(new DefaultComboBoxModel<>(new String[]{"16", "36", "72", "100", "120", "150", "180", "200", "240", "270", "300", "350", "400", "600", "800", "900", "1000", "1200", "1500", "1800", "2000", "2400", "2700", "3000", "Custom"}));
+        dpiComboBox.setSelectedIndex(10);
+        imagePanel.add(dpiComboBox, "7, 3, fill, default");
         this.add(new JSeparator(), CC.xyw(1, 6, 3));
         this.add(uncompressedComboBox = new JCheckBox("Save uncompressed"), CC.xyw(1, 7, 3));
         this.add(pageMarksComboBox = new JCheckBox("Remove PdfTk page marks"), CC.xyw(1, 8, 3));
@@ -251,7 +227,7 @@ public class OutputTab extends Tab {
         this.add(tempfilesComboBox, CC.xyw(1, 9, 3));
         this.add(optimizeSizeComboBox = new JCheckBox("Optimize PDF size (will need a lot of RAM)"), CC.xyw(1, 10, 3));
         this.add(fullyCompressedComboBox = new JCheckBox("Use better compression (Acrobat 6.0+)"), CC.xyw(1, 11, 3));
-        JLabel label_1 = new JLabel("<html>You can use the following variables in the output filename:<br>"
+        JLabel outputFilenameVariablesLabel = new JLabel("<html>You can use the following variables in the output filename:<br>"
             + "<tt>&lt;F></tt>: Input filename without extension<br>"
             + "<tt>&lt;FX></tt>: Input filename with extension<br>"
             + "<tt>&lt;P></tt>: Input file path without filename<br>"
@@ -259,9 +235,10 @@ public class OutputTab extends Tab {
             + "<tt>&lt;#></tt>: Next free number (where file does not exist)<br>"
             + "<tt>&lt;*></tt>: Page number (for bursting pages)<br>"
             + "<tt>&lt;$></tt>: Test function");
-        label_1.setFont(new Font("Tahoma", Font.PLAIN, 11));
-        this.add(label_1, "1, 13, 3, 1, left, top");
-        add(getPanel_1(), "1, 12, 3, 1");
+        outputFilenameVariablesLabel.setFont(new Font("Tahoma", Font.PLAIN, 11));
+        this.add(outputFilenameVariablesLabel, "1, 13, 3, 1, left, top");
+        splitOptionsPanel = new SplitOptionsPanel();
+        add(splitOptionsPanel, "1, 12, 3, 1");
         onOutputTypeChanged(PdfToImage.ImageType.PDF);
     }
 
@@ -436,11 +413,9 @@ public class OutputTab extends Tab {
         }
     }
 
-
     public String getTabName() {
         return "Output";
     }
-
 
     public void checkRun() throws IOException {
         if (outputFile.getText().length() == 0)
@@ -480,177 +455,5 @@ public class OutputTab extends Tab {
         pdfTwist.writeOutput(outputFile.getText(), multiPageTiffCheckBox.isSelected(), burst.isSelected(),
             uncompressedComboBox.isSelected(), optimizeSizeComboBox.isSelected(), fullyCompressedComboBox.isSelected());
         return pdfTwist;
-    }
-
-    private JPanel getPanel_1() {
-        if (panel == null) {
-            panel = new JPanel();
-            panel.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "Split Options",
-                TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-            panel.setLayout(new FormLayout(
-                new ColumnSpec[]{ColumnSpec.decode("max(160px;pref)"), ColumnSpec.decode("max(200px;pref):grow"),
-                    ColumnSpec.decode("15px"), ColumnSpec.decode("max(160px;pref)"),
-                    ColumnSpec.decode("max(200px;pref):grow"), ColumnSpec.decode("15px"),},
-                new RowSpec[]{RowSpec.decode("23px"), RowSpec.decode("23px"), RowSpec.decode("23px"),
-                    RowSpec.decode("23px"), RowSpec.decode("23px"),}));
-            panel.add(getSplitByOddPagesRadioButton(), "1, 1, left, center");
-            panel.add(getSplitByBookmarkLevelRadioButton(), "4, 1, left, center");
-            panel.add(getTextField_6(), "5, 1, fill, default");
-            panel.add(getSplitByBookmarkTextRadioButton(), "4, 2, left, center");
-            panel.add(getTextField_4_1(), "5, 2, fill, default");
-            panel.add(getTextField_3(), "2, 3, fill, default");
-            panel.add(getSplitBySizeRadioButton(), "4, 3, left, center");
-            panel.add(getSplitByEvenPagesRadioButton(), "1, 2, left, center");
-            panel.add(getSplitBySpecificPageRadioButton(), "1, 3, left, center");
-            panel.add(getTextField_5_1(), "5, 3, fill, default");
-            panel.add(getSplitByChunkRadioButton(), "1, 4, left, center");
-            panel.add(getTextField_1(), "2, 4, fill, default");
-            panel.add(getSplitByPageTextRadioButton(), "1, 5, left, center");
-            panel.add(getTextField_1_1(), "2, 5, fill, default");
-
-        }
-        return panel;
-    }
-
-    private JRadioButton getSplitByPageTextRadioButton() {
-        if (splitByPageTextRadioButton == null) {
-            splitByPageTextRadioButton = new JRadioButton("Split by page text");
-            splitByPageTextRadioButton.setToolTipText("Split 'after' the page containing a specifc text");
-            splitByPageTextRadioButton.setEnabled(false);
-        }
-        return splitByPageTextRadioButton;
-    }
-
-    private JRadioButton getSplitByOddPagesRadioButton() {
-        if (splitByOddPagesRadioButton == null) {
-            splitByOddPagesRadioButton = new JRadioButton("Split by odd pages");
-            splitByOddPagesRadioButton.setToolTipText("Split after each odd page");
-            splitByOddPagesRadioButton.setEnabled(false);
-        }
-        return splitByOddPagesRadioButton;
-    }
-
-    private JRadioButton getSplitByEvenPagesRadioButton() {
-        if (splitByEvenPagesRadioButton == null) {
-            splitByEvenPagesRadioButton = new JRadioButton("Split by even pages");
-            splitByEvenPagesRadioButton.setToolTipText("Split after each even page");
-            splitByEvenPagesRadioButton.setEnabled(false);
-        }
-        return splitByEvenPagesRadioButton;
-    }
-
-    private JRadioButton getSplitBySpecificPageRadioButton() {
-        if (splitBySpecificPageRadioButton == null) {
-            splitBySpecificPageRadioButton = new JRadioButton("Split by specific pages");
-            splitBySpecificPageRadioButton.setToolTipText("Split after specific pages (ex: 4-6, 9, 14)");
-            splitBySpecificPageRadioButton.setEnabled(false);
-        }
-        return splitBySpecificPageRadioButton;
-    }
-
-    private JRadioButton getSplitByChunkRadioButton() {
-        if (splitByChunkRadioButton == null) {
-            splitByChunkRadioButton = new JRadioButton("Split by chunk of  'n' pages");
-            splitByChunkRadioButton.setSelected(true);
-            splitByChunkRadioButton.setToolTipText("Split after a chunk of pages (ex: 100)");
-            splitByChunkRadioButton.setEnabled(false);
-        }
-        return splitByChunkRadioButton;
-    }
-
-    private JRadioButton getSplitBySizeRadioButton() {
-        if (splitBySizeRadioButton == null) {
-            splitBySizeRadioButton = new JRadioButton("Split by size");
-            splitBySizeRadioButton.setToolTipText("Split 'after' a specific size");
-            splitBySizeRadioButton.setEnabled(false);
-        }
-        return splitBySizeRadioButton;
-    }
-
-    private JRadioButton getSplitByBookmarkLevelRadioButton() {
-        if (splitByBookmarkLevelRadioButton == null) {
-            splitByBookmarkLevelRadioButton = new JRadioButton("Split by bookmark level");
-            splitByBookmarkLevelRadioButton.setToolTipText("Split 'before' the page linked to a bookmark level");
-            splitByBookmarkLevelRadioButton.setEnabled(false);
-        }
-        return splitByBookmarkLevelRadioButton;
-    }
-
-    private JRadioButton getSplitByBookmarkTextRadioButton() {
-        if (splitByBookmarkTextRadioButton == null) {
-            splitByBookmarkTextRadioButton = new JRadioButton("Split by bookmark text");
-            splitByBookmarkTextRadioButton.setToolTipText("Split 'before' the bookmark containing a specific text");
-            splitByBookmarkTextRadioButton.setEnabled(false);
-        }
-        return splitByBookmarkTextRadioButton;
-    }
-
-    private JComboBox<String> getDpiComboBox() {
-        if (dpiComboBox == null) {
-            dpiComboBox = new JComboBox<>();
-            dpiComboBox.setModel(new DefaultComboBoxModel<>(new String[]{"16", "36", "72", "100", "120", "150", "180", "200", "240", "270", "300", "350", "400", "600", "800", "900", "1000", "1200", "1500", "1800", "2000", "2400", "2700", "3000", "Custom"}));
-            dpiComboBox.setSelectedIndex(10);
-            dpiComboBox.setToolTipText("");
-        }
-        return dpiComboBox;
-    }
-
-    private JLabel getDpiLabel() {
-        if (dpiLabel == null) {
-            dpiLabel = new JLabel("Resolution:");
-            dpiLabel.setToolTipText("Image resolution in DPI");
-        }
-        return dpiLabel;
-    }
-
-    private JTextField getTextField_3() {
-        if (textField_3 == null) {
-            textField_3 = new JTextField("");
-            textField_3.setEnabled(false);
-        }
-        return textField_3;
-    }
-
-    private JTextField getTextField_1() {
-        if (textField_4 == null) {
-            textField_4 = new JTextField("1");
-            textField_4.setEnabled(false);
-        }
-        return textField_4;
-    }
-
-    private JTextField getTextField_1_1() {
-        if (textField_5 == null) {
-            textField_5 = new JTextField("");
-            textField_5.setToolTipText("");
-            textField_5.setEnabled(false);
-        }
-        return textField_5;
-    }
-
-    private JTextField getTextField_6() {
-        if (textField_6 == null) {
-            textField_6 = new JTextField("");
-            textField_6.setEnabled(false);
-        }
-        return textField_6;
-    }
-
-    private JTextField getTextField_4_1() {
-        if (textField_7 == null) {
-            textField_7 = new JTextField("");
-            textField_7.setEnabled(false);
-        }
-        return textField_7;
-    }
-
-    private JComboBox<String> getTextField_5_1() {
-        if (textField_8 == null) {
-            textField_8 = new JComboBox<>();
-            textField_8.setModel(new DefaultComboBoxModel<>(new String[]{"(MB) > MegaBytes", "(KB)  > KiloBytes", "(B)    > Bytes"}));
-            textField_8.setSelectedIndex(1);
-            textField_8.setEnabled(false);
-        }
-        return textField_8;
     }
 }
