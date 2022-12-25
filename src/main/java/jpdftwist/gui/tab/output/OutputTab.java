@@ -42,7 +42,6 @@ public class OutputTab extends Tab {
     private final JComboBox<PdfToImage.ColorMode> colorMode;
     private final JComboBox<PdfToImage.TiffCompression> compressionType;
     private final MainWindow mainWindow;
-    private String currentExtension = ".pdf";
     private final JPanel splitOptionsPanel;
     private final JComboBox<String> dpiComboBox;
     private final JLabel dpiLabel;
@@ -67,9 +66,9 @@ public class OutputTab extends Tab {
             }
             String filename = pdfChooser.getSelectedFile().getAbsolutePath();
             if (!new File(filename).getName().contains(".")) {
-                filename += currentExtension;
+                filename += getFileExtensionFromOutputType();
             }
-            filename = setCorrectExtension(filename);
+            filename = replaceFileExtension(filename);
             if (new File(filename).exists()) {
                 if (JOptionPane.showConfirmDialog(mainWindow, "Overwrite existing file?", "Confirm Overwrite",
                     JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.NO_OPTION)
@@ -89,7 +88,7 @@ public class OutputTab extends Tab {
                     onOutputTypeChanged(PdfToImage.ImageType.TIFF);
                 }
                 String filename = outputFile.getText();
-                filename = setCorrectExtension(filename);
+                filename = replaceFileExtension(filename);
                 outputFile.setText(filename);
             }
         });
@@ -113,7 +112,7 @@ public class OutputTab extends Tab {
                     }
                 }
                 String filename = outputFile.getText();
-                filename = setCorrectExtension(filename);
+                filename = replaceFileExtension(filename);
                 outputFile.setText(filename);
             }
         });
@@ -155,7 +154,7 @@ public class OutputTab extends Tab {
                 findSharedLibrary();
             }
             String filename = outputFile.getText();
-            filename = setCorrectExtension(filename);
+            filename = replaceFileExtension(filename);
             outputFile.setText(filename);
 
         });
@@ -276,25 +275,25 @@ public class OutputTab extends Tab {
         }
     }
 
-    private String setCorrectExtension(String filename) {
-        boolean changeExtension = filename.endsWith(currentExtension);
-        if (changeExtension) {
-            filename = filename.substring(0, filename.length() - currentExtension.length());
+    private String replaceFileExtension(String filepath) {
+        // Prevent changing the extension to a filepath that does not have an extension
+        if (filepath.lastIndexOf('.') == -1) {
+            return filepath;
         }
-        if (burst.isSelected() || multiPageTiffCheckBox.isSelected()) {
-            if (fileTypeComboBox.getSelectedIndex() == 14 || multiPageTiffCheckBox.isSelected()) {
 
-                currentExtension = ".tiff";
-            } else {
-                currentExtension = "." + fileTypeComboBox.getSelectedItem().toString().toLowerCase();
-            }
-        } else {
-            currentExtension = ".pdf";
+        return filepath.substring(0, filepath.lastIndexOf('.')) + getFileExtensionFromOutputType();
+    }
+
+    private String getFileExtensionFromOutputType() {
+        if (burst.isSelected()) {
+            return "." + fileTypeComboBox.getModel().getElementAt(fileTypeComboBox.getSelectedIndex()).toString().toLowerCase();
         }
-        if (changeExtension) {
-            filename += currentExtension;
+
+        if (multiPageTiffCheckBox.isSelected()) {
+            return ".tiff";
         }
-        return filename;
+
+        return ".pdf";
     }
 
     private void onOutputTypeChanged(PdfToImage.ImageType newOutputType) {
@@ -447,10 +446,9 @@ public class OutputTab extends Tab {
         if (multiPageTiffCheckBox.isSelected()) {
             type = PdfToImage.ImageType.TIFF;
         }
-        PdfToImage.ColorMode selectedColorMode = colorMode.getModel().getSize() == 0 ? null : (PdfToImage.ColorMode) colorMode.getModel().getSelectedItem();
-        PdfToImage.TiffCompression selectedTiffCompression = compressionType.getModel().getSize() == 0 ? null : (PdfToImage.TiffCompression) compressionType.getSelectedItem();
-        pdfTwist.setPdfImages(new PdfToImage(burstImages, selectedColorMode, type,
-            selectedTiffCompression, qualitySlider.getValue(),
+        PdfToImage.ColorMode selectedColorMode = colorMode.getModel().getElementAt(colorMode.getSelectedIndex());
+        PdfToImage.TiffCompression selectedTiffCompression = compressionType.getModel().getElementAt(compressionType.getSelectedIndex());
+        pdfTwist.setPdfImages(new PdfToImage(burstImages, selectedColorMode, type, selectedTiffCompression, qualitySlider.getValue(),
             matchedTransparency));
         pdfTwist.writeOutput(outputFile.getText(), multiPageTiffCheckBox.isSelected(), burst.isSelected(),
             uncompressedComboBox.isSelected(), optimizeSizeComboBox.isSelected(), fullyCompressedComboBox.isSelected());
