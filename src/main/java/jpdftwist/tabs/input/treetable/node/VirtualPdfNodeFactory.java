@@ -60,6 +60,7 @@ public class VirtualPdfNodeFactory extends FileNodeFactory {
         pdfUO.setValueAt(true, TreeTableColumn.ODD);
         pdfUO.setValueAt(new IntegerList("0"), TreeTableColumn.EMPTY_BEFORE);
         pdfUO.setValueAt(0, TreeTableColumn.BOOKMARK_LEVEL);
+        pdfUO.setSrcFilePath(this.srcFile);
 
         return pdfUO;
     }
