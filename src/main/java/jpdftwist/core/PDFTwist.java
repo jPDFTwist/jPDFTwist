@@ -26,23 +26,19 @@ import com.itextpdf.text.pdf.PdfString;
 import com.itextpdf.text.pdf.PdfTemplate;
 import com.itextpdf.text.pdf.PdfTransition;
 import com.itextpdf.text.pdf.PdfWriter;
-import com.itextpdf.text.pdf.RandomAccessFileOrArray;
 import com.itextpdf.text.pdf.SimpleBookmark;
 import com.itextpdf.text.pdf.interfaces.PdfEncryptionSettings;
 import com.itextpdf.text.pdf.internal.PdfViewerPreferencesImp;
 import jpdftwist.core.ShuffleRule.PageBase;
-import jpdftwist.core.input.VirtualBlankPage;
 import jpdftwist.core.tabparams.RotateParameters;
 import jpdftwist.core.tabparams.ScaleParameters;
 import jpdftwist.core.watermark.WatermarkProcessor;
 import jpdftwist.core.watermark.WatermarkStyle;
-import jpdftwist.utils.JImageParser;
 import jpdftwist.utils.SupportedFileTypes;
 import org.apache.pdfbox.io.RandomAccessRead;
 import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 
@@ -108,12 +104,12 @@ public class PDFTwist {
     private boolean preserveHyperlinks;
     private File tempfile1 = null, tempfile2 = null;
     private PdfToImage pdfImages;
-    private boolean mergeByDir;
+    private final boolean mergeByDir;
     private final boolean useTempFiles;
     private String rootFolder;
     private ArrayList<List<PDAnnotation>> pdAnnotations = new ArrayList<>();
     private ArrayList<PDDocument> pdDocuments;
-    private List<PageRange> pageRanges;
+    private final List<PageRange> pageRanges;
     private int maxLength;
     private int interleaveSize;
     private final OutputEventListener outputEventListener;
@@ -122,6 +118,12 @@ public class PDFTwist {
     public PDFTwist(List<PageRange> pageRanges, boolean useTempFiles, boolean mergeByDir, int interleaveSize, OutputEventListener outputEventListener) throws IOException {
         this.useTempFiles = useTempFiles;
         this.outputEventListener = outputEventListener;
+        this.pageRanges = pageRanges;
+        this.mergeByDir = mergeByDir;
+
+        this.inputFilePath = pageRanges.get(0).getParentName();
+        this.inputFileFullName = pageRanges.get(0).getFilename();
+
         if (useTempFiles) {
             tryToCreateTempOutputFiles();
         }
@@ -129,7 +131,6 @@ public class PDFTwist {
         OutputStream baos = null;
 
         try {
-            this.mergeByDir = mergeByDir;
             baos = createTempOutputStream();
             Document document = new Document();
             PdfCopy copy = null;
@@ -143,22 +144,8 @@ public class PDFTwist {
                 int pagesBefore = 0;
 
                 for (PageRange pageRange : pageRanges) {
-                    if (pageRange.isVirtualFile()) {
-                        if (pageRange.isPDF()) {
-                            currentReader = getVirtualPdfReader(pageRange);
-                        } else if (pageRange.isImage()) {
-                            currentReader = getImagePdfReader(pageRange, pageRange.getVirtualFilePageCount());
-                        } else { // FIXME: Assumes the else is BLANK, too restrictive
-                            currentReader = getBlankReader(pageRange);
-                        }
-                    } else {
-                        if (pageRange.isPDF()) {
-                            RandomAccessFileOrArray raf = new RandomAccessFileOrArray(pageRange.getName(), false, true);
-                            currentReader = new PdfReader(raf, ownerPassword);
-                        } else if (pageRange.isImage()) {
-                            currentReader = getImagePdfReader(pageRange);
-                        } // FIXME: Else throw error
-                    }
+                    InputReader inputReader = new InputReader();
+                    currentReader = inputReader.getPdfReader(pageRange, ownerPassword);
 
                     int[] pages = pageRange.getPages(pagesBefore);
                     for (int page : pages) {
@@ -178,7 +165,6 @@ public class PDFTwist {
                 interleave(copy);
             }
 
-            this.pageRanges = pageRanges;
             pdDocuments = new ArrayList<>();
             document.close();
             currentReader = getTempPdfReader(baos);
@@ -192,8 +178,6 @@ public class PDFTwist {
             }
         }
 
-        inputFilePath = pageRanges.get(0).getParentName();
-        inputFileFullName = pageRanges.get(0).getFilename();
         int pos = inputFileFullName.lastIndexOf('.');
         if (pos == -1) {
             inputFileName = inputFileFullName;
@@ -240,14 +224,8 @@ public class PDFTwist {
         }
     }
 
-    private PdfReader getTempPdfReader(OutputStream out) throws IOException {
-        if (useTempFiles) {
-            return new PdfReader(new RandomAccessFileOrArray(tempfile1.getPath(), false, true), null);
-        } else {
-            ByteArrayOutputStream baos = (ByteArrayOutputStream) out;
-            byte[] bytes = baos.toByteArray();
-            return new PdfReader(bytes);
-        }
+    public PdfReader getTempPdfReader(OutputStream out) throws IOException {
+        return new InputReader().getTempPdfReader(out, useTempFiles, tempfile1.getName());
     }
 
     private void interleave(PdfCopy copy) throws IOException, BadPdfFormatException {
@@ -276,105 +254,6 @@ public class PDFTwist {
                 }
             }
         }
-    }
-
-    private PdfReader getBlankReader(PageRange pageRange) throws IOException, DocumentException {
-        PDDocument document = new PDDocument();
-
-        VirtualBlankPage pageTemplate = pageRange.getVirtualBlankPageTemplate();
-        for (int i = 0; i < pageRange.getVirtualFilePageCount(); i++) {
-            float width = (float) pageTemplate.getWidth();
-            float height = (float) pageTemplate.getHeight();
-
-            PDPage page = new PDPage(new PDRectangle(width, height));
-            document.addPage(page);
-
-            PDPageContentStream cos = new PDPageContentStream(document, page);
-            cos.setNonStrokingColor(pageTemplate.getBackgroundColor());
-            cos.addRect(0, 0, width, height);
-            cos.fill();
-            cos.close();
-        }
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        document.save(out);
-        document.close();
-        out.close();
-
-        return new PdfReader(out.toByteArray());
-    }
-
-    private PdfReader getVirtualPdfReader(PageRange pageRange) throws IOException {
-        PDDocument document = PDDocument.load(new File(inputFilePath));
-        PDDocument newDoc = new PDDocument();
-
-        int numberOfPages = pageRange.getVirtualFilePageCount();
-        int numberOfFilePages = document.getNumberOfPages();
-
-        int repeat = numberOfPages / numberOfFilePages;
-
-        for (int r = 0; r < repeat; r++) {
-            for (int i = 0; i < numberOfFilePages; i++) {
-                PDPage page = document.getDocumentCatalog().getPages().get(i);
-                newDoc.addPage(page);
-            }
-        }
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        newDoc.save(out);
-        newDoc.close();
-        document.close();
-        out.close();
-
-        return new PdfReader(out.toByteArray());
-    }
-
-    private PdfReader getImagePdfReader(PageRange pageRange) {
-        return getImagePdfReader(pageRange, 1);
-    }
-
-    private PdfReader getImagePdfReader(PageRange pageRange, int repeat) {
-        try {
-            Document document = new Document();
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-            PdfWriter writer = PdfWriter.getInstance(document, baos);
-            document.open();
-
-            String srcFile;
-
-            if (pageRange.isVirtualFile()) {
-                srcFile = pageRange.getVirtualFileSrcFilePath();
-            } else {
-                srcFile = pageRange.getName();
-            }
-
-            com.itextpdf.text.Image pdfImage = JImageParser.readItextImage(srcFile);
-
-            if (pdfImage == null) {
-                throw new IOException(
-                    String.format("Image %s\n not supported or corrupted!", pageRange.getName()));
-            }
-
-            for (int i = 0; i < repeat; i++) {
-                document.setPageSize(new Rectangle(pdfImage.getWidth(), pdfImage.getHeight()));
-                document.setMargins(0, 0, 0, 0);
-                document.newPage();
-                document.add(pdfImage);
-            }
-
-            document.close();
-            writer.close();
-
-            PdfReader rdr = new PdfReader(baos.toByteArray());
-            baos.close();
-
-            return rdr;
-        } catch (DocumentException | IOException ex) {
-            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        return null;
     }
 
     private void keepFileParents() {
