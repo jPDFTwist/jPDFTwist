@@ -42,9 +42,9 @@ public class InputReader {
         return null;
     }
 
-    public PdfReader getTempPdfReader(OutputStream out, boolean useTempFiles, String tempFilePath) throws IOException {
+    public PdfReader getTempPdfReader(OutputStream out, boolean useTempFiles, File tempFile) throws IOException {
         if (useTempFiles) {
-            return new PdfReader(tempFilePath, null);
+            return new PdfReader(tempFile.getPath(), null);
         }
 
         byte[] bytes = ((ByteArrayOutputStream) out).toByteArray();

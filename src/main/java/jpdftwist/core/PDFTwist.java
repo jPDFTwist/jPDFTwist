@@ -225,7 +225,11 @@ public class PDFTwist {
     }
 
     public PdfReader getTempPdfReader(OutputStream out) throws IOException {
-        return new InputReader().getTempPdfReader(out, useTempFiles, tempfile1.getName());
+        return new InputReader().getTempPdfReader(out, useTempFiles, tempfile1);
+    }
+
+    public static PdfReader getTempPdfReader(OutputStream out, boolean useTempFiles, File tempFile) throws IOException {
+        return new InputReader().getTempPdfReader(out, useTempFiles, tempFile);
     }
 
     private void interleave(PdfCopy copy) throws IOException, BadPdfFormatException {
@@ -270,7 +274,7 @@ public class PDFTwist {
         this.pdfImages = pdfImages;
     }
 
-    private void copyXMPMetadata(PdfReader reader, PdfWriter writer) throws IOException {
+    public static void copyXMPMetadata(PdfReader reader, PdfWriter writer) throws IOException {
         PdfObject xmpObject = PdfReader.getPdfObject(reader.getCatalog().get(PdfName.METADATA));
         if (xmpObject != null && xmpObject.isStream()) {
             byte[] xmpMetadata = PdfReader.getStreamBytesRaw((PRStream) xmpObject);
@@ -316,7 +320,7 @@ public class PDFTwist {
         currentReader.getCatalog().remove(PdfName.METADATA);
     }
 
-    private void copyInformation(PdfReader source, PdfReader destination) {
+    public static void copyInformation(PdfReader source, PdfReader destination) {
         PdfDictionary srcTrailer = source.getTrailer();
         PdfDictionary dstTrailer = destination.getTrailer();
         if (srcTrailer != null && srcTrailer.isDictionary() && dstTrailer != null && dstTrailer.isDictionary()) {
@@ -325,8 +329,7 @@ public class PDFTwist {
             if (srcInfo != null && srcInfo.isDictionary() && dstInfo != null && dstInfo.isDictionary()) {
                 PdfDictionary srcInfoDic = (PdfDictionary) srcInfo;
                 PdfDictionary dstInfoDic = (PdfDictionary) dstInfo;
-                for (Object k : srcInfoDic.getKeys()) {
-                    PdfName key = (PdfName) k;
+                for (PdfName key : srcInfoDic.getKeys()) {
                     PdfObject value = srcInfoDic.get(key);
                     dstInfoDic.put(key, value);
                 }
@@ -593,53 +596,9 @@ public class PDFTwist {
     }
 
     public void cropPages(PageBox cropTo) throws IOException, DocumentException {
-        outputEventListener.setAction("Cropping");
-        outputEventListener.setPageCount(currentReader.getNumberOfPages());
         OutputStream baos = createTempOutputStream();
-        Document document = new Document();
-        PdfWriter writer = PdfWriter.getInstance(document, baos);
-        PdfContentByte cb = null;
-        int[] rotations = new int[currentReader.getNumberOfPages()];
-        for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
-            outputEventListener.updatePagesProgress();
-
-            PageBox box = cropTo;
-            Rectangle pageSize = currentReader.getPageSize(i);
-            Rectangle currentSize = null;
-            while (box != null) {
-                currentSize = currentReader.getBoxSize(i, box.getBoxName());
-                if (currentSize != null) {
-                    break;
-                }
-                box = box.defaultBox;
-            }
-            if (currentSize == null) {
-                currentSize = pageSize;
-            }
-            document.setMargins(0, 0, 0, 0);
-            document.setPageSize(new Rectangle(currentSize.getWidth(), currentSize.getHeight()));
-            if (cb == null) {
-                document.open();
-                cb = writer.getDirectContent();
-            } else {
-                document.newPage();
-            }
-            rotations[i - 1] = currentReader.getPageRotation(i);
-            PdfImportedPage page = writer.getImportedPage(currentReader, i);
-            cb.addTemplate(page, pageSize.getLeft() - currentSize.getLeft(),
-                pageSize.getBottom() - currentSize.getBottom());
-            if (preserveHyperlinks)
-                repositionAnnotations(i, 1, 0, 0, 1, pageSize.getLeft() - currentSize.getLeft(),
-                    pageSize.getBottom() - currentSize.getBottom());
-        }
-        copyXMPMetadata(currentReader, writer);
-        document.close();
-        copyInformation(currentReader, currentReader = getTempPdfReader(baos));
-        // restore rotation
-        for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
-            PdfDictionary dic = currentReader.getPageN(i);
-            dic.put(PdfName.ROTATE, new PdfNumber(rotations[i - 1]));
-        }
+        CropProcessor cropProcessor = new CropProcessor();
+        cropProcessor.apply(outputEventListener, currentReader, baos, cropTo, preserveHyperlinks, pdAnnotations, useTempFiles, tempfile1);
     }
 
     public void rotatePages(RotateParameters param) {
@@ -743,7 +702,7 @@ public class PDFTwist {
             }
             cb.addTemplate(page, a, b, c, d, e, f);
             if (preserveHyperlinks)
-                repositionAnnotations(i, a, b, c, d, e, f);
+                repositionAnnotations(pdAnnotations, i, a, b, c, d, e, f);
         }
         copyXMPMetadata(currentReader, writer);
         document.close();
@@ -863,7 +822,7 @@ public class PDFTwist {
             cb.addTemplate(page, factorX, 0, 0, factorY, offsetX, offsetY);
 
             if (preserveHyperlinks) {
-                repositionAnnotations(i, factorX, 0, 0, factorY, offsetX, offsetY);
+                repositionAnnotations(pdAnnotations, i, factorX, 0, 0, factorY, offsetX, offsetY);
             }
             writer.addPageDictEntry(PdfName.ROTATE, new PdfNumber(rotation));
         }
@@ -1102,7 +1061,7 @@ public class PDFTwist {
                         page = writer.getImportedPage(currentReader, pg);
                         cb.addTemplate(page, a, b, c, d, e, f);
                         if (preserveHyperlinks)
-                            repositionAnnotations(pg, a, b, c, d, e, f);
+                            repositionAnnotations(pdAnnotations, pg, a, b, c, d, e, f);
 
                         if (sr.getFrameWidth() > 0) {
                             cb.setLineWidth((float) sr.getFrameWidth());
@@ -1374,23 +1333,7 @@ public class PDFTwist {
         }
     }
 
-    public enum PageBox {
-
-        MediaBox(null), CropBox(PageBox.MediaBox), BleedBox(PageBox.CropBox), TrimBox(PageBox.CropBox),
-        ArtBox(PageBox.TrimBox);
-
-        public final PageBox defaultBox;
-
-        private PageBox(PageBox defaultBox) {
-            this.defaultBox = defaultBox;
-        }
-
-        private String getBoxName() {
-            return name().substring(0, name().length() - 3).toLowerCase();
-        }
-    }
-
-    private void repositionAnnotations(int page, float a, float b, float c, float d, float e, float f) {
+    public static void repositionAnnotations(ArrayList<List<PDAnnotation>> pdAnnotations, int page, float a, float b, float c, float d, float e, float f) {
         if (page > pdAnnotations.size())
             return;
 

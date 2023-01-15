@@ -7,7 +7,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import jpdftwist.core.NumberField;
 import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
-import jpdftwist.core.PDFTwist.PageBox;
+import jpdftwist.core.PageBox;
 import jpdftwist.core.PageDimension;
 import jpdftwist.core.UnitTranslator;
 import jpdftwist.core.tabparams.RotateParameters;
