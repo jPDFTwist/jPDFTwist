@@ -46,7 +46,7 @@ public class Main {
             final StringWriter sw = new StringWriter();
             final PrintWriter pw = new PrintWriter(sw);
             pw.write(
-                "Please open a github issue at https://github.com/xlance-github/JPDFTwist\nTry to provide specific information about when this error occurred.\n\nJPDFTwist version: 1.1 Stage XIV\nJava version: "
+                "Please open a github issue at https://github.com/xlance-github/jPDFTwist\nTry to provide specific information about when this error occurred.\n\nJPDFTwist version: 1.1 Stage XIV\nJava version: "
                     + System.getProperty("java.version") + " (" + System.getProperty("java.vendor") + ")\n"
                     + "Operating System: " + System.getProperty("os.name") + " ("
                     + System.getProperty("os.version") + ", " + System.getProperty("os.arch") + ")\n\n");
