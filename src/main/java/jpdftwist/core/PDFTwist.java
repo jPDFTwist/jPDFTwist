@@ -704,32 +704,10 @@ public class PDFTwist {
         }
     }
 
-    public void setPageNumbers(PdfPageLabelFormat[] labelFormats)
-        throws DocumentException, IOException {
-        PdfPageLabels lbls = new PdfPageLabels();
-        for (PdfPageLabelFormat format : labelFormats) {
-            lbls.addPageLabel(format);
-        }
-        Document document = new Document(currentReader.getPageSizeWithRotation(1));
+    public void setPageNumbers(PdfPageLabelFormat[] labelFormats) throws DocumentException, IOException {
         OutputStream baos = createTempOutputStream();
-        PdfCopy copy = new PdfCopy(document, baos);
-        document.open();
-        PdfImportedPage page;
-        outputEventListener.setAction("Adding page numbers");
-        outputEventListener.setPageCount(currentReader.getNumberOfPages());
-        for (int i = 0; i < currentReader.getNumberOfPages(); i++) {
-            outputEventListener.updatePagesProgress();
-            page = copy.getImportedPage(currentReader, i + 1);
-            copy.addPage(page);
-        }
-        PRAcroForm form = currentReader.getAcroForm();
-        if (form != null) {
-            copy.copyAcroForm(currentReader);
-        }
-        copy.setPageLabels(lbls);
-        copyXMPMetadata(currentReader, copy);
-        document.close();
-        copyInformation(currentReader, currentReader = getTempPdfReader(baos));
+        PageNumberProcessor pageNumberProcessor = new PageNumberProcessor();
+        currentReader = pageNumberProcessor.addPageNumbers(outputEventListener, currentReader, baos, labelFormats, useTempFiles, tempfile1);
     }
 
     public void preserveHyperlinks() {
