@@ -598,7 +598,7 @@ public class PDFTwist {
     public void cropPages(PageBox cropTo) throws IOException, DocumentException {
         OutputStream baos = createTempOutputStream();
         CropProcessor cropProcessor = new CropProcessor();
-        cropProcessor.apply(outputEventListener, currentReader, baos, cropTo, preserveHyperlinks, pdAnnotations, useTempFiles, tempfile1);
+        currentReader = cropProcessor.apply(outputEventListener, currentReader, baos, cropTo, preserveHyperlinks, pdAnnotations, useTempFiles, tempfile1);
     }
 
     public void rotatePages(RotateParameters param) {
@@ -712,7 +712,7 @@ public class PDFTwist {
     public void scalePages(ScaleParameters param) throws DocumentException, IOException {
         OutputStream baos = createTempOutputStream();
         ScaleProcessor scaleProcessor = new ScaleProcessor();
-        scaleProcessor.apply(outputEventListener, currentReader, baos, param, preserveHyperlinks, pdAnnotations, useTempFiles, tempfile1);
+        currentReader = scaleProcessor.apply(outputEventListener, currentReader, baos, param, preserveHyperlinks, pdAnnotations, useTempFiles, tempfile1);
     }
 
     public void shufflePages(int passLength, int blockSize, ShuffleRule[] shuffleRules) throws DocumentException, IOException {

@@ -24,7 +24,7 @@ public class ScaleProcessor {
     private float offsetX;
     private float offsetY;
 
-    public void apply(OutputEventListener outputEventListener, PdfReader currentReader, OutputStream baos, ScaleParameters param, boolean preserveHyperlinks,
+    public PdfReader apply(OutputEventListener outputEventListener, PdfReader currentReader, OutputStream baos, ScaleParameters param, boolean preserveHyperlinks,
                       ArrayList<List<PDAnnotation>> pdAnnotations, boolean useTempFiles, File tempFile) throws DocumentException, IOException {
         outputEventListener.setAction("Scaling");
         outputEventListener.setPageCount(currentReader.getNumberOfPages());
@@ -139,7 +139,9 @@ public class ScaleProcessor {
         }
         PDFTwist.copyXMPMetadata(currentReader, writer);
         document.close();
-        PDFTwist.copyInformation(currentReader, currentReader = PDFTwist.getTempPdfReader(baos, useTempFiles, tempFile));
+        PdfReader resultReader = PDFTwist.getTempPdfReader(baos, useTempFiles, tempFile);
+        PDFTwist.copyInformation(currentReader, resultReader);
+        return resultReader;
     }
 
     private int justifyValueWithRotation(int rotation, int index) {
