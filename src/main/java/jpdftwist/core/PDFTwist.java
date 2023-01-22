@@ -255,6 +255,10 @@ public class PDFTwist {
         }
     }
 
+    /**
+     * @deprecated
+     * Use the cleanupOpenResources
+     */
     public void cleanup() {
         if (tempfile1 != null) {
             tempfile1.delete();
@@ -327,244 +331,40 @@ public class PDFTwist {
         }
     }
 
-    public void writeOutput(String outputFile, boolean multipageTiff, boolean burst, boolean uncompressed,
-                            boolean sizeOptimize, boolean fullyCompressed)
+    public void writeOutput(String rawOutputFile, boolean multiPageTiff, boolean burst, boolean uncompressed, boolean sizeOptimize, boolean fullyCompressed)
         throws IOException, DocumentException {
-        if (!outputFile.contains(File.separator)) {
-            File temp = new File(outputFile);
-            outputFile = temp.getAbsolutePath();
-        }
-        if (sizeOptimize) {
-            Document document = new Document(currentReader.getPageSizeWithRotation(1));
-            OutputStream baos = createTempOutputStream();
-            PdfSmartCopy copy = new PdfSmartCopy(document, baos);
-            document.open();
-            PdfImportedPage page;
-            outputEventListener.setPageCount(currentReader.getNumberOfPages());
-            if (isCanceled) {
-                return;
-            }
-            for (int i = 0; i < currentReader.getNumberOfPages(); i++) {
-                outputEventListener.updatePagesProgress();
-                if (isCanceled) {
-                    return;
-                }
-                page = copy.getImportedPage(currentReader, i + 1);
-                copy.addPage(page);
-            }
-            PRAcroForm form = currentReader.getAcroForm();
-            if (form != null) {
-                copy.copyAcroForm(currentReader);
-            }
-            copy.setOutlines(SimpleBookmark.getBookmark(currentReader));
-            PdfViewerPreferencesImp.getViewerPreferences(currentReader.getCatalog())
-                .addToCatalog(copy.getExtraCatalog());
-            copyXMPMetadata(currentReader, copy);
-            PdfPageLabelFormat[] formats = PdfPageLabels.getPageLabelFormats(currentReader);
-            if (formats != null) {
-                PdfPageLabels lbls = new PdfPageLabels();
-                for (PdfPageLabelFormat format : formats) {
-                    lbls.addPageLabel(format);
-                }
-                copy.setPageLabels(lbls);
-            }
-            document.close();
-            copyInformation(currentReader, currentReader = getTempPdfReader(baos));
-        }
 
-        String outpath = inputFilePath;
-        outpath = outpath.replace(rootFolder, "");
-        if (outpath.contains(":") && System.getProperty("os.name").toLowerCase().contains("win")) {
-            outpath = outpath.replace(":", "");
-            outpath = File.separator + outpath;
-        }
+        final String outputFile = expandOutputPath(rawOutputFile);
 
-        outputFile = outputFile.replace("<T>", outpath);
-
-        if (mergeByDir) {
-            outpath = outpath.replace(File.separatorChar, '_');
-            outputFile = outputFile.replace("<F>", outpath);
-            outputFile = outputFile.replace("<FX>", outpath + ".pdf");
-        } else {
-            outputFile = outputFile.replace("<F>", inputFileName);
-            outputFile = outputFile.replace("<FX>", inputFileFullName);
-        }
-
-        outputFile = outputFile.replace("<P>", inputFilePath);
-        if (outputFile.contains("<#>")) {
-            for (int i = 1; ; i++) {
-                String f = outputFile.replace("<#>", "" + i);
-                if (!new File(f).exists()) {
-                    outputFile = f;
-                    break;
-                }
-            }
-        }
-        cargoCult();
         try {
+            if (sizeOptimize) {
+                currentReader = optimizeSize();
+            }
+
+            cargoCult();
+
             if (uncompressed && pdfImages == null) {
                 Document.compress = false;
             }
-            int total = currentReader.getNumberOfPages();
-            outputEventListener.setPageCount(total);
-            if (multipageTiff) {
-                if (outputFile.indexOf('*') != -1) {
-                    throw new IOException("TIFF multipage filename should not contain *");
-                }
-                Document document = new Document(currentReader.getPageSizeWithRotation(1));
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                PdfCopy copy = new PdfCopy(document, baos);
-                document.open();
-                PdfImportedPage page;
-                for (int pagenum = 1; pagenum <= currentReader.getNumberOfPages(); pagenum++) {
-                    outputEventListener.updatePagesProgress();
-                    if (isCanceled) {
-                        return;
-                    }
-                    page = copy.getImportedPage(currentReader, pagenum);
-                    copy.addPage(page);
-                }
-                PRAcroForm form = currentReader.getAcroForm();
-                if (form != null) {
-                    copy.copyAcroForm(currentReader);
-                }
-                document.close();
-                pdfImages.convertToMultiTiff(baos.toByteArray(), outputFile);
+            int pageCount = currentReader.getNumberOfPages();
+            outputEventListener.setPageCount(pageCount);
+            if (multiPageTiff) {
+                outputMultiPageTiff(outputFile);
             } else if (burst) {
-                if (outputFile.indexOf('*') == -1) {
-                    throw new IOException("Output filename does not contain *");
-                }
-                String prefix = outputFile.substring(0, outputFile.indexOf('*'));
-                String suffix = outputFile.substring(outputFile.indexOf('*') + 1);
-                String[] pageLabels = PdfPageLabels.getPageLabels(currentReader);
-                PdfCopy copy;
-                ByteArrayOutputStream baos = null;
-                for (int pagenum = 1; pagenum <= currentReader.getNumberOfPages(); pagenum++) {
-                    outputEventListener.updatePagesProgress();
-                    if (isCanceled) {
-                        return;
-                    }
-                    Document document = new Document(currentReader.getPageSizeWithRotation(1));
-                    String pageNumber = "" + pagenum;
-                    if (pageLabels != null && pagenum <= pageLabels.length) {
-                        pageNumber = pageLabels[pagenum - 1];
-                    }
-                    File outFile = new File(prefix + pageNumber + suffix);
-                    if (!outFile.getParentFile().isDirectory()) {
-                        outFile.getParentFile().mkdirs();
-                    }
-                    if (pdfImages.shouldExecute()) {
-                        baos = new ByteArrayOutputStream();
-                        copy = new PdfCopy(document, baos);
-                    } else {
-                        copy = new PdfCopy(document, Files.newOutputStream(outFile.toPath()));
-                        setEncryptionSettings(copy);
-                        if (fullyCompressed) {
-                            copy.setFullCompression();
-                        }
-                    }
-                    document.open();
-                    PdfImportedPage page;
-                    page = copy.getImportedPage(currentReader, pagenum);
-                    copy.addPage(page);
-                    PRAcroForm form = currentReader.getAcroForm();
-                    if (form != null) {
-                        copy.copyAcroForm(currentReader);
-                    }
-                    document.close();
-                    if (pdfImages.shouldExecute()) {
-                        pdfImages.convertToImage(baos.toByteArray(), prefix + pageNumber + suffix);
-                    }
-                }
+                burstFiles(outputFile, fullyCompressed);
             } else {
-                PdfStamper stamper;
-                if (key != null) {
-                    new File(outputFile).getParentFile().mkdirs();
-                    stamper = PdfStamper.createSignature(currentReader, Files.newOutputStream(Paths.get(outputFile)), '\0', null,
-                        true);
-                    PdfSignatureAppearance sap = stamper.getSignatureAppearance();
-                    sap.setCrypto(key, certChain, null, PdfSignatureAppearance.WINCER_SIGNED);
-                    sap.setCertificationLevel(certificationLevel);
-                    if (sigVisible) {
-                        sap.setVisibleSignature(new Rectangle(100, 100, 200, 200), 1, null);
-                    }
-                } else {
-                    new File(outputFile).getParentFile().mkdirs();
-                    stamper = new PdfStamper(currentReader, Files.newOutputStream(Paths.get(outputFile)));
-                }
-                setEncryptionSettings(stamper);
-                if (fullyCompressed) {
-                    stamper.setFullCompression();
-                }
-                for (int i = 1; i <= total; i++) {
-                    outputEventListener.updatePagesProgress();
-                    if (isCanceled) {
-                        return;
-                    }
-
-                    currentReader.setPageContent(i, currentReader.getPageContent(i));
-                }
-                if (transitionValues != null) {
-                    for (int i = 0; i < total; i++) {
-                        PdfTransition t = transitionValues[i][0] == 0 ? null
-                            : new PdfTransition(transitionValues[i][0], transitionValues[i][1]);
-                        stamper.setTransition(t, i + 1);
-                        stamper.setDuration(transitionValues[i][2], i + 1);
-                    }
-                }
-                if (optionalViewerPreferences != null) {
-                    stamper.setViewerPreferences(simpleViewerPreferences);
-                    for (Map.Entry<PdfName, PdfObject> e : optionalViewerPreferences.entrySet()) {
-                        stamper.addViewerPreference(e.getKey(), e.getValue());
-                    }
-                }
-                if (attachments != null) {
-                    for (File f : attachments) {
-                        stamper.addFileAttachment(f.getName(), null, f.getAbsolutePath(), f.getName());
-                    }
-                }
-                stamper.close();
+                outputPdf(outputFile, fullyCompressed, pageCount);
             }
+        } catch (CancelOperationException ignored) {
+            return;
         } finally {
             Document.compress = true;
         }
-        currentReader.close();
-        currentReader = null;
-        if (tempfile1 != null && !tempfile1.delete()) {
-            throw new IOException("Cannot delete " + tempfile1);
-        }
-        if (tempfile2 != null && !tempfile2.delete()) {
-            throw new IOException("Cannot delete " + tempfile2);
-        }
-        tempfile1 = tempfile2 = null;
+
+        cleanupOpenResources();
 
         if (preserveHyperlinks) {
-            InputStream in = Files.newInputStream(Paths.get(outputFile));
-            PDFParser parser = new PDFParser((RandomAccessRead) in);
-            parser.parse();
-            PDDocument document = parser.getPDDocument();
-            List<PDPage> allPages = (List<PDPage>) document.getDocumentCatalog().getPages();
-            for (int i = 0; i < allPages.size(); i++) {
-                PDPage page = allPages.get(i);
-                page.setAnnotations(pdAnnotations.get(i));
-            }
-            try {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                document.save(out);
-                document.close();
-                OutputStream outStream = Files.newOutputStream(Paths.get(outputFile));
-                out.writeTo(outStream);
-                out.close();
-                outStream.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            if (!pdDocuments.isEmpty()) {
-                for (PDDocument pdDocument : pdDocuments) {
-                    pdDocument.close();
-                }
-            }
+            preserveHyperlinks(outputFile);
         }
     }
 
@@ -751,5 +551,252 @@ public class PDFTwist {
 
             annot.setRectangle(rect);
         }
+    }
+
+    private String expandOutputPath(final String rawOutputFile) {
+        String outputFile = rawOutputFile;
+
+        if (!outputFile.contains(File.separator)) {
+            File temp = new File(outputFile);
+            outputFile = temp.getAbsolutePath();
+        }
+
+        String outpath = inputFilePath;
+        outpath = outpath.replace(rootFolder, "");
+        if (outpath.contains(":") && System.getProperty("os.name").toLowerCase().contains("win")) {
+            outpath = outpath.replace(":", "");
+            outpath = File.separator + outpath;
+        }
+
+        outputFile = outputFile.replace("<T>", outpath);
+
+        if (mergeByDir) {
+            outpath = outpath.replace(File.separatorChar, '_');
+            outputFile = outputFile.replace("<F>", outpath);
+            outputFile = outputFile.replace("<FX>", outpath + ".pdf");
+        } else {
+            outputFile = outputFile.replace("<F>", inputFileName);
+            outputFile = outputFile.replace("<FX>", inputFileFullName);
+        }
+
+        outputFile = outputFile.replace("<P>", inputFilePath);
+        if (outputFile.contains("<#>")) {
+            for (int i = 1; ; i++) {
+                String f = outputFile.replace("<#>", "" + i);
+                if (!new File(f).exists()) {
+                    outputFile = f;
+                    break;
+                }
+            }
+        }
+
+        return outputFile;
+    }
+
+    private PdfReader optimizeSize() throws IOException, DocumentException {
+        Document document = new Document(currentReader.getPageSizeWithRotation(1));
+        OutputStream baos = createTempOutputStream();
+        PdfSmartCopy copy = new PdfSmartCopy(document, baos);
+        document.open();
+        PdfImportedPage page;
+        outputEventListener.setPageCount(currentReader.getNumberOfPages());
+        if (isCanceled) {
+            throw new CancelOperationException();
+        }
+        for (int i = 0; i < currentReader.getNumberOfPages(); i++) {
+            outputEventListener.updatePagesProgress();
+            if (isCanceled) {
+                throw new CancelOperationException();
+            }
+            page = copy.getImportedPage(currentReader, i + 1);
+            copy.addPage(page);
+        }
+        PRAcroForm form = currentReader.getAcroForm();
+        if (form != null) {
+            copy.copyAcroForm(currentReader);
+        }
+        copy.setOutlines(SimpleBookmark.getBookmark(currentReader));
+        PdfViewerPreferencesImp.getViewerPreferences(currentReader.getCatalog())
+            .addToCatalog(copy.getExtraCatalog());
+        copyXMPMetadata(currentReader, copy);
+        PdfPageLabelFormat[] formats = PdfPageLabels.getPageLabelFormats(currentReader);
+        if (formats != null) {
+            PdfPageLabels lbls = new PdfPageLabels();
+            for (PdfPageLabelFormat format : formats) {
+                lbls.addPageLabel(format);
+            }
+            copy.setPageLabels(lbls);
+        }
+        document.close();
+
+        PdfReader optimizedSizeReader = getTempPdfReader(baos, useTempFiles, tempfile1);
+        copyInformation(currentReader, optimizedSizeReader);
+
+        return optimizedSizeReader;
+    }
+
+    private void outputMultiPageTiff(String outputFile) throws IOException, DocumentException {
+        if (outputFile.indexOf('*') != -1) {
+            throw new IOException("TIFF multi-page filename should not contain *");
+        }
+        Document document = new Document(currentReader.getPageSizeWithRotation(1));
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PdfCopy copy = new PdfCopy(document, baos);
+        document.open();
+        PdfImportedPage page;
+        for (int pagenum = 1; pagenum <= currentReader.getNumberOfPages(); pagenum++) {
+            outputEventListener.updatePagesProgress();
+            if (isCanceled) {
+                throw new CancelOperationException();
+            }
+            page = copy.getImportedPage(currentReader, pagenum);
+            copy.addPage(page);
+        }
+        PRAcroForm form = currentReader.getAcroForm();
+        if (form != null) {
+            copy.copyAcroForm(currentReader);
+        }
+        document.close();
+        pdfImages.convertToMultiTiff(baos.toByteArray(), outputFile);
+    }
+
+    private void burstFiles(String outputFile, boolean fullyCompressed) throws IOException, DocumentException {
+        if (outputFile.indexOf('*') == -1) {
+            throw new IOException("Output filename does not contain *");
+        }
+        String prefix = outputFile.substring(0, outputFile.indexOf('*'));
+        String suffix = outputFile.substring(outputFile.indexOf('*') + 1);
+        String[] pageLabels = PdfPageLabels.getPageLabels(currentReader);
+        PdfCopy copy;
+        ByteArrayOutputStream baos = null;
+        for (int pagenum = 1; pagenum <= currentReader.getNumberOfPages(); pagenum++) {
+            outputEventListener.updatePagesProgress();
+            if (isCanceled) {
+                throw new CancelOperationException();
+            }
+            Document document = new Document(currentReader.getPageSizeWithRotation(1));
+            String pageNumber = "" + pagenum;
+            if (pageLabels != null && pagenum <= pageLabels.length) {
+                pageNumber = pageLabels[pagenum - 1];
+            }
+            File outFile = new File(prefix + pageNumber + suffix);
+            if (!outFile.getParentFile().isDirectory()) {
+                outFile.getParentFile().mkdirs();
+            }
+            if (pdfImages.shouldExecute()) {
+                baos = new ByteArrayOutputStream();
+                copy = new PdfCopy(document, baos);
+            } else {
+                copy = new PdfCopy(document, Files.newOutputStream(outFile.toPath()));
+                setEncryptionSettings(copy);
+                if (fullyCompressed) {
+                    copy.setFullCompression();
+                }
+            }
+            document.open();
+            PdfImportedPage page;
+            page = copy.getImportedPage(currentReader, pagenum);
+            copy.addPage(page);
+            PRAcroForm form = currentReader.getAcroForm();
+            if (form != null) {
+                copy.copyAcroForm(currentReader);
+            }
+            document.close();
+            if (pdfImages.shouldExecute()) {
+                pdfImages.convertToImage(baos.toByteArray(), prefix + pageNumber + suffix);
+            }
+        }
+    }
+
+    private void outputPdf(String outputFile, boolean fullyCompressed, int total) throws IOException, DocumentException {
+        PdfStamper stamper;
+        if (key != null) {
+            new File(outputFile).getParentFile().mkdirs();
+            stamper = PdfStamper.createSignature(currentReader, Files.newOutputStream(Paths.get(outputFile)), '\0', null,
+                true);
+            PdfSignatureAppearance sap = stamper.getSignatureAppearance();
+            sap.setCrypto(key, certChain, null, PdfSignatureAppearance.WINCER_SIGNED);
+            sap.setCertificationLevel(certificationLevel);
+            if (sigVisible) {
+                sap.setVisibleSignature(new Rectangle(100, 100, 200, 200), 1, null);
+            }
+        } else {
+            new File(outputFile).getParentFile().mkdirs();
+            stamper = new PdfStamper(currentReader, Files.newOutputStream(Paths.get(outputFile)));
+        }
+        setEncryptionSettings(stamper);
+        if (fullyCompressed) {
+            stamper.setFullCompression();
+        }
+        for (int i = 1; i <= total; i++) {
+            outputEventListener.updatePagesProgress();
+            if (isCanceled) {
+                throw new CancelOperationException();
+            }
+
+            currentReader.setPageContent(i, currentReader.getPageContent(i));
+        }
+        if (transitionValues != null) {
+            for (int i = 0; i < total; i++) {
+                PdfTransition t = transitionValues[i][0] == 0 ? null
+                    : new PdfTransition(transitionValues[i][0], transitionValues[i][1]);
+                stamper.setTransition(t, i + 1);
+                stamper.setDuration(transitionValues[i][2], i + 1);
+            }
+        }
+        if (optionalViewerPreferences != null) {
+            stamper.setViewerPreferences(simpleViewerPreferences);
+            for (Map.Entry<PdfName, PdfObject> e : optionalViewerPreferences.entrySet()) {
+                stamper.addViewerPreference(e.getKey(), e.getValue());
+            }
+        }
+        if (attachments != null) {
+            for (File f : attachments) {
+                stamper.addFileAttachment(f.getName(), null, f.getAbsolutePath(), f.getName());
+            }
+        }
+        stamper.close();
+    }
+
+    private void preserveHyperlinks(String outputFile) throws IOException {
+        InputStream in = Files.newInputStream(Paths.get(outputFile));
+        PDFParser parser = new PDFParser((RandomAccessRead) in);
+        parser.parse();
+        PDDocument document = parser.getPDDocument();
+        List<PDPage> allPages = (List<PDPage>) document.getDocumentCatalog().getPages();
+        for (int i = 0; i < allPages.size(); i++) {
+            PDPage page = allPages.get(i);
+            page.setAnnotations(pdAnnotations.get(i));
+        }
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            document.save(out);
+            document.close();
+            OutputStream outStream = Files.newOutputStream(Paths.get(outputFile));
+            out.writeTo(outStream);
+            out.close();
+            outStream.close();
+        } catch (IOException ex) {
+            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        if (!pdDocuments.isEmpty()) {
+            for (PDDocument pdDocument : pdDocuments) {
+                pdDocument.close();
+            }
+        }
+    }
+
+    private void cleanupOpenResources() throws IOException {
+        currentReader.close();
+        currentReader = null;
+        if (tempfile1 != null && !tempfile1.delete()) {
+            throw new IOException("Cannot delete " + tempfile1);
+        }
+        if (tempfile2 != null && !tempfile2.delete()) {
+            throw new IOException("Cannot delete " + tempfile2);
+        }
+        tempfile1 = null;
+        tempfile2 = null;
     }
 }

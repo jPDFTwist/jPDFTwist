@@ -78,9 +78,9 @@ public class OutputTab extends JPanel {
                 fileTypeComboBox.setEnabled(false);
                 burst.setSelected(false);
                 if (!multiPageTiffCheckBox.isSelected()) {
-                    onOutputTypeChanged(PdfToImage.ImageType.PDF);
+                    fileTypeComboBox.getModel().setSelectedItem(PdfToImage.ImageType.PDF);
                 } else {
-                    onOutputTypeChanged(PdfToImage.ImageType.TIFF);
+                    fileTypeComboBox.getModel().setSelectedItem(PdfToImage.ImageType.TIFF);
                 }
                 String filename = outputFile.getText();
                 filename = replaceFileExtension(filename);
@@ -315,7 +315,8 @@ public class OutputTab extends JPanel {
             outputType.equals(PdfToImage.ImageType.PNM) ||
             outputType.equals(PdfToImage.ImageType.GIF) ||
             outputType.equals(PdfToImage.ImageType.JPG) ||
-            outputType.equals(PdfToImage.ImageType.PNG)) {
+            outputType.equals(PdfToImage.ImageType.PNG) ||
+            outputType.equals(PdfToImage.ImageType.TIFF)) {
             colorMode.setModel(grayAndRGBModel);
         } else if (outputType.equals(PdfToImage.ImageType.BMP)) {
             colorMode.setModel(bmpModel);
