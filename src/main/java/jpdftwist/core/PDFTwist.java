@@ -641,10 +641,8 @@ public class PDFTwist {
 
     public void updateBookmarks(PdfBookmark[] bm) throws DocumentException, IOException {
         OutputStream baos = createTempOutputStream();
-        PdfStamper stamper = new PdfStamper(currentReader, baos);
-        stamper.setOutlines(PdfBookmark.makeBookmarks(bm));
-        stamper.close();
-        currentReader = getTempPdfReader(baos);
+        BookmarksProcessor bookmarksProcessor = new BookmarksProcessor();
+        bookmarksProcessor.updateBookmarks(currentReader, baos, bm, useTempFiles, tempfile1);
     }
 
     public void addWatermark(String wmFile, String wmText, int wmSize, float wmOpacity, Color wmColor, int pnPosition,
