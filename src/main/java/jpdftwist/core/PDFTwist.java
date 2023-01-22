@@ -3,7 +3,6 @@ package jpdftwist.core;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.pdf.BadPdfFormatException;
 import com.itextpdf.text.pdf.PRAcroForm;
 import com.itextpdf.text.pdf.PRStream;
 import com.itextpdf.text.pdf.PdfCopy;
@@ -81,10 +80,9 @@ public class PDFTwist {
     private final boolean useTempFiles;
     private String rootFolder;
     private ArrayList<List<PDAnnotation>> pdAnnotations = new ArrayList<>();
-    private ArrayList<PDDocument> pdDocuments;
+    private final ArrayList<PDDocument> pdDocuments;
     private final List<PageRange> pageRanges;
-    private int maxLength;
-    private int interleaveSize;
+    private final int interleaveSize;
     private final OutputEventListener outputEventListener;
     private boolean isCanceled = false;
 
@@ -93,69 +91,38 @@ public class PDFTwist {
         this.outputEventListener = outputEventListener;
         this.pageRanges = pageRanges;
         this.mergeByDir = mergeByDir;
+        this.interleaveSize = interleaveSize;
 
         this.inputFilePath = pageRanges.get(0).getParentName();
         this.inputFileFullName = pageRanges.get(0).getFilename();
-
-        if (useTempFiles) {
-            tryToCreateTempOutputFiles();
-        }
-
-        OutputStream baos = null;
-
-        try {
-            baos = createTempOutputStream();
-            Document document = new Document();
-            PdfCopy copy = null;
-            try {
-                copy = new PdfCopy(document, baos);
-            } catch (DocumentException ex) {
-                Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            document.open();
-            if (interleaveSize == 0) {
-                int pagesBefore = 0;
-
-                for (PageRange pageRange : pageRanges) {
-                    InputReader inputReader = new InputReader();
-                    currentReader = inputReader.getPdfReader(pageRange, ownerPassword);
-
-                    int[] pages = pageRange.getPages(pagesBefore);
-                    for (int page : pages) {
-                        if (page == -1) {
-                            copy.addPage(currentReader.getPageSizeWithRotation(1), 0);
-                        } else {
-                            copy.addPage(copy.getImportedPage(currentReader, page));
-                        }
-                    }
-                    copy.freeReader(currentReader);
-                    currentReader.close();
-
-                    pagesBefore += pages.length;
-                }
-            } else {
-                this.interleaveSize = interleaveSize;
-                interleave(copy);
-            }
-
-            pdDocuments = new ArrayList<>();
-            document.close();
-            currentReader = getTempPdfReader(baos);
-        } catch (IOException | DocumentException ex) {
-            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                baos.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
         int pos = inputFileFullName.lastIndexOf('.');
         if (pos == -1) {
             inputFileName = inputFileFullName;
         } else {
             inputFileName = inputFileFullName.substring(0, pos);
+        }
+
+        if (useTempFiles) {
+            tryToCreateTempOutputFiles();
+        }
+
+        pdDocuments = new ArrayList<>();
+
+        OutputStream baos = createTempOutputStream();
+
+        try {
+            InputOrderProcessor inputOrderProcessor = new InputOrderProcessor();
+            currentReader = inputOrderProcessor.initializeReader(baos, pageRanges, ownerPassword, interleaveSize, useTempFiles, tempfile1);
+        } catch (IOException | DocumentException ex) {
+            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                if (baos != null) {
+                    baos.close();
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
 
         keepFileParents();
@@ -197,40 +164,8 @@ public class PDFTwist {
         }
     }
 
-    public PdfReader getTempPdfReader(OutputStream out) throws IOException {
-        return new InputReader().getTempPdfReader(out, useTempFiles, tempfile1);
-    }
-
     public static PdfReader getTempPdfReader(OutputStream out, boolean useTempFiles, File tempFile) throws IOException {
         return new InputReader().getTempPdfReader(out, useTempFiles, tempFile);
-    }
-
-    private void interleave(PdfCopy copy) throws IOException, BadPdfFormatException {
-        int[][] pagesPerRange = new int[pageRanges.size()][];
-        maxLength = 0;
-        for (int i = 0; i < pagesPerRange.length; i++) {
-            PageRange range = pageRanges.get(i);
-            pagesPerRange[i] = range.getPages(0);
-            if (pagesPerRange[i].length > maxLength) {
-                maxLength = pagesPerRange[i].length;
-            }
-        }
-
-        int blockCount = (maxLength + interleaveSize - 1) / interleaveSize;
-        for (int i = 0; i < blockCount; i++) {
-            for (int j = 0; j < pageRanges.size(); j++) {
-                int[] pages = pagesPerRange[j];
-                for (int k = 0; k < interleaveSize; k++) {
-                    int pageIndex = i * interleaveSize + k;
-                    int pageNum = pageIndex < pages.length ? pages[pageIndex] : -1;
-                    if (pageNum == -1) {
-                        copy.addPage(currentReader.getPageSizeWithRotation(1), 0);
-                    } else {
-                        copy.addPage(copy.getImportedPage(currentReader, pageNum));
-                    }
-                }
-            }
-        }
     }
 
     private void keepFileParents() {
@@ -423,6 +358,16 @@ public class PDFTwist {
     public void addWatermark(WatermarkStyle style) throws DocumentException, IOException {
         final OutputStream baos = createTempOutputStream();
         WatermarkProcessor watermarkProcessor = new WatermarkProcessor();
+        int[][] pagesPerRange = new int[pageRanges.size()][];
+        int maxLength = 0;
+
+        for (int i = 0; i < pagesPerRange.length; i++) {
+            PageRange range = pageRanges.get(i);
+            pagesPerRange[i] = range.getPages(0);
+            if (pagesPerRange[i].length > maxLength) {
+                maxLength = pagesPerRange[i].length;
+            }
+        }
         currentReader = watermarkProcessor.apply(baos, currentReader, style, pageRanges, maxLength, interleaveSize, useTempFiles, tempfile1);
     }
 
