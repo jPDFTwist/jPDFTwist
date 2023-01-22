@@ -1,17 +1,13 @@
 package jpdftwist.core;
 
-import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.BadPdfFormatException;
-import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PRAcroForm;
 import com.itextpdf.text.pdf.PRStream;
-import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfCopy;
 import com.itextpdf.text.pdf.PdfDictionary;
-import com.itextpdf.text.pdf.PdfGState;
 import com.itextpdf.text.pdf.PdfImportedPage;
 import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfNumber;
@@ -53,7 +49,6 @@ import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
-import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
@@ -656,113 +651,14 @@ public class PDFTwist {
                              boolean pnFlipEven, int pnSize, float pnHOff, float pnVOff, String mask)
         throws DocumentException, IOException {
         OutputStream baos = createTempOutputStream();
-        int pagecount = currentReader.getNumberOfPages();
-        PdfGState gs1 = new PdfGState();
-        gs1.setFillOpacity(wmOpacity);
-        PdfStamper stamper = new PdfStamper(currentReader, baos);
-        BaseFont bf = BaseFont.createFont("Helvetica", BaseFont.WINANSI, false);
-        float txtwidth = 0;
-        PdfImportedPage wmTemplate = null;
-        String[] pageLabels = null;
-        PdfPageLabelFormat[] pageLabelFormats = null;
-        if (wmText != null) {
-            txtwidth = bf.getWidthPoint(wmText, wmSize);
-        }
-        if (wmFile != null) {
-            wmTemplate = stamper.getImportedPage(jpdftwist.utils.PdfParser.open(wmFile, true), 1);
-        }
-        if (mask != null && mask.length() > 0) {
-            pageLabels = PdfPageLabels.getPageLabels(currentReader);
-            if (pageLabels == null) {
-                pageLabels = new String[pagecount];
-                for (int i = 1; i <= pagecount; i++) {
-                    pageLabels[i - 1] = "" + i;
-                }
-            }
-            pageLabelFormats = PdfPageLabels.getPageLabelFormats(currentReader);
-            if (pageLabelFormats == null || pageLabelFormats.length == 0) {
-                pageLabelFormats = new PdfPageLabelFormat[]{
-                    new PdfPageLabelFormat(1, PdfPageLabels.DECIMAL_ARABIC_NUMERALS, "", 1)};
-            }
-        }
-        for (int i = 1; i <= pagecount; i++) {
-            if (wmTemplate != null) {
-                PdfContentByte underContent = stamper.getUnderContent(i);
-                underContent.addTemplate(wmTemplate, 0, 0);
-                /*
-                 * if (preserveHyperlinks) { List links = currentReader.getLinks(i); PdfWriter w
-                 * = underContent.getPdfWriter(); for (int j = 0; j < links.size(); j++) {
-                 * PdfAnnotation.PdfImportedLink link = (PdfAnnotation.PdfImportedLink)
-                 * links.get(j); if (link.isInternal()) { continue; // preserving internal links
-                 * would be pointless here } w.addAnnotation(link.createAnnotation(w)); } }
-                 */
-            }
-            PdfContentByte overContent = stamper.getOverContent(i);
-            Rectangle size = currentReader.getPageSizeWithRotation(i);
-            if (wmText != null) {
-                float angle = (float) Math.atan(size.getHeight() / size.getWidth());
-                float m1 = (float) Math.cos(angle);
-                float m2 = (float) -Math.sin(angle);
-                float m3 = (float) Math.sin(angle);
-                float m4 = (float) Math.cos(angle);
-                float xoff = (float) (-Math.cos(angle) * txtwidth / 2 - Math.sin(angle) * wmSize / 2);
-                float yoff = (float) (Math.sin(angle) * txtwidth / 2 - Math.cos(angle) * wmSize / 2);
-                overContent.saveState();
-                overContent.setGState(gs1);
-                overContent.beginText();
-                if (wmColor != null) {
-                    overContent.setColorFill(new BaseColor(wmColor));
-                }
-                overContent.setFontAndSize(bf, wmSize);
-                overContent.setTextMatrix(m1, m2, m3, m4, xoff + size.getWidth() / 2, yoff + size.getHeight() / 2);
-                overContent.showText(wmText);
-                overContent.endText();
-                overContent.restoreState();
-            }
-            if (pnPosition != -1) {
-                overContent.beginText();
-                overContent.setFontAndSize(bf, pnSize);
-                int pnXPosition = pnPosition % 3;
-                if (pnFlipEven && i % 2 == 0) {
-                    pnXPosition = 2 - pnXPosition;
-                }
-                float xx = pnHOff * ((pnXPosition == 2) ? -1 : 1) + size.getWidth() * pnXPosition / 2.0f;
-                float yy = pnVOff * ((pnPosition / 3 == 2) ? -1 : 1) + size.getHeight() * (pnPosition / 3f) / 2.0f;
-                String number = "" + i;
-                if (mask != null && mask.length() > 0) {
-                    int pagenumber = i;
-                    for (PdfPageLabelFormat format : pageLabelFormats) {
-                        if (format.physicalPage <= i) {
-                            pagenumber = i - format.physicalPage + format.logicalPage;
-                        }
-                    }
-                    String pagenumbertext = pageLabels[i - 1];
-                    try {
-                        number = String.format(mask, i, pagecount, pagenumber, pagenumbertext);
-                    } catch (IllegalFormatException ex) {
-                        throw new IOException(ex.toString());
-                    }
-                }
-                if ((pnXPosition != 1 && pnHOff * 2 < bf.getWidthPoint(number, pnSize))
-                    || (pnPosition / 3 == 0 && pnVOff < bf.getDescentPoint(number, pnSize))
-                    || (pnPosition / 3 == 2 && pnVOff < bf.getAscentPoint(number, pnSize))) {
-                    throw new IOException("Page number " + number + " is not within page bounding box");
-                }
-                overContent.showTextAligned(PdfContentByte.ALIGN_CENTER, number, xx, yy, 0);
-                overContent.endText();
-            }
-        }
-        stamper.close();
-        currentReader = getTempPdfReader(baos);
+        WatermarkProcessor watermarkProcessor = new WatermarkProcessor();
+        currentReader = watermarkProcessor.apply(outputEventListener, currentReader, baos, wmFile, wmText, wmSize, wmOpacity, wmColor, pnPosition, pnFlipEven, pnSize, pnHOff, pnVOff, mask, preserveHyperlinks, pdAnnotations, useTempFiles, tempfile1);
     }
 
     public void addWatermark(WatermarkStyle style) throws DocumentException, IOException {
         final OutputStream baos = createTempOutputStream();
-
         WatermarkProcessor watermarkProcessor = new WatermarkProcessor();
-        watermarkProcessor.apply(baos, currentReader, style, pageRanges, maxLength, interleaveSize);
-
-        currentReader = getTempPdfReader(baos);
+        currentReader = watermarkProcessor.apply(baos, currentReader, style, pageRanges, maxLength, interleaveSize, useTempFiles, tempfile1);
     }
 
     public int getPageCount() {
