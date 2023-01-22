@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 
 public class EncryptSignTab extends Tab {
 
+    private static final int[] PERMISSION_BITS = {4, 8, 16, 32, 256, 512, 1024, 2048};
     private final JCheckBox signDocument;
     private final JCheckBox encryptDocument;
     private final JCheckBox noEncryptMetadata;
@@ -22,7 +23,7 @@ public class EncryptSignTab extends Tab {
     private final JButton encryptLoad;
     private final JTextField ownerPassword;
     private final JTextField userPassword;
-    private final JCheckBox[] permissionBoxes = new JCheckBox[PDFTwist.permissionBits.length];
+    private final JCheckBox[] permissionBoxes = new JCheckBox[PERMISSION_BITS.length];
     private final JCheckBox sigVisible;
     private final JTextField keystore;
     private final JTextField alias;
@@ -45,8 +46,10 @@ public class EncryptSignTab extends Tab {
         this.add(noEncryptMetadata = new JCheckBox("Do not encrypt metadata"), CC.xyw(1, 5, 3));
         JPanel p;
         this.add(p = new JPanel(new FormLayout("f:p:g, f:p:g, f:p:g, f:p:g", "f:p, f:p, ")), CC.xyw(1, 6, 3));
+        String[] permissionTexts = {"Printing", "ModifyContents", "Copy", "ModifyAnnotations",
+            "FillIn", "ScreenReaders", "Assembly", "HQPrinting"};
         for (int i = 0; i < 8; i++) {
-            p.add(permissionBoxes[i] = new JCheckBox(PDFTwist.permissionTexts[i]), CC.xy(1 + (i % 4), 1 + (i / 4)));
+            p.add(permissionBoxes[i] = new JCheckBox(permissionTexts[i]), CC.xy(1 + (i % 4), 1 + (i / 4)));
         }
         encryptMode.setSelectedIndex(1);
         encryptMode.addActionListener(e -> updateEncryptionControls());
@@ -103,7 +106,7 @@ public class EncryptSignTab extends Tab {
             int permissions = 0;
             for (int i = 0; i < permissionBoxes.length; i++) {
                 if (permissionBoxes[i].isSelected()) {
-                    permissions |= PDFTwist.permissionBits[i];
+                    permissions |= PERMISSION_BITS[i];
                 }
             }
             outputEventListener.setAction("Setting encryption");

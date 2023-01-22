@@ -57,26 +57,6 @@ import java.util.logging.Logger;
 
 public class PDFTwist {
 
-    private static final PdfName[] INFO_NAMES = {PdfName.TITLE, PdfName.SUBJECT, PdfName.KEYWORDS, PdfName.AUTHOR,
-        PdfName.CREATOR, PdfName.PRODUCER, PdfName.CREATIONDATE, PdfName.MODDATE};
-
-    public static final int[] permissionBits = {4, 8, 16, 32, 256, 512, 1024, 2048};
-    public static final String[] permissionTexts = {"Printing", "ModifyContents", "Copy", "ModifyAnnotations",
-        "FillIn", "ScreenReaders", "Assembly", "HQPrinting"};
-
-    public static final String[] TRANSITION_NAMES = new String[]{"None", "Out Vertical Split", "Out Horizontal Split",
-        "In Vertical Split", "In Horizontal Split", "Vertical Blinds", "Vertical Blinds", "Inward Box",
-        "Outward Box", "Left-Right Wipe", "Right-Left Wipe", "Bottom-Top Wipe", "Top-Bottom Wipe", "Dissolve",
-        "Left-Right Glitter", "Top-Bottom Glitter", "Diagonal Glitter",};
-
-    public static String[] getKnownInfoNames() {
-        String[] result = new String[INFO_NAMES.length];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = INFO_NAMES[i].toString().substring(1);
-        }
-        return result;
-    }
-
     private static final String PDFTK_PAGE_MARKER = "pdftk_PageNum";
 
     private PdfReader currentReader;

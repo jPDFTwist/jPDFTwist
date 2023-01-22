@@ -23,6 +23,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class InteractionTab extends Tab {
+
+    private static final String[] TRANSITION_NAMES = new String[]{"None", "Out Vertical Split", "Out Horizontal Split",
+        "In Vertical Split", "In Horizontal Split", "Vertical Blinds", "Vertical Blinds", "Inward Box",
+        "Outward Box", "Left-Right Wipe", "Right-Left Wipe", "Bottom-Top Wipe", "Top-Bottom Wipe", "Dissolve",
+        "Left-Right Glitter", "Top-Bottom Glitter", "Diagonal Glitter",};
     private final JCheckBox[] optionalPrefCheck = new JCheckBox[ViewerPreference.SUPPORTED_VIEWER_PREFERENCES.length];
     private final JComboBox[] optionalPrefValue = new JComboBox[ViewerPreference.SUPPORTED_VIEWER_PREFERENCES.length];
     private final TableComponent transitions;
@@ -44,7 +49,7 @@ public class InteractionTab extends Tab {
         transitions.getScrollPane().setPreferredSize(new Dimension(200, 300));
         TableColumn c = transitions.getTable().getColumnModel().getColumn(2);
         c.setPreferredWidth(200);
-        c.setCellEditor(new DefaultCellEditor(new JComboBox<>(PDFTwist.TRANSITION_NAMES)));
+        c.setCellEditor(new DefaultCellEditor(new JComboBox<>(TRANSITION_NAMES)));
         FormLayout fl;
         JPanel panel2 = new JPanel(fl = new FormLayout("f:p, f:p:g", "f:p, f:p, f:p, 10dlu"));
         CellConstraints CC = new CellConstraints();
@@ -100,7 +105,7 @@ public class InteractionTab extends Tab {
                 int from = (Integer) row[0];
                 int to = (Integer) row[1];
                 String transition = (String) row[2];
-                int trans = Arrays.asList(PDFTwist.TRANSITION_NAMES).indexOf(transition);
+                int trans = Arrays.asList(TRANSITION_NAMES).indexOf(transition);
                 if (trans == -1)
                     throw new RuntimeException();
                 int duration = (Integer) row[3];

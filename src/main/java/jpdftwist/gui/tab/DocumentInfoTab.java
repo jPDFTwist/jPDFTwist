@@ -1,5 +1,6 @@
 package jpdftwist.gui.tab;
 
+import com.itextpdf.text.pdf.PdfName;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import jpdftwist.core.OutputEventListener;
@@ -19,6 +20,8 @@ public class DocumentInfoTab extends Tab {
     private final TableComponent infoEntries;
     private final JButton infoLoad;
     private final JButton infoAdd;
+    private static final PdfName[] INFO_NAMES = {PdfName.TITLE, PdfName.SUBJECT, PdfName.KEYWORDS, PdfName.AUTHOR,
+        PdfName.CREATOR, PdfName.PRODUCER, PdfName.CREATIONDATE, PdfName.MODDATE};
 
     public DocumentInfoTab(MainWindow mf) {
         super(new FormLayout("f:p:g, f:p", "f:p, f:p, f:p:g"));
@@ -42,7 +45,7 @@ public class DocumentInfoTab extends Tab {
             public void actionPerformed(ActionEvent e) {
                 JPopupMenu pm = new JPopupMenu();
                 JMenuItem jmi;
-                for (String name : PDFTwist.getKnownInfoNames()) {
+                for (String name : getKnownInfoNames()) {
                     pm.add(jmi = new JMenuItem(name));
                     jmi.addActionListener(e1 -> {
                         String text = ((JMenuItem) e1.getSource()).getText();
@@ -77,5 +80,13 @@ public class DocumentInfoTab extends Tab {
             pdfTwist.updateInfoDictionary(newInfo);
         }
         return pdfTwist;
+    }
+
+    private static String[] getKnownInfoNames() {
+        String[] result = new String[INFO_NAMES.length];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = INFO_NAMES[i].toString().substring(1);
+        }
+        return result;
     }
 }
