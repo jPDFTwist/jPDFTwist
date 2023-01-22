@@ -256,19 +256,6 @@ public class PDFTwist {
     }
 
     /**
-     * @deprecated
-     * Use the cleanupOpenResources
-     */
-    public void cleanup() {
-        if (tempfile1 != null) {
-            tempfile1.delete();
-        }
-        if (tempfile2 != null) {
-            tempfile2.delete();
-        }
-    }
-
-    /**
      * Some stuff that is unconditionally done by pdftk. Maybe it helps.
      */
     private void cargoCult() {
@@ -787,16 +774,20 @@ public class PDFTwist {
         }
     }
 
-    private void cleanupOpenResources() throws IOException {
-        currentReader.close();
-        currentReader = null;
-        if (tempfile1 != null && !tempfile1.delete()) {
-            throw new IOException("Cannot delete " + tempfile1);
+    public void cleanupOpenResources() {
+        if (currentReader != null) {
+            currentReader.close();
+            currentReader = null;
         }
-        if (tempfile2 != null && !tempfile2.delete()) {
-            throw new IOException("Cannot delete " + tempfile2);
+
+        if (tempfile1 != null && !tempfile1.delete()) {
+            Logger.getLogger(PDFTwist.class.getName()).log(Level.WARNING, "Cannot delete " + tempfile1);
         }
         tempfile1 = null;
+
+        if (tempfile2 != null && !tempfile2.delete()) {
+            Logger.getLogger(PDFTwist.class.getName()).log(Level.WARNING, "Cannot delete " + tempfile2);
+        }
         tempfile2 = null;
     }
 }

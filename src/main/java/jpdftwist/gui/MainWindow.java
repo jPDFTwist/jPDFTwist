@@ -198,7 +198,7 @@ public class MainWindow extends JFrame {
             this.setCursor(null);
 
             if (pdfTwist != null) {
-                pdfTwist.cleanup();
+                pdfTwist.cleanupOpenResources();
             }
         }
     }
