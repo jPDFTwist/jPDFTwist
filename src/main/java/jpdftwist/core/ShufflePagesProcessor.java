@@ -18,29 +18,31 @@ import java.util.List;
 public class ShufflePagesProcessor {
 
     private final TempFileManager tempFileManager;
+    private final PdfReaderManager pdfReaderManager;
 
-    public ShufflePagesProcessor(final TempFileManager tempFileManager) {
+    public ShufflePagesProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager) {
         this.tempFileManager = tempFileManager;
+        this.pdfReaderManager = pdfReaderManager;
     }
 
-    public ShuffleResult apply(OutputEventListener outputEventListener, PdfReader currentReader, int passLength, int blockSize, ShuffleRule[] shuffleRules,
+    public ArrayList<List<PDAnnotation>> apply(OutputEventListener outputEventListener, int passLength, int blockSize, ShuffleRule[] shuffleRules,
                                boolean preserveHyperlinks, ArrayList<List<PDAnnotation>> pdAnnotations, File tempFile) throws DocumentException, IOException {
         OutputStream baos = tempFileManager.createTempOutputStream();
         outputEventListener.setAction("Shuffling");
-        outputEventListener.setPageCount(currentReader.getNumberOfPages());
+        outputEventListener.setPageCount(pdfReaderManager.getPageCount());
 
-        RemoveRotationProcessor removeRotationProcessor = new RemoveRotationProcessor(tempFileManager);
-        currentReader = removeRotationProcessor.apply(outputEventListener, currentReader, preserveHyperlinks, pdAnnotations, tempFile);
+        RemoveRotationProcessor removeRotationProcessor = new RemoveRotationProcessor(tempFileManager, pdfReaderManager);
+        removeRotationProcessor.apply(outputEventListener, preserveHyperlinks, pdAnnotations, tempFile);
 
-        Rectangle size = currentReader.getPageSize(1);
-        for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
+        Rectangle size = pdfReaderManager.getCurrentReader().getPageSize(1);
+        for (int i = 1; i <= pdfReaderManager.getCurrentReader().getNumberOfPages(); i++) {
             outputEventListener.updatePagesProgress();
-            if (currentReader.getPageSize(i).getWidth() != size.getWidth()
-                || currentReader.getPageSize(i).getHeight() != size.getHeight()) {
+            if (pdfReaderManager.getCurrentReader().getPageSize(i).getWidth() != size.getWidth()
+                || pdfReaderManager.getCurrentReader().getPageSize(i).getHeight() != size.getHeight()) {
                 throw new IOException(
                     "Pages must have equals sizes to be shuffled. Use the Scale option on the PageSize tab first.");
             }
-            if (currentReader.getPageRotation(i) != 0) {
+            if (pdfReaderManager.getCurrentReader().getPageRotation(i) != 0) {
                 throw new RuntimeException();
             }
         }
@@ -50,7 +52,7 @@ public class ShufflePagesProcessor {
         PdfContentByte cb = writer.getDirectContent();
         PdfTemplate page;
         int pl = Math.abs(passLength);
-        int cnt = currentReader.getNumberOfPages();
+        int cnt = pdfReaderManager.getCurrentReader().getNumberOfPages();
         int passes = blockSize == 0 ? 1 : (cnt + blockSize - 1) / blockSize;
         int[] destinationPageNumbers;
         destinationPageNumbers = new int[cnt + 1];
@@ -162,7 +164,7 @@ public class ShufflePagesProcessor {
                         throw new IOException("Invalid page number. Check your n-up rules.");
                     }
                     if (pg <= cnt) {
-                        page = writer.getImportedPage(currentReader, pg);
+                        page = writer.getImportedPage(pdfReaderManager.getCurrentReader(), pg);
                         cb.addTemplate(page, a, b, c, d, e, f);
                         if (preserveHyperlinks)
                             PDFTwist.repositionAnnotations(pdAnnotations, pg, a, b, c, d, e, f);
@@ -190,31 +192,14 @@ public class ShufflePagesProcessor {
             }
         }
 
-        PDFTwist.copyXMPMetadata(currentReader, writer);
+        PDFTwist.copyXMPMetadata(pdfReaderManager.getCurrentReader(), writer);
         document.close();
 
         PdfReader resultReader = PDFTwist.getTempPdfReader(baos, tempFile);
-        PDFTwist.copyInformation(currentReader, resultReader);
+        PDFTwist.copyInformation(pdfReaderManager.getCurrentReader(), resultReader);
 
-        return new ShuffleResult(resultReader, tmp);
-    }
+        pdfReaderManager.setCurrentReader(resultReader);
 
-    static class ShuffleResult {
-
-        private final PdfReader resultReader;
-        private final ArrayList<List<PDAnnotation>> pdAnnotations;
-
-        public ShuffleResult(PdfReader resultReader, ArrayList<List<PDAnnotation>> pdAnnotations) {
-            this.resultReader = resultReader;
-            this.pdAnnotations = pdAnnotations;
-        }
-
-        public PdfReader getResultReader() {
-            return resultReader;
-        }
-
-        public ArrayList<List<PDAnnotation>> getPdAnnotations() {
-            return pdAnnotations;
-        }
+        return tmp;
     }
 }

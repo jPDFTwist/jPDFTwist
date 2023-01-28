@@ -15,38 +15,40 @@ import java.io.OutputStream;
 public class PageNumberProcessor {
 
     private final TempFileManager tempFileManager;
+    private final PdfReaderManager pdfReaderManager;
 
-    public PageNumberProcessor(final TempFileManager tempFileManager) {
+    public PageNumberProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager) {
         this.tempFileManager = tempFileManager;
+        this.pdfReaderManager = pdfReaderManager;
     }
 
-    public PdfReader addPageNumbers(OutputEventListener outputEventListener, PdfReader currentReader, PdfPageLabels.PdfPageLabelFormat[] labelFormats, File tempFile) throws DocumentException, IOException {
+    public void addPageNumbers(OutputEventListener outputEventListener, PdfPageLabels.PdfPageLabelFormat[] labelFormats, File tempFile) throws DocumentException, IOException {
         OutputStream baos = tempFileManager.createTempOutputStream();
         PdfPageLabels lbls = new PdfPageLabels();
         for (PdfPageLabels.PdfPageLabelFormat format : labelFormats) {
             lbls.addPageLabel(format);
         }
-        Document document = new Document(currentReader.getPageSizeWithRotation(1));
+        Document document = new Document(pdfReaderManager.getCurrentReader().getPageSizeWithRotation(1));
         PdfCopy copy = new PdfCopy(document, baos);
         document.open();
         PdfImportedPage page;
         outputEventListener.setAction("Adding page numbers");
-        outputEventListener.setPageCount(currentReader.getNumberOfPages());
-        for (int i = 0; i < currentReader.getNumberOfPages(); i++) {
+        outputEventListener.setPageCount(pdfReaderManager.getPageCount());
+        for (int i = 0; i < pdfReaderManager.getPageCount(); i++) {
             outputEventListener.updatePagesProgress();
-            page = copy.getImportedPage(currentReader, i + 1);
+            page = copy.getImportedPage(pdfReaderManager.getCurrentReader(), i + 1);
             copy.addPage(page);
         }
-        PRAcroForm form = currentReader.getAcroForm();
+        PRAcroForm form = pdfReaderManager.getCurrentReader().getAcroForm();
         if (form != null) {
-            copy.copyAcroForm(currentReader);
+            copy.copyAcroForm(pdfReaderManager.getCurrentReader());
         }
         copy.setPageLabels(lbls);
-        PDFTwist.copyXMPMetadata(currentReader, copy);
+        PDFTwist.copyXMPMetadata(pdfReaderManager.getCurrentReader(), copy);
         document.close();
 
         PdfReader resultReader = PDFTwist.getTempPdfReader(baos, tempFile);
-        PDFTwist.copyInformation(currentReader, resultReader);
-        return resultReader;
+        PDFTwist.copyInformation(pdfReaderManager.getCurrentReader(), resultReader);
+        pdfReaderManager.setCurrentReader(resultReader);
     }
 }

@@ -21,30 +21,32 @@ import java.util.List;
 public class CropProcessor {
 
     private final TempFileManager tempFileManager;
+    private final PdfReaderManager pdfReaderManager;
 
-    public CropProcessor(final TempFileManager tempFileManager) {
+    public CropProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager) {
         this.tempFileManager = tempFileManager;
+        this.pdfReaderManager = pdfReaderManager;
     }
 
-    public PdfReader apply(OutputEventListener outputEventListener, PdfReader currentReader, PageBox cropTo, boolean preserveHyperlinks,
+    public void apply(OutputEventListener outputEventListener, PageBox cropTo, boolean preserveHyperlinks,
                            ArrayList<List<PDAnnotation>> pdAnnotations, File tempFile) throws DocumentException, IOException {
         OutputStream baos = tempFileManager.createTempOutputStream();
 
         outputEventListener.setAction("Cropping");
-        outputEventListener.setPageCount(currentReader.getNumberOfPages());
+        outputEventListener.setPageCount(pdfReaderManager.getPageCount());
 
         Document document = new Document();
         PdfWriter writer = PdfWriter.getInstance(document, baos);
         PdfContentByte cb = null;
-        int[] rotations = new int[currentReader.getNumberOfPages()];
-        for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
+        int[] rotations = new int[pdfReaderManager.getPageCount()];
+        for (int i = 1; i <= pdfReaderManager.getPageCount(); i++) {
             outputEventListener.updatePagesProgress();
 
             PageBox box = cropTo;
-            Rectangle pageSize = currentReader.getPageSize(i);
+            Rectangle pageSize = pdfReaderManager.getCurrentReader().getPageSize(i);
             Rectangle currentSize = null;
             while (box != null) {
-                currentSize = currentReader.getBoxSize(i, box.getBoxName());
+                currentSize = pdfReaderManager.getCurrentReader().getBoxSize(i, box.getBoxName());
                 if (currentSize != null) {
                     break;
                 }
@@ -61,8 +63,8 @@ public class CropProcessor {
             } else {
                 document.newPage();
             }
-            rotations[i - 1] = currentReader.getPageRotation(i);
-            PdfImportedPage page = writer.getImportedPage(currentReader, i);
+            rotations[i - 1] = pdfReaderManager.getCurrentReader().getPageRotation(i);
+            PdfImportedPage page = writer.getImportedPage(pdfReaderManager.getCurrentReader(), i);
             cb.addTemplate(page, pageSize.getLeft() - currentSize.getLeft(),
                 pageSize.getBottom() - currentSize.getBottom());
             if (preserveHyperlinks) {
@@ -70,17 +72,17 @@ public class CropProcessor {
                     pageSize.getBottom() - currentSize.getBottom());
             }
         }
-        PDFTwist.copyXMPMetadata(currentReader, writer);
+        PDFTwist.copyXMPMetadata(pdfReaderManager.getCurrentReader(), writer);
         document.close();
 
         PdfReader resultReader = PDFTwist.getTempPdfReader(baos, tempFile);
-        PDFTwist.copyInformation(currentReader, resultReader);
+        PDFTwist.copyInformation(pdfReaderManager.getCurrentReader(), resultReader);
         // restore rotation
-        for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
-            PdfDictionary dic = currentReader.getPageN(i);
+        for (int i = 1; i <= pdfReaderManager.getCurrentReader().getNumberOfPages(); i++) {
+            PdfDictionary dic = pdfReaderManager.getCurrentReader().getPageN(i);
             dic.put(PdfName.ROTATE, new PdfNumber(rotations[i - 1]));
         }
 
-        return resultReader;
+        pdfReaderManager.setCurrentReader(resultReader);
     }
 }

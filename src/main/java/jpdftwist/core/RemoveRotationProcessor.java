@@ -18,32 +18,34 @@ import java.util.List;
 public class RemoveRotationProcessor {
 
     private final TempFileManager tempFileManager;
+    private final PdfReaderManager pdfReaderManager;
 
-    public RemoveRotationProcessor(final TempFileManager tempFileManager) {
+    public RemoveRotationProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager) {
         this.tempFileManager = tempFileManager;
+        this.pdfReaderManager = pdfReaderManager;
     }
 
-    public PdfReader apply(OutputEventListener outputEventListener, PdfReader currentReader, boolean preserveHyperlinks,
+    public void apply(OutputEventListener outputEventListener, boolean preserveHyperlinks,
                            ArrayList<List<PDAnnotation>> pdAnnotations, File tempFile) throws DocumentException, IOException {
         OutputStream baos = tempFileManager.createTempOutputStream();
         outputEventListener.setAction("Removing Rotation");
-        outputEventListener.setPageCount(currentReader.getNumberOfPages());
+        outputEventListener.setPageCount(pdfReaderManager.getPageCount());
         boolean needed = false;
-        for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
-            if (currentReader.getPageRotation(i) != 0) {
+        for (int i = 1; i <= pdfReaderManager.getPageCount(); i++) {
+            if (pdfReaderManager.getCurrentReader().getPageRotation(i) != 0) {
                 needed = true;
             }
         }
         if (!needed) {
-            return currentReader;
+            return;
         }
         Document document = new Document();
         PdfWriter writer = PdfWriter.getInstance(document, baos);
         PdfContentByte cb = null;
         PdfImportedPage page;
-        for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
+        for (int i = 1; i <= pdfReaderManager.getPageCount(); i++) {
             outputEventListener.updatePagesProgress();
-            Rectangle currentSize = currentReader.getPageSizeWithRotation(i);
+            Rectangle currentSize = pdfReaderManager.getCurrentReader().getPageSizeWithRotation(i);
             currentSize = new Rectangle(currentSize.getWidth(), currentSize.getHeight()); // strip rotation
             document.setPageSize(currentSize);
             if (cb == null) {
@@ -52,8 +54,8 @@ public class RemoveRotationProcessor {
             } else {
                 document.newPage();
             }
-            int rotation = currentReader.getPageRotation(i);
-            page = writer.getImportedPage(currentReader, i);
+            int rotation = pdfReaderManager.getCurrentReader().getPageRotation(i);
+            page = writer.getImportedPage(pdfReaderManager.getCurrentReader(), i);
             float a, b, c, d, e, f;
             if (rotation == 0) {
                 a = 1;
@@ -90,11 +92,11 @@ public class RemoveRotationProcessor {
             if (preserveHyperlinks)
                 PDFTwist.repositionAnnotations(pdAnnotations, i, a, b, c, d, e, f);
         }
-        PDFTwist.copyXMPMetadata(currentReader, writer);
+        PDFTwist.copyXMPMetadata(pdfReaderManager.getCurrentReader(), writer);
         document.close();
 
         PdfReader resultReader = PDFTwist.getTempPdfReader(baos, tempFile);
-        PDFTwist.copyInformation(currentReader, resultReader);
-        return resultReader;
+        PDFTwist.copyInformation(pdfReaderManager.getCurrentReader(), resultReader);
+        pdfReaderManager.setCurrentReader(resultReader);
     }
 }

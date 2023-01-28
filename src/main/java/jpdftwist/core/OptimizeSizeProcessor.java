@@ -16,46 +16,45 @@ import java.io.OutputStream;
 public class OptimizeSizeProcessor {
 
     private final TempFileManager tempFileManager;
+    private final PdfReaderManager pdfReaderManager;
 
     private boolean isCanceled = false;
 
-    public OptimizeSizeProcessor(final TempFileManager tempFileManager) {
+    public OptimizeSizeProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager) {
         this.tempFileManager = tempFileManager;
+        this.pdfReaderManager = pdfReaderManager;
     }
 
     /**
-     *
      * @param outputEventListener An event bus where the method reports it's current state
-     * @param currentReader The current input item that the method should process
-     * @return The processed output
      */
-    public PdfReader optimizeSize(OutputEventListener outputEventListener, PdfReader currentReader) throws IOException, DocumentException {
-        Document document = new Document(currentReader.getPageSizeWithRotation(1));
+    public void optimizeSize(OutputEventListener outputEventListener) throws IOException, DocumentException {
+        Document document = new Document(pdfReaderManager.getCurrentReader().getPageSizeWithRotation(1));
         OutputStream baos = tempFileManager.createTempOutputStream();
         PdfSmartCopy copy = new PdfSmartCopy(document, baos);
         document.open();
         PdfImportedPage page;
-        outputEventListener.setPageCount(currentReader.getNumberOfPages());
+        outputEventListener.setPageCount(pdfReaderManager.getPageCount());
         if (isCanceled) {
             throw new CancelOperationException();
         }
-        for (int i = 0; i < currentReader.getNumberOfPages(); i++) {
+        for (int i = 0; i < pdfReaderManager.getPageCount(); i++) {
             outputEventListener.updatePagesProgress();
             if (isCanceled) {
                 throw new CancelOperationException();
             }
-            page = copy.getImportedPage(currentReader, i + 1);
+            page = copy.getImportedPage(pdfReaderManager.getCurrentReader(), i + 1);
             copy.addPage(page);
         }
-        PRAcroForm form = currentReader.getAcroForm();
+        PRAcroForm form = pdfReaderManager.getCurrentReader().getAcroForm();
         if (form != null) {
-            copy.copyAcroForm(currentReader);
+            copy.copyAcroForm(pdfReaderManager.getCurrentReader());
         }
-        copy.setOutlines(SimpleBookmark.getBookmark(currentReader));
-        PdfViewerPreferencesImp.getViewerPreferences(currentReader.getCatalog())
+        copy.setOutlines(SimpleBookmark.getBookmark(pdfReaderManager.getCurrentReader()));
+        PdfViewerPreferencesImp.getViewerPreferences(pdfReaderManager.getCurrentReader().getCatalog())
             .addToCatalog(copy.getExtraCatalog());
-        PDFTwist.copyXMPMetadata(currentReader, copy);
-        PdfPageLabels.PdfPageLabelFormat[] formats = PdfPageLabels.getPageLabelFormats(currentReader);
+        PDFTwist.copyXMPMetadata(pdfReaderManager.getCurrentReader(), copy);
+        PdfPageLabels.PdfPageLabelFormat[] formats = PdfPageLabels.getPageLabelFormats(pdfReaderManager.getCurrentReader());
         if (formats != null) {
             PdfPageLabels lbls = new PdfPageLabels();
             for (PdfPageLabels.PdfPageLabelFormat format : formats) {
@@ -66,9 +65,9 @@ public class OptimizeSizeProcessor {
         document.close();
 
         PdfReader optimizedSizeReader = PDFTwist.getTempPdfReader(baos, tempFileManager.getTempFile());
-        PDFTwist.copyInformation(currentReader, optimizedSizeReader);
+        PDFTwist.copyInformation(pdfReaderManager.getCurrentReader(), optimizedSizeReader);
 
-        return optimizedSizeReader;
+        pdfReaderManager.setCurrentReader(optimizedSizeReader);
     }
 
     public void cancel() {

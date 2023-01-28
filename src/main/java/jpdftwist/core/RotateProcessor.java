@@ -4,18 +4,23 @@ import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfDictionary;
 import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfNumber;
-import com.itextpdf.text.pdf.PdfReader;
 import jpdftwist.core.tabparams.RotateParameters;
 
 public class RotateProcessor {
 
-    public PdfReader apply(OutputEventListener outputEventListener, PdfReader currentReader, RotateParameters param) {
+    private final PdfReaderManager pdfReaderManager;
+
+    public RotateProcessor(final PdfReaderManager pdfReaderManager) {
+        this.pdfReaderManager = pdfReaderManager;
+    }
+
+    public void apply(OutputEventListener outputEventListener, RotateParameters param) {
         outputEventListener.setAction("Rotating");
-        outputEventListener.setPageCount(currentReader.getNumberOfPages());
-        for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
+        outputEventListener.setPageCount(pdfReaderManager.getPageCount());
+        for (int i = 1; i <= pdfReaderManager.getPageCount(); i++) {
             outputEventListener.updatePagesProgress();
-            int rotation = currentReader.getPageRotation(i);
-            Rectangle r = currentReader.getPageSizeWithRotation(i);
+            int rotation = pdfReaderManager.getCurrentReader().getPageRotation(i);
+            Rectangle r = pdfReaderManager.getCurrentReader().getPageSizeWithRotation(i);
             int count;
             if (r.getWidth() > r.getHeight()) { // landscape
                 if (param.isLandscape()) {
@@ -41,10 +46,8 @@ public class RotateProcessor {
                 }
             }
             rotation = (rotation + 90 * count) % 360;
-            PdfDictionary dic = currentReader.getPageN(i);
+            PdfDictionary dic = pdfReaderManager.getCurrentReader().getPageN(i);
             dic.put(PdfName.ROTATE, new PdfNumber(rotation));
         }
-
-        return currentReader;
     }
 }

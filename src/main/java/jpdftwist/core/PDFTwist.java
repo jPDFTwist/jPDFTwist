@@ -2,17 +2,13 @@ package jpdftwist.core;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PRStream;
 import com.itextpdf.text.pdf.PdfDictionary;
 import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfObject;
 import com.itextpdf.text.pdf.PdfPageLabels.PdfPageLabelFormat;
 import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.PdfSignatureAppearance;
-import com.itextpdf.text.pdf.PdfStamper;
 import com.itextpdf.text.pdf.PdfString;
-import com.itextpdf.text.pdf.PdfTransition;
 import com.itextpdf.text.pdf.PdfWriter;
 import jpdftwist.core.tabparams.RotateParameters;
 import jpdftwist.core.tabparams.ScaleParameters;
@@ -34,10 +30,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.GeneralSecurityException;
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,24 +39,20 @@ import java.util.logging.Logger;
 
 public class PDFTwist {
 
-    private PdfReader currentReader;
-
     private final TempFileManager tempFileManager;
     private final PdfEncryptionManager pdfEncryptionManager;
-    private final InputOrderProcessor inputOrderProcessor;
+    private final PdfReaderManager pdfReaderManager;
+    private final SignatureManager signatureManager;
+    private final AttachmentsManager attachmentsManager;
+    private final TransitionManager transitionManager;
+    private final ViewerPreferencesManager viewerPreferencesManager;
+    private final InputOrderManager inputOrderManager;
     private final PageMarksProcessor pageMarksProcessor;
     private final OptimizeSizeProcessor optimizeSizeProcessor;
     private final OutputMultiPageTiffProcessor outputMultiPageTiffProcessor;
     private final BurstFilesProcessor burstFilesProcessor;
+    private final OutputPdfProcessor outputPdfProcessor;
 
-    private int[][] transitionValues;
-    private Map<PdfName, PdfObject> optionalViewerPreferences;
-    private int simpleViewerPreferences;
-    private List<File> attachments = null;
-    private PrivateKey key = null;
-    private Certificate[] certChain = null;
-    private int certificationLevel = 0;
-    private boolean sigVisible = false;
     private final String inputFilePath;
     private final String inputFileName;
     private final String inputFileFullName;
@@ -77,7 +65,6 @@ public class PDFTwist {
     private final List<PageRange> pageRanges;
     private final int interleaveSize;
     private final OutputEventListener outputEventListener;
-    private boolean isCanceled = false;
 
     public PDFTwist(List<PageRange> pageRanges, boolean useTempFiles, boolean mergeByDir, int interleaveSize, OutputEventListener outputEventListener) throws IOException {
         this.outputEventListener = outputEventListener;
@@ -86,11 +73,19 @@ public class PDFTwist {
         this.interleaveSize = interleaveSize;
 
         this.tempFileManager = new TempFileManager(useTempFiles);
+        this.inputOrderManager = new InputOrderManager();
         this.pdfEncryptionManager = new PdfEncryptionManager();
-        this.pageMarksProcessor = new PageMarksProcessor();
-        this.optimizeSizeProcessor = new OptimizeSizeProcessor(tempFileManager);
-        this.outputMultiPageTiffProcessor = new OutputMultiPageTiffProcessor();
-        this.burstFilesProcessor = new BurstFilesProcessor(pdfEncryptionManager);
+        this.pdfReaderManager = new PdfReaderManager(tempFileManager, inputOrderManager, pdfEncryptionManager);
+        this.signatureManager = new SignatureManager();
+        this.attachmentsManager = new AttachmentsManager();
+        this.transitionManager = new TransitionManager(pdfReaderManager);
+        this.viewerPreferencesManager = new ViewerPreferencesManager();
+
+        this.pageMarksProcessor = new PageMarksProcessor(pdfReaderManager);
+        this.optimizeSizeProcessor = new OptimizeSizeProcessor(tempFileManager, pdfReaderManager);
+        this.outputMultiPageTiffProcessor = new OutputMultiPageTiffProcessor(pdfReaderManager);
+        this.burstFilesProcessor = new BurstFilesProcessor(pdfReaderManager, pdfEncryptionManager);
+        this.outputPdfProcessor = new OutputPdfProcessor(pdfReaderManager, pdfEncryptionManager, signatureManager, attachmentsManager, transitionManager, viewerPreferencesManager);
 
         this.inputFilePath = pageRanges.get(0).getParentName();
         this.inputFileFullName = pageRanges.get(0).getFilename();
@@ -103,21 +98,16 @@ public class PDFTwist {
 
         pdDocuments = new ArrayList<>();
 
-        try {
-            this.inputOrderProcessor = new InputOrderProcessor();
-            currentReader = inputOrderProcessor.initializeReader(tempFileManager, pageRanges, pdfEncryptionManager.getOwnerPassword(), interleaveSize, tempFileManager.getTempFile());
-        } catch (DocumentException ex) {
-            throw new IOException("Could not read the input", ex);
-        }
+        pdfReaderManager.initializeReader(pageRanges, interleaveSize);
 
         keepFileParents();
     }
 
     public void cancel() {
-        this.isCanceled = true;
         this.optimizeSizeProcessor.cancel();
         this.outputMultiPageTiffProcessor.cancel();
         this.burstFilesProcessor.cancel();
+        this.outputPdfProcessor.cancel();
     }
 
     public static PdfReader getTempPdfReader(OutputStream out, File tempFile) throws IOException {
@@ -146,17 +136,8 @@ public class PDFTwist {
         }
     }
 
-    /**
-     * Some stuff that is unconditionally done by pdftk. Maybe it helps.
-     */
-    private void cargoCult() {
-        currentReader.consolidateNamedDestinations();
-        currentReader.removeUnusedObjects();
-        currentReader.shuffleSubsetNames();
-    }
-
     public void updateInfoDictionary(Map<String, String> newInfo) {
-        PdfDictionary trailer = currentReader.getTrailer();
+        PdfDictionary trailer = pdfReaderManager.getCurrentReader().getTrailer();
         if (trailer != null && trailer.isDictionary()) {
             PdfObject info = PdfReader.getPdfObject(trailer.get(PdfName.INFO));
             if (info != null && info.isDictionary()) {
@@ -172,7 +153,7 @@ public class PDFTwist {
             }
         }
         // remove XMP metadata
-        currentReader.getCatalog().remove(PdfName.METADATA);
+        pdfReaderManager.getCurrentReader().getCatalog().remove(PdfName.METADATA);
     }
 
     public static void copyInformation(PdfReader source, PdfReader destination) {
@@ -211,15 +192,15 @@ public class PDFTwist {
 
         try {
             if (sizeOptimize) {
-                currentReader = optimizeSize();
+                optimizeSize();
             }
 
-            cargoCult();
+            pdfReaderManager.cargoCult();
 
             if (uncompressed && pdfImages == null) {
                 Document.compress = false;
             }
-            int pageCount = currentReader.getNumberOfPages();
+            int pageCount = pdfReaderManager.getPageCount();
             outputEventListener.setPageCount(pageCount);
             if (multiPageTiff) {
                 outputMultiPageTiff(outputFile);
@@ -242,106 +223,80 @@ public class PDFTwist {
     }
 
     public void cropPages(PageBox cropTo) throws IOException, DocumentException {
-        CropProcessor cropProcessor = new CropProcessor(tempFileManager);
-        currentReader = cropProcessor.apply(outputEventListener, currentReader, cropTo, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
+        CropProcessor cropProcessor = new CropProcessor(tempFileManager, pdfReaderManager);
+        cropProcessor.apply(outputEventListener, cropTo, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
     }
 
     public void rotatePages(RotateParameters param) {
-        RotateProcessor rotateProcessor = new RotateProcessor();
-        currentReader = rotateProcessor.apply(outputEventListener, currentReader, param);
+        RotateProcessor rotateProcessor = new RotateProcessor(pdfReaderManager);
+        rotateProcessor.apply(outputEventListener, param);
     }
 
     public void removeRotation() throws DocumentException, IOException {
-        RemoveRotationProcessor removeRotationProcessor = new RemoveRotationProcessor(tempFileManager);
-        removeRotationProcessor.apply(outputEventListener, currentReader, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
+        RemoveRotationProcessor removeRotationProcessor = new RemoveRotationProcessor(tempFileManager, pdfReaderManager);
+        removeRotationProcessor.apply(outputEventListener, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
     }
 
     public void scalePages(ScaleParameters param) throws DocumentException, IOException {
-        ScaleProcessor scaleProcessor = new ScaleProcessor(tempFileManager);
-        currentReader = scaleProcessor.apply(outputEventListener, currentReader, param, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
+        ScaleProcessor scaleProcessor = new ScaleProcessor(tempFileManager, pdfReaderManager);
+        scaleProcessor.apply(outputEventListener, param, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
     }
 
     public void shufflePages(int passLength, int blockSize, ShuffleRule[] shuffleRules) throws DocumentException, IOException {
-        ShufflePagesProcessor shufflePagesProcessor = new ShufflePagesProcessor(tempFileManager);
-        ShufflePagesProcessor.ShuffleResult result = shufflePagesProcessor.apply(outputEventListener, currentReader, passLength, blockSize, shuffleRules, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
-        this.pdAnnotations = result.getPdAnnotations();
-        this.currentReader = result.getResultReader();
+        ShufflePagesProcessor shufflePagesProcessor = new ShufflePagesProcessor(tempFileManager, pdfReaderManager);
+        this.pdAnnotations = shufflePagesProcessor.apply(outputEventListener, passLength, blockSize, shuffleRules, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
     }
 
     public void addPageMarks() {
-        pageMarksProcessor.addPageMarks(currentReader);
+        pageMarksProcessor.addPageMarks();
     }
 
     public void removePageMarks() {
-        pageMarksProcessor.removePageMarks(currentReader);
+        pageMarksProcessor.removePageMarks();
     }
 
     public void updateBookmarks(PdfBookmark[] bm) throws DocumentException, IOException {
-        BookmarksProcessor bookmarksProcessor = new BookmarksProcessor(tempFileManager);
-        bookmarksProcessor.updateBookmarks(currentReader, bm, tempFileManager.getTempFile());
+        BookmarksProcessor bookmarksProcessor = new BookmarksProcessor(tempFileManager, pdfReaderManager);
+        bookmarksProcessor.updateBookmarks(bm, tempFileManager.getTempFile());
     }
 
     public void addWatermark(String wmFile, String wmText, int wmSize, float wmOpacity, Color wmColor, int pnPosition,
                              boolean pnFlipEven, int pnSize, float pnHOff, float pnVOff, String mask)
         throws DocumentException, IOException {
-        WatermarkProcessor watermarkProcessor = new WatermarkProcessor(tempFileManager);
-        currentReader = watermarkProcessor.apply(currentReader, wmFile, wmText, wmSize, wmOpacity, wmColor, pnPosition, pnFlipEven, pnSize, pnHOff, pnVOff, mask, tempFileManager.getTempFile());
+        WatermarkProcessor watermarkProcessor = new WatermarkProcessor(tempFileManager, pdfReaderManager);
+        watermarkProcessor.apply(wmFile, wmText, wmSize, wmOpacity, wmColor, pnPosition, pnFlipEven, pnSize, pnHOff, pnVOff, mask, tempFileManager.getTempFile());
     }
 
     public void addWatermark(WatermarkStyle style) throws DocumentException, IOException {
-        WatermarkProcessor watermarkProcessor = new WatermarkProcessor(tempFileManager);
-        int maxLength = inputOrderProcessor.calculateMaxLength(pageRanges).getMaxLength();
-        currentReader = watermarkProcessor.apply(currentReader, style, pageRanges, maxLength, interleaveSize, tempFileManager.getTempFile());
+        WatermarkProcessor watermarkProcessor = new WatermarkProcessor(tempFileManager, pdfReaderManager);
+        int maxLength = inputOrderManager.calculateMaxLength(pageRanges).getMaxLength();
+        watermarkProcessor.apply(style, pageRanges, maxLength, interleaveSize, tempFileManager.getTempFile());
     }
 
     public int getPageCount() {
-        return currentReader.getNumberOfPages();
+        return pdfReaderManager.getPageCount();
     }
 
     public void setTransition(int page, int type, int tduration, int pduration) {
-        if (transitionValues == null) {
-            transitionValues = new int[getPageCount()][3];
-            for (int i = 0; i < transitionValues.length; i++) {
-                transitionValues[i][2] = -1;
-            }
-        }
-        transitionValues[page - 1][0] = type;
-        transitionValues[page - 1][1] = tduration;
-        transitionValues[page - 1][2] = pduration;
+        transitionManager.setTransition(page, type, tduration, pduration);
     }
 
     public void setViewerPreferences(int simplePrefs, Map<PdfName, PdfObject> optionalPrefs) {
-        this.optionalViewerPreferences = optionalPrefs;
-        this.simpleViewerPreferences = simplePrefs;
+        this.viewerPreferencesManager.setViewerPreferences(simplePrefs, optionalPrefs);
     }
 
     public void addFile(File f) {
-        if (attachments == null) {
-            attachments = new ArrayList<>();
-        }
-        attachments.add(f);
+        attachmentsManager.addFile(f);
     }
 
     public void setSignature(File keystoreFile, String alias, char[] password, int certificationLevel, boolean visible)
         throws IOException {
-        try {
-            KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(Files.newInputStream(keystoreFile.toPath()), password);
-            key = (PrivateKey) ks.getKey(alias, password);
-            if (key == null) {
-                throw new IOException("No private key found with alias " + alias);
-            }
-            certChain = ks.getCertificateChain(alias);
-            this.certificationLevel = certificationLevel;
-            this.sigVisible = visible;
-        } catch (GeneralSecurityException ex) {
-            throw new IOException(ex.toString(), ex);
-        }
+        signatureManager.setSignature(keystoreFile, alias, password, certificationLevel, visible);
     }
 
     public void setPageNumbers(PdfPageLabelFormat[] labelFormats) throws DocumentException, IOException {
-        PageNumberProcessor pageNumberProcessor = new PageNumberProcessor(tempFileManager);
-        currentReader = pageNumberProcessor.addPageNumbers(outputEventListener, currentReader, labelFormats, tempFileManager.getTempFile());
+        PageNumberProcessor pageNumberProcessor = new PageNumberProcessor(tempFileManager, pdfReaderManager);
+        pageNumberProcessor.addPageNumbers(outputEventListener, labelFormats, tempFileManager.getTempFile());
     }
 
     public void preserveHyperlinks() {
@@ -447,66 +402,20 @@ public class PDFTwist {
         return outputFile;
     }
 
-    private PdfReader optimizeSize() throws IOException, DocumentException {
-        return optimizeSizeProcessor.optimizeSize(outputEventListener, currentReader);
+    private void optimizeSize() throws IOException, DocumentException {
+        optimizeSizeProcessor.optimizeSize(outputEventListener);
     }
 
     private void outputMultiPageTiff(String outputFile) throws IOException, DocumentException {
-        outputMultiPageTiffProcessor.output(outputEventListener, currentReader, outputFile, pdfImages);
+        outputMultiPageTiffProcessor.output(outputEventListener, outputFile, pdfImages);
     }
 
     private void burstFiles(String outputFile, boolean fullyCompressed) throws IOException, DocumentException {
-        burstFilesProcessor.burst(outputEventListener, currentReader, outputFile, fullyCompressed, pdfImages);
+        burstFilesProcessor.burst(outputEventListener, outputFile, fullyCompressed, pdfImages);
     }
 
     private void outputPdf(String outputFile, boolean fullyCompressed, int total) throws IOException, DocumentException {
-        PdfStamper stamper;
-        if (key != null) {
-            new File(outputFile).getParentFile().mkdirs();
-            stamper = PdfStamper.createSignature(currentReader, Files.newOutputStream(Paths.get(outputFile)), '\0', null,
-                true);
-            PdfSignatureAppearance sap = stamper.getSignatureAppearance();
-            sap.setCrypto(key, certChain, null, PdfSignatureAppearance.WINCER_SIGNED);
-            sap.setCertificationLevel(certificationLevel);
-            if (sigVisible) {
-                sap.setVisibleSignature(new Rectangle(100, 100, 200, 200), 1, null);
-            }
-        } else {
-            new File(outputFile).getParentFile().mkdirs();
-            stamper = new PdfStamper(currentReader, Files.newOutputStream(Paths.get(outputFile)));
-        }
-        pdfEncryptionManager.setEncryptionSettings(stamper);
-        if (fullyCompressed) {
-            stamper.setFullCompression();
-        }
-        for (int i = 1; i <= total; i++) {
-            outputEventListener.updatePagesProgress();
-            if (isCanceled) {
-                throw new CancelOperationException();
-            }
-
-            currentReader.setPageContent(i, currentReader.getPageContent(i));
-        }
-        if (transitionValues != null) {
-            for (int i = 0; i < total; i++) {
-                PdfTransition t = transitionValues[i][0] == 0 ? null
-                    : new PdfTransition(transitionValues[i][0], transitionValues[i][1]);
-                stamper.setTransition(t, i + 1);
-                stamper.setDuration(transitionValues[i][2], i + 1);
-            }
-        }
-        if (optionalViewerPreferences != null) {
-            stamper.setViewerPreferences(simpleViewerPreferences);
-            for (Map.Entry<PdfName, PdfObject> e : optionalViewerPreferences.entrySet()) {
-                stamper.addViewerPreference(e.getKey(), e.getValue());
-            }
-        }
-        if (attachments != null) {
-            for (File f : attachments) {
-                stamper.addFileAttachment(f.getName(), null, f.getAbsolutePath(), f.getName());
-            }
-        }
-        stamper.close();
+        outputPdfProcessor.output(outputEventListener, outputFile, fullyCompressed, total);
     }
 
     private void preserveHyperlinks(String outputFile) throws IOException {
@@ -539,11 +448,7 @@ public class PDFTwist {
     }
 
     public void cleanupOpenResources() {
-        if (currentReader != null) {
-            currentReader.close();
-            currentReader = null;
-        }
-
+        pdfReaderManager.cleanup();
         tempFileManager.cleanup();
     }
 }

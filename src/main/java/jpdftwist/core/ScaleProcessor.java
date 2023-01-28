@@ -22,18 +22,21 @@ import java.util.List;
 public class ScaleProcessor {
 
     private final TempFileManager tempFileManager;
+    private final PdfReaderManager pdfReaderManager;
+
     private float offsetX;
     private float offsetY;
 
-    public ScaleProcessor(final TempFileManager tempFileManager) {
+    public ScaleProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager) {
         this.tempFileManager = tempFileManager;
+        this.pdfReaderManager = pdfReaderManager;
     }
 
-    public PdfReader apply(OutputEventListener outputEventListener, PdfReader currentReader, ScaleParameters param, boolean preserveHyperlinks,
+    public void apply(OutputEventListener outputEventListener, ScaleParameters param, boolean preserveHyperlinks,
                            ArrayList<List<PDAnnotation>> pdAnnotations, File tempFile) throws DocumentException, IOException {
         OutputStream baos = tempFileManager.createTempOutputStream();
         outputEventListener.setAction("Scaling");
-        outputEventListener.setPageCount(currentReader.getNumberOfPages());
+        outputEventListener.setPageCount(pdfReaderManager.getPageCount());
 
         Document document = new Document();
         PdfWriter writer = PdfWriter.getInstance(document, baos);
@@ -41,15 +44,15 @@ public class ScaleProcessor {
         PdfContentByte cb = writer.getDirectContent();
         PdfImportedPage page;
 
-        for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
+        for (int i = 1; i <= pdfReaderManager.getPageCount(); i++) {
             outputEventListener.updatePagesProgress();
 
             Rectangle newSize = new Rectangle(param.getPageDim().getWidth(), param.getPageDim().getHeight());
 
-            Rectangle currentSize = currentReader.getPageSizeWithRotation(i);
+            Rectangle currentSize = pdfReaderManager.getCurrentReader().getPageSizeWithRotation(i);
 
-            int rotation = currentReader.getPageRotation(i);
-            PdfDictionary dic = currentReader.getPageN(i);
+            int rotation = pdfReaderManager.getCurrentReader().getPageRotation(i);
+            PdfDictionary dic = pdfReaderManager.getCurrentReader().getPageN(i);
             dic.remove(PdfName.ROTATE);
 
             if (!param.isLandscape() && !param.isPortrait()) {
@@ -135,7 +138,7 @@ public class ScaleProcessor {
                 justify(justifyValueWithRotation(rotation, param.getJustify()), currentSize, newSize, factorX, factorY);
             }
 
-            page = writer.getImportedPage(currentReader, i);
+            page = writer.getImportedPage(pdfReaderManager.getCurrentReader(), i);
             cb.addTemplate(page, factorX, 0, 0, factorY, offsetX, offsetY);
 
             if (preserveHyperlinks) {
@@ -143,11 +146,11 @@ public class ScaleProcessor {
             }
             writer.addPageDictEntry(PdfName.ROTATE, new PdfNumber(rotation));
         }
-        PDFTwist.copyXMPMetadata(currentReader, writer);
+        PDFTwist.copyXMPMetadata(pdfReaderManager.getCurrentReader(), writer);
         document.close();
         PdfReader resultReader = PDFTwist.getTempPdfReader(baos, tempFile);
-        PDFTwist.copyInformation(currentReader, resultReader);
-        return resultReader;
+        PDFTwist.copyInformation(pdfReaderManager.getCurrentReader(), resultReader);
+        pdfReaderManager.setCurrentReader(resultReader);
     }
 
     private int justifyValueWithRotation(int rotation, int index) {

@@ -5,35 +5,40 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.PRAcroForm;
 import com.itextpdf.text.pdf.PdfCopy;
 import com.itextpdf.text.pdf.PdfImportedPage;
-import com.itextpdf.text.pdf.PdfReader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class OutputMultiPageTiffProcessor {
 
+    private final PdfReaderManager pdfReaderManager;
+
     private boolean isCanceled = false;
 
-    public void output(OutputEventListener outputEventListener, PdfReader currentReader, String outputFile, PdfToImage pdfImages) throws IOException, DocumentException {
+    public OutputMultiPageTiffProcessor(final PdfReaderManager pdfReaderManager) {
+        this.pdfReaderManager = pdfReaderManager;
+    }
+
+    public void output(OutputEventListener outputEventListener, String outputFile, PdfToImage pdfImages) throws IOException, DocumentException {
         if (outputFile.indexOf('*') != -1) {
             throw new IOException("TIFF multi-page filename should not contain *");
         }
-        Document document = new Document(currentReader.getPageSizeWithRotation(1));
+        Document document = new Document(pdfReaderManager.getCurrentReader().getPageSizeWithRotation(1));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PdfCopy copy = new PdfCopy(document, baos);
         document.open();
         PdfImportedPage page;
-        for (int pagenum = 1; pagenum <= currentReader.getNumberOfPages(); pagenum++) {
+        for (int pagenum = 1; pagenum <= pdfReaderManager.getPageCount(); pagenum++) {
             outputEventListener.updatePagesProgress();
             if (isCanceled) {
                 throw new CancelOperationException();
             }
-            page = copy.getImportedPage(currentReader, pagenum);
+            page = copy.getImportedPage(pdfReaderManager.getCurrentReader(), pagenum);
             copy.addPage(page);
         }
-        PRAcroForm form = currentReader.getAcroForm();
+        PRAcroForm form = pdfReaderManager.getCurrentReader().getAcroForm();
         if (form != null) {
-            copy.copyAcroForm(currentReader);
+            copy.copyAcroForm(pdfReaderManager.getCurrentReader());
         }
         document.close();
         pdfImages.convertToMultiTiff(baos.toByteArray(), outputFile);

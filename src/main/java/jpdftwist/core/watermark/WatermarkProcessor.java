@@ -9,10 +9,10 @@ import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfGState;
 import com.itextpdf.text.pdf.PdfImportedPage;
 import com.itextpdf.text.pdf.PdfPageLabels;
-import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.PageRange;
+import jpdftwist.core.PdfReaderManager;
 import jpdftwist.core.TempFileManager;
 import jpdftwist.core.UnitTranslator;
 import jpdftwist.core.input.PageDimensions;
@@ -41,22 +41,25 @@ import java.util.List;
 public class WatermarkProcessor {
 
     private final TempFileManager tempFileManager;
+    private final PdfReaderManager pdfReaderManager;
+
     private int bateIndex;
     private int bateRepeat;
     private BufferedReader br;
 
-    public WatermarkProcessor(final TempFileManager tempFileManager) {
+    public WatermarkProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager) {
         this.tempFileManager = tempFileManager;
+        this.pdfReaderManager = pdfReaderManager;
     }
 
-    public PdfReader apply(PdfReader currentReader, String wmFile, String wmText, int wmSize, float wmOpacity, Color wmColor, int pnPosition,
+    public void apply(String wmFile, String wmText, int wmSize, float wmOpacity, Color wmColor, int pnPosition,
                            boolean pnFlipEven, int pnSize, float pnHOff, float pnVOff, String mask,
                            File tempFile) throws DocumentException, IOException {
         OutputStream baos = tempFileManager.createTempOutputStream();
-        int pagecount = currentReader.getNumberOfPages();
+        int pageCount = pdfReaderManager.getPageCount();
         PdfGState gs1 = new PdfGState();
         gs1.setFillOpacity(wmOpacity);
-        PdfStamper stamper = new PdfStamper(currentReader, baos);
+        PdfStamper stamper = new PdfStamper(pdfReaderManager.getCurrentReader(), baos);
         BaseFont bf = BaseFont.createFont("Helvetica", BaseFont.WINANSI, false);
         float txtwidth = 0;
         PdfImportedPage wmTemplate = null;
@@ -69,26 +72,26 @@ public class WatermarkProcessor {
             wmTemplate = stamper.getImportedPage(jpdftwist.utils.PdfParser.open(wmFile, true), 1);
         }
         if (mask != null && mask.length() > 0) {
-            pageLabels = PdfPageLabels.getPageLabels(currentReader);
+            pageLabels = PdfPageLabels.getPageLabels(pdfReaderManager.getCurrentReader());
             if (pageLabels == null) {
-                pageLabels = new String[pagecount];
-                for (int i = 1; i <= pagecount; i++) {
+                pageLabels = new String[pageCount];
+                for (int i = 1; i <= pageCount; i++) {
                     pageLabels[i - 1] = "" + i;
                 }
             }
-            pageLabelFormats = PdfPageLabels.getPageLabelFormats(currentReader);
+            pageLabelFormats = PdfPageLabels.getPageLabelFormats(pdfReaderManager.getCurrentReader());
             if (pageLabelFormats == null || pageLabelFormats.length == 0) {
                 pageLabelFormats = new PdfPageLabels.PdfPageLabelFormat[]{
                     new PdfPageLabels.PdfPageLabelFormat(1, PdfPageLabels.DECIMAL_ARABIC_NUMERALS, "", 1)};
             }
         }
-        for (int i = 1; i <= pagecount; i++) {
+        for (int i = 1; i <= pageCount; i++) {
             if (wmTemplate != null) {
                 PdfContentByte underContent = stamper.getUnderContent(i);
                 underContent.addTemplate(wmTemplate, 0, 0);
             }
             PdfContentByte overContent = stamper.getOverContent(i);
-            Rectangle size = currentReader.getPageSizeWithRotation(i);
+            Rectangle size = pdfReaderManager.getCurrentReader().getPageSizeWithRotation(i);
             if (wmText != null) {
                 float angle = (float) Math.atan(size.getHeight() / size.getWidth());
                 float m1 = (float) Math.cos(angle);
@@ -128,7 +131,7 @@ public class WatermarkProcessor {
                     }
                     String pagenumbertext = pageLabels[i - 1];
                     try {
-                        number = String.format(mask, i, pagecount, pagenumber, pagenumbertext);
+                        number = String.format(mask, i, pageCount, pagenumber, pagenumbertext);
                     } catch (IllegalFormatException ex) {
                         throw new IOException(ex.toString());
                     }
@@ -143,14 +146,14 @@ public class WatermarkProcessor {
             }
         }
         stamper.close();
-        return PDFTwist.getTempPdfReader(baos, tempFile);
+        pdfReaderManager.setCurrentReader(PDFTwist.getTempPdfReader(baos, tempFile));
     }
 
-    public PdfReader apply(PdfReader currentReader, WatermarkStyle style, List<PageRange> pageRanges, int maxLength, int interleaveSize, File tempFile) throws DocumentException, IOException {
+    public void apply(WatermarkStyle style, List<PageRange> pageRanges, int maxLength, int interleaveSize, File tempFile) throws DocumentException, IOException {
         OutputStream baos = tempFileManager.createTempOutputStream();
-        int pagecount = currentReader.getNumberOfPages();
+        int pageCount = pdfReaderManager.getPageCount();
 
-        PdfStamper stamper = new PdfStamper(currentReader, baos);
+        PdfStamper stamper = new PdfStamper(pdfReaderManager.getCurrentReader(), baos);
 
         int offset = 0;
         int i = 0;
@@ -174,8 +177,8 @@ public class WatermarkProcessor {
                         if (lim > pageRange.getPages(0).length) {
                             continue;
                         }
-                        Rectangle size = currentReader.getPageSizeWithRotation(i);
-                        doWatermark(i, logical, style, pagecount, pageRange, stamper, batesList, size);
+                        Rectangle size = pdfReaderManager.getCurrentReader().getPageSizeWithRotation(i);
+                        doWatermark(i, logical, style, pageCount, pageRange, stamper, batesList, size);
                     }
                 }
             }
@@ -187,8 +190,8 @@ public class WatermarkProcessor {
                         continue;
                     }
                     logical++;
-                    Rectangle size = currentReader.getPageSizeWithRotation(i);
-                    doWatermark(i, logical, style, pagecount, pageRange, stamper, batesList, size);
+                    Rectangle size = pdfReaderManager.getCurrentReader().getPageSizeWithRotation(i);
+                    doWatermark(i, logical, style, pageCount, pageRange, stamper, batesList, size);
                 }
                 offset += pageRange.getPages(0).length;
             }
@@ -197,7 +200,7 @@ public class WatermarkProcessor {
             br.close();
         }
         stamper.close();
-        return PDFTwist.getTempPdfReader(baos, tempFile);
+        pdfReaderManager.setCurrentReader(PDFTwist.getTempPdfReader(baos, tempFile));
     }
 
     private void doWatermark(int i, int logical, WatermarkStyle style, int pageCount, PageRange pageRange,
