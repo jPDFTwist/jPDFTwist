@@ -21,11 +21,17 @@ import java.util.List;
 
 public class ScaleProcessor {
 
+    private final TempFileManager tempFileManager;
     private float offsetX;
     private float offsetY;
 
-    public PdfReader apply(OutputEventListener outputEventListener, PdfReader currentReader, OutputStream baos, ScaleParameters param, boolean preserveHyperlinks,
-                      ArrayList<List<PDAnnotation>> pdAnnotations, File tempFile) throws DocumentException, IOException {
+    public ScaleProcessor(final TempFileManager tempFileManager) {
+        this.tempFileManager = tempFileManager;
+    }
+
+    public PdfReader apply(OutputEventListener outputEventListener, PdfReader currentReader, ScaleParameters param, boolean preserveHyperlinks,
+                           ArrayList<List<PDAnnotation>> pdAnnotations, File tempFile) throws DocumentException, IOException {
+        OutputStream baos = tempFileManager.createTempOutputStream();
         outputEventListener.setAction("Scaling");
         outputEventListener.setPageCount(currentReader.getNumberOfPages());
 

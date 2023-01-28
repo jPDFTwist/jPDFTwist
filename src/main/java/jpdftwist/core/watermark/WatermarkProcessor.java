@@ -13,6 +13,7 @@ import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.PageRange;
+import jpdftwist.core.TempFileManager;
 import jpdftwist.core.UnitTranslator;
 import jpdftwist.core.input.PageDimensions;
 import jpdftwist.utils.JImageParser;
@@ -39,13 +40,19 @@ import java.util.List;
 
 public class WatermarkProcessor {
 
+    private final TempFileManager tempFileManager;
     private int bateIndex;
     private int bateRepeat;
     private BufferedReader br;
 
-    public PdfReader apply(PdfReader currentReader, OutputStream baos, String wmFile, String wmText, int wmSize, float wmOpacity, Color wmColor, int pnPosition,
+    public WatermarkProcessor(final TempFileManager tempFileManager) {
+        this.tempFileManager = tempFileManager;
+    }
+
+    public PdfReader apply(PdfReader currentReader, String wmFile, String wmText, int wmSize, float wmOpacity, Color wmColor, int pnPosition,
                            boolean pnFlipEven, int pnSize, float pnHOff, float pnVOff, String mask,
                            File tempFile) throws DocumentException, IOException {
+        OutputStream baos = tempFileManager.createTempOutputStream();
         int pagecount = currentReader.getNumberOfPages();
         PdfGState gs1 = new PdfGState();
         gs1.setFillOpacity(wmOpacity);
@@ -139,7 +146,8 @@ public class WatermarkProcessor {
         return PDFTwist.getTempPdfReader(baos, tempFile);
     }
 
-    public PdfReader apply(OutputStream baos, PdfReader currentReader, WatermarkStyle style, List<PageRange> pageRanges, int maxLength, int interleaveSize, File tempFile) throws DocumentException, IOException {
+    public PdfReader apply(PdfReader currentReader, WatermarkStyle style, List<PageRange> pageRanges, int maxLength, int interleaveSize, File tempFile) throws DocumentException, IOException {
+        OutputStream baos = tempFileManager.createTempOutputStream();
         int pagecount = currentReader.getNumberOfPages();
 
         PdfStamper stamper = new PdfStamper(currentReader, baos);

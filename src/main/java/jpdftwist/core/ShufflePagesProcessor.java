@@ -17,13 +17,20 @@ import java.util.List;
 
 public class ShufflePagesProcessor {
 
-    public ShuffleResult apply(OutputEventListener outputEventListener, PdfReader currentReader, OutputStream baos, int passLength, int blockSize, ShuffleRule[] shuffleRules,
-                           boolean preserveHyperlinks, ArrayList<List<PDAnnotation>> pdAnnotations, File tempFile) throws DocumentException, IOException {
+    private final TempFileManager tempFileManager;
+
+    public ShufflePagesProcessor(final TempFileManager tempFileManager) {
+        this.tempFileManager = tempFileManager;
+    }
+
+    public ShuffleResult apply(OutputEventListener outputEventListener, PdfReader currentReader, int passLength, int blockSize, ShuffleRule[] shuffleRules,
+                               boolean preserveHyperlinks, ArrayList<List<PDAnnotation>> pdAnnotations, File tempFile) throws DocumentException, IOException {
+        OutputStream baos = tempFileManager.createTempOutputStream();
         outputEventListener.setAction("Shuffling");
         outputEventListener.setPageCount(currentReader.getNumberOfPages());
 
-        RemoveRotationProcessor removeRotationProcessor = new RemoveRotationProcessor();
-        currentReader = removeRotationProcessor.apply(outputEventListener, currentReader, baos, preserveHyperlinks, pdAnnotations, tempFile);
+        RemoveRotationProcessor removeRotationProcessor = new RemoveRotationProcessor(tempFileManager);
+        currentReader = removeRotationProcessor.apply(outputEventListener, currentReader, preserveHyperlinks, pdAnnotations, tempFile);
 
         Rectangle size = currentReader.getPageSize(1);
         for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {

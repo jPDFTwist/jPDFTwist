@@ -17,8 +17,15 @@ import java.util.List;
 
 public class RemoveRotationProcessor {
 
-    public PdfReader apply(OutputEventListener outputEventListener, PdfReader currentReader, OutputStream baos, boolean preserveHyperlinks,
+    private final TempFileManager tempFileManager;
+
+    public RemoveRotationProcessor(final TempFileManager tempFileManager) {
+        this.tempFileManager = tempFileManager;
+    }
+
+    public PdfReader apply(OutputEventListener outputEventListener, PdfReader currentReader, boolean preserveHyperlinks,
                            ArrayList<List<PDAnnotation>> pdAnnotations, File tempFile) throws DocumentException, IOException {
+        OutputStream baos = tempFileManager.createTempOutputStream();
         outputEventListener.setAction("Removing Rotation");
         outputEventListener.setPageCount(currentReader.getNumberOfPages());
         boolean needed = false;

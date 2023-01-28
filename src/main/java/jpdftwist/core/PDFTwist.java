@@ -105,21 +105,11 @@ public class PDFTwist {
 
         pdDocuments = new ArrayList<>();
 
-        OutputStream baos = tempFileManager.createTempOutputStream();
-
         try {
             InputOrderProcessor inputOrderProcessor = new InputOrderProcessor();
-            currentReader = inputOrderProcessor.initializeReader(baos, pageRanges, ownerPassword, interleaveSize, tempFileManager.getTempFile());
-        } catch (IOException | DocumentException ex) {
+            currentReader = inputOrderProcessor.initializeReader(tempFileManager, pageRanges, ownerPassword, interleaveSize, tempFileManager.getTempFile());
+        } catch (DocumentException ex) {
             Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                if (baos != null) {
-                    baos.close();
-                }
-            } catch (IOException ex) {
-                Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
-            }
         }
 
         keepFileParents();
@@ -256,9 +246,8 @@ public class PDFTwist {
     }
 
     public void cropPages(PageBox cropTo) throws IOException, DocumentException {
-        OutputStream baos = tempFileManager.createTempOutputStream();
-        CropProcessor cropProcessor = new CropProcessor();
-        currentReader = cropProcessor.apply(outputEventListener, currentReader, baos, cropTo, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
+        CropProcessor cropProcessor = new CropProcessor(tempFileManager);
+        currentReader = cropProcessor.apply(outputEventListener, currentReader, cropTo, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
     }
 
     public void rotatePages(RotateParameters param) {
@@ -267,21 +256,18 @@ public class PDFTwist {
     }
 
     public void removeRotation() throws DocumentException, IOException {
-        OutputStream baos = tempFileManager.createTempOutputStream();
-        RemoveRotationProcessor removeRotationProcessor = new RemoveRotationProcessor();
-        removeRotationProcessor.apply(outputEventListener, currentReader, baos, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
+        RemoveRotationProcessor removeRotationProcessor = new RemoveRotationProcessor(tempFileManager);
+        removeRotationProcessor.apply(outputEventListener, currentReader, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
     }
 
     public void scalePages(ScaleParameters param) throws DocumentException, IOException {
-        OutputStream baos = tempFileManager.createTempOutputStream();
-        ScaleProcessor scaleProcessor = new ScaleProcessor();
-        currentReader = scaleProcessor.apply(outputEventListener, currentReader, baos, param, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
+        ScaleProcessor scaleProcessor = new ScaleProcessor(tempFileManager);
+        currentReader = scaleProcessor.apply(outputEventListener, currentReader, param, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
     }
 
     public void shufflePages(int passLength, int blockSize, ShuffleRule[] shuffleRules) throws DocumentException, IOException {
-        OutputStream baos = tempFileManager.createTempOutputStream();
-        ShufflePagesProcessor shufflePagesProcessor = new ShufflePagesProcessor();
-        ShufflePagesProcessor.ShuffleResult result = shufflePagesProcessor.apply(outputEventListener, currentReader, baos, passLength, blockSize, shuffleRules, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
+        ShufflePagesProcessor shufflePagesProcessor = new ShufflePagesProcessor(tempFileManager);
+        ShufflePagesProcessor.ShuffleResult result = shufflePagesProcessor.apply(outputEventListener, currentReader, passLength, blockSize, shuffleRules, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
         this.pdAnnotations = result.getPdAnnotations();
         this.currentReader = result.getResultReader();
     }
@@ -295,22 +281,19 @@ public class PDFTwist {
     }
 
     public void updateBookmarks(PdfBookmark[] bm) throws DocumentException, IOException {
-        OutputStream baos = tempFileManager.createTempOutputStream();
-        BookmarksProcessor bookmarksProcessor = new BookmarksProcessor();
-        bookmarksProcessor.updateBookmarks(currentReader, baos, bm, tempFileManager.getTempFile());
+        BookmarksProcessor bookmarksProcessor = new BookmarksProcessor(tempFileManager);
+        bookmarksProcessor.updateBookmarks(currentReader, bm, tempFileManager.getTempFile());
     }
 
     public void addWatermark(String wmFile, String wmText, int wmSize, float wmOpacity, Color wmColor, int pnPosition,
                              boolean pnFlipEven, int pnSize, float pnHOff, float pnVOff, String mask)
         throws DocumentException, IOException {
-        OutputStream baos = tempFileManager.createTempOutputStream();
-        WatermarkProcessor watermarkProcessor = new WatermarkProcessor();
-        currentReader = watermarkProcessor.apply(currentReader, baos, wmFile, wmText, wmSize, wmOpacity, wmColor, pnPosition, pnFlipEven, pnSize, pnHOff, pnVOff, mask, tempFileManager.getTempFile());
+        WatermarkProcessor watermarkProcessor = new WatermarkProcessor(tempFileManager);
+        currentReader = watermarkProcessor.apply(currentReader, wmFile, wmText, wmSize, wmOpacity, wmColor, pnPosition, pnFlipEven, pnSize, pnHOff, pnVOff, mask, tempFileManager.getTempFile());
     }
 
     public void addWatermark(WatermarkStyle style) throws DocumentException, IOException {
-        final OutputStream baos = tempFileManager.createTempOutputStream();
-        WatermarkProcessor watermarkProcessor = new WatermarkProcessor();
+        WatermarkProcessor watermarkProcessor = new WatermarkProcessor(tempFileManager);
         int[][] pagesPerRange = new int[pageRanges.size()][];
         int maxLength = 0;
 
@@ -321,7 +304,7 @@ public class PDFTwist {
                 maxLength = pagesPerRange[i].length;
             }
         }
-        currentReader = watermarkProcessor.apply(baos, currentReader, style, pageRanges, maxLength, interleaveSize, tempFileManager.getTempFile());
+        currentReader = watermarkProcessor.apply(currentReader, style, pageRanges, maxLength, interleaveSize, tempFileManager.getTempFile());
     }
 
     public int getPageCount() {
@@ -370,9 +353,8 @@ public class PDFTwist {
     }
 
     public void setPageNumbers(PdfPageLabelFormat[] labelFormats) throws DocumentException, IOException {
-        OutputStream baos = tempFileManager.createTempOutputStream();
-        PageNumberProcessor pageNumberProcessor = new PageNumberProcessor();
-        currentReader = pageNumberProcessor.addPageNumbers(outputEventListener, currentReader, baos, labelFormats, tempFileManager.getTempFile());
+        PageNumberProcessor pageNumberProcessor = new PageNumberProcessor(tempFileManager);
+        currentReader = pageNumberProcessor.addPageNumbers(outputEventListener, currentReader, labelFormats, tempFileManager.getTempFile());
     }
 
     public void preserveHyperlinks() {

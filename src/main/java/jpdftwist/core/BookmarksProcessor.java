@@ -10,7 +10,14 @@ import java.io.OutputStream;
 
 public class BookmarksProcessor {
 
-    public PdfReader updateBookmarks(PdfReader currentReader, OutputStream baos, PdfBookmark[] bm, File tempFile) throws DocumentException, IOException {
+    private final TempFileManager tempFileManager;
+
+    public BookmarksProcessor(final TempFileManager tempFileManager) {
+        this.tempFileManager = tempFileManager;
+    }
+
+    public PdfReader updateBookmarks(PdfReader currentReader, PdfBookmark[] bm, File tempFile) throws DocumentException, IOException {
+        OutputStream baos = tempFileManager.createTempOutputStream();
         PdfStamper stamper = new PdfStamper(currentReader, baos);
         stamper.setOutlines(PdfBookmark.makeBookmarks(bm));
         stamper.close();

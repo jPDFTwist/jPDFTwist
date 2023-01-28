@@ -14,18 +14,23 @@ import java.util.logging.Logger;
 
 public class InputOrderProcessor {
 
-    public PdfReader initializeReader(OutputStream baos, List<PageRange> pageRanges, byte[] ownerPassword, int interleaveSize, File tempFile) throws DocumentException, IOException {
+    private TempFileManager tempFileManager;
+
+    public PdfReader initializeReader(TempFileManager tempFileManager, List<PageRange> pageRanges, byte[] ownerPassword, int interleaveSize, File tempFile) throws DocumentException, IOException {
+        this.tempFileManager = tempFileManager;
+
         if (interleaveSize == 0) {
-            return serial(baos, pageRanges, ownerPassword, tempFile);
+            return serial(pageRanges, ownerPassword, tempFile);
         }
 
-        return interleaved(baos, pageRanges, ownerPassword, interleaveSize, tempFile);
+        return interleaved(pageRanges, ownerPassword, interleaveSize, tempFile);
     }
 
-    public PdfReader serial(OutputStream baos, List<PageRange> pageRanges, byte[] ownerPassword, File tempFile) throws DocumentException, IOException {
+    public PdfReader serial(List<PageRange> pageRanges, byte[] ownerPassword, File tempFile) throws DocumentException, IOException {
         Document document = new Document();
         PdfReader currentReader;
         PdfCopy copy;
+        OutputStream baos = tempFileManager.createTempOutputStream();
         try {
             copy = new PdfCopy(document, baos);
         } catch (DocumentException ex) {
@@ -57,9 +62,10 @@ public class InputOrderProcessor {
         return PDFTwist.getTempPdfReader(baos, tempFile);
     }
 
-    public PdfReader interleaved(OutputStream baos, List<PageRange> pageRanges, byte[] ownerPassword, int interleaveSize, File tempFile) throws IOException, DocumentException {
+    public PdfReader interleaved(List<PageRange> pageRanges, byte[] ownerPassword, int interleaveSize, File tempFile) throws IOException, DocumentException {
         Document document = new Document();
         PdfCopy copy;
+        OutputStream baos = tempFileManager.createTempOutputStream();
         try {
             copy = new PdfCopy(document, baos);
         } catch (DocumentException ex) {

@@ -20,8 +20,16 @@ import java.util.List;
 
 public class CropProcessor {
 
-    public PdfReader apply(OutputEventListener outputEventListener, PdfReader currentReader, OutputStream baos, PageBox cropTo, boolean preserveHyperlinks,
-                      ArrayList<List<PDAnnotation>> pdAnnotations, File tempFile) throws DocumentException, IOException {
+    private final TempFileManager tempFileManager;
+
+    public CropProcessor(final TempFileManager tempFileManager) {
+        this.tempFileManager = tempFileManager;
+    }
+
+    public PdfReader apply(OutputEventListener outputEventListener, PdfReader currentReader, PageBox cropTo, boolean preserveHyperlinks,
+                           ArrayList<List<PDAnnotation>> pdAnnotations, File tempFile) throws DocumentException, IOException {
+        OutputStream baos = tempFileManager.createTempOutputStream();
+
         outputEventListener.setAction("Cropping");
         outputEventListener.setPageCount(currentReader.getNumberOfPages());
 

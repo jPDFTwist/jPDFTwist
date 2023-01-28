@@ -14,7 +14,14 @@ import java.io.OutputStream;
 
 public class PageNumberProcessor {
 
-    public PdfReader addPageNumbers(OutputEventListener outputEventListener, PdfReader currentReader, OutputStream baos, PdfPageLabels.PdfPageLabelFormat[] labelFormats, File tempFile) throws DocumentException, IOException {
+    private final TempFileManager tempFileManager;
+
+    public PageNumberProcessor(final TempFileManager tempFileManager) {
+        this.tempFileManager = tempFileManager;
+    }
+
+    public PdfReader addPageNumbers(OutputEventListener outputEventListener, PdfReader currentReader, PdfPageLabels.PdfPageLabelFormat[] labelFormats, File tempFile) throws DocumentException, IOException {
+        OutputStream baos = tempFileManager.createTempOutputStream();
         PdfPageLabels lbls = new PdfPageLabels();
         for (PdfPageLabels.PdfPageLabelFormat format : labelFormats) {
             lbls.addPageLabel(format);
