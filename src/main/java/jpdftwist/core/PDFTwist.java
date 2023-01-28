@@ -58,6 +58,7 @@ public class PDFTwist {
     private final InputOrderProcessor inputOrderProcessor;
     private final PageMarksProcessor pageMarksProcessor;
     private final OptimizeSizeProcessor optimizeSizeProcessor;
+    private final OutputMultiPageTiffProcessor outputMultiPageTiffProcessor;
 
     private int encryptionMode = -1, encryptionPermissions = -1;
     private byte[] userPassword = null;
@@ -93,6 +94,7 @@ public class PDFTwist {
         this.tempFileManager = new TempFileManager(useTempFiles);
         this.pageMarksProcessor = new PageMarksProcessor();
         this.optimizeSizeProcessor = new OptimizeSizeProcessor(tempFileManager);
+        this.outputMultiPageTiffProcessor = new OutputMultiPageTiffProcessor();
 
         this.inputFilePath = pageRanges.get(0).getParentName();
         this.inputFileFullName = pageRanges.get(0).getFilename();
@@ -118,6 +120,7 @@ public class PDFTwist {
     public void cancel() {
         this.isCanceled = true;
         this.optimizeSizeProcessor.cancel();
+        this.outputMultiPageTiffProcessor.cancel();
     }
 
     public static PdfReader getTempPdfReader(OutputStream out, File tempFile) throws IOException {
@@ -457,28 +460,7 @@ public class PDFTwist {
     }
 
     private void outputMultiPageTiff(String outputFile) throws IOException, DocumentException {
-        if (outputFile.indexOf('*') != -1) {
-            throw new IOException("TIFF multi-page filename should not contain *");
-        }
-        Document document = new Document(currentReader.getPageSizeWithRotation(1));
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PdfCopy copy = new PdfCopy(document, baos);
-        document.open();
-        PdfImportedPage page;
-        for (int pagenum = 1; pagenum <= currentReader.getNumberOfPages(); pagenum++) {
-            outputEventListener.updatePagesProgress();
-            if (isCanceled) {
-                throw new CancelOperationException();
-            }
-            page = copy.getImportedPage(currentReader, pagenum);
-            copy.addPage(page);
-        }
-        PRAcroForm form = currentReader.getAcroForm();
-        if (form != null) {
-            copy.copyAcroForm(currentReader);
-        }
-        document.close();
-        pdfImages.convertToMultiTiff(baos.toByteArray(), outputFile);
+        outputMultiPageTiffProcessor.output(outputEventListener, currentReader, outputFile, pdfImages);
     }
 
     private void burstFiles(String outputFile, boolean fullyCompressed) throws IOException, DocumentException {
