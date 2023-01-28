@@ -14,28 +14,14 @@ import jpdftwist.core.tabparams.RotateParameters;
 import jpdftwist.core.tabparams.ScaleParameters;
 import jpdftwist.core.watermark.WatermarkProcessor;
 import jpdftwist.core.watermark.WatermarkStyle;
-import jpdftwist.utils.SupportedFileTypes;
-import org.apache.pdfbox.io.RandomAccessRead;
-import org.apache.pdfbox.pdfparser.PDFParser;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 
 import java.awt.*;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class PDFTwist {
 
@@ -52,16 +38,14 @@ public class PDFTwist {
     private final OutputMultiPageTiffProcessor outputMultiPageTiffProcessor;
     private final BurstFilesProcessor burstFilesProcessor;
     private final OutputPdfProcessor outputPdfProcessor;
+    private final AnnotationsProcessor annotationsProcessor;
 
     private final String inputFilePath;
     private final String inputFileName;
     private final String inputFileFullName;
-    private boolean preserveHyperlinks;
     private PdfToImage pdfImages;
     private final boolean mergeByDir;
     private String rootFolder;
-    private ArrayList<List<PDAnnotation>> pdAnnotations = new ArrayList<>();
-    private final ArrayList<PDDocument> pdDocuments;
     private final List<PageRange> pageRanges;
     private final int interleaveSize;
     private final OutputEventListener outputEventListener;
@@ -86,6 +70,7 @@ public class PDFTwist {
         this.outputMultiPageTiffProcessor = new OutputMultiPageTiffProcessor(pdfReaderManager);
         this.burstFilesProcessor = new BurstFilesProcessor(pdfReaderManager, pdfEncryptionManager);
         this.outputPdfProcessor = new OutputPdfProcessor(pdfReaderManager, pdfEncryptionManager, signatureManager, attachmentsManager, transitionManager, viewerPreferencesManager);
+        this.annotationsProcessor = new AnnotationsProcessor();
 
         this.inputFilePath = pageRanges.get(0).getParentName();
         this.inputFileFullName = pageRanges.get(0).getFilename();
@@ -95,8 +80,6 @@ public class PDFTwist {
         } else {
             inputFileName = inputFileFullName.substring(0, pos);
         }
-
-        pdDocuments = new ArrayList<>();
 
         pdfReaderManager.initializeReader(pageRanges, interleaveSize);
 
@@ -217,14 +200,14 @@ public class PDFTwist {
 
         cleanupOpenResources();
 
-        if (preserveHyperlinks) {
-            preserveHyperlinks(outputFile);
+        if (annotationsProcessor.isPreserveHyperlinks()) {
+            annotationsProcessor.preserveHyperlinks(outputFile);
         }
     }
 
     public void cropPages(PageBox cropTo) throws IOException, DocumentException {
-        CropProcessor cropProcessor = new CropProcessor(tempFileManager, pdfReaderManager);
-        cropProcessor.apply(outputEventListener, cropTo, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
+        CropProcessor cropProcessor = new CropProcessor(tempFileManager, pdfReaderManager, annotationsProcessor);
+        cropProcessor.apply(outputEventListener, cropTo, tempFileManager.getTempFile());
     }
 
     public void rotatePages(RotateParameters param) {
@@ -233,18 +216,18 @@ public class PDFTwist {
     }
 
     public void removeRotation() throws DocumentException, IOException {
-        RemoveRotationProcessor removeRotationProcessor = new RemoveRotationProcessor(tempFileManager, pdfReaderManager);
-        removeRotationProcessor.apply(outputEventListener, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
+        RemoveRotationProcessor removeRotationProcessor = new RemoveRotationProcessor(tempFileManager, pdfReaderManager, annotationsProcessor);
+        removeRotationProcessor.apply(outputEventListener, tempFileManager.getTempFile());
     }
 
     public void scalePages(ScaleParameters param) throws DocumentException, IOException {
-        ScaleProcessor scaleProcessor = new ScaleProcessor(tempFileManager, pdfReaderManager);
-        scaleProcessor.apply(outputEventListener, param, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
+        ScaleProcessor scaleProcessor = new ScaleProcessor(tempFileManager, pdfReaderManager, annotationsProcessor);
+        scaleProcessor.apply(outputEventListener, param, tempFileManager.getTempFile());
     }
 
     public void shufflePages(int passLength, int blockSize, ShuffleRule[] shuffleRules) throws DocumentException, IOException {
-        ShufflePagesProcessor shufflePagesProcessor = new ShufflePagesProcessor(tempFileManager, pdfReaderManager);
-        this.pdAnnotations = shufflePagesProcessor.apply(outputEventListener, passLength, blockSize, shuffleRules, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
+        ShufflePagesProcessor shufflePagesProcessor = new ShufflePagesProcessor(tempFileManager, pdfReaderManager, annotationsProcessor);
+        shufflePagesProcessor.apply(outputEventListener, passLength, blockSize, shuffleRules, tempFileManager.getTempFile());
     }
 
     public void addPageMarks() {
@@ -300,66 +283,7 @@ public class PDFTwist {
     }
 
     public void preserveHyperlinks() {
-        preserveHyperlinks = true;
-        for (PageRange range : pageRanges) {
-            try {
-                String filepath = range.getName();
-                if (!SupportedFileTypes.getFileExtension(filepath).equals("pdf")) {
-                    pdAnnotations.add(null);
-                    continue;
-                }
-                InputStream in = Files.newInputStream(new File(filepath).toPath());
-                PDFParser parser = new PDFParser((RandomAccessRead) in);
-                parser.parse();
-                PDDocument pdDocument = parser.getPDDocument();
-                pdDocuments.add(pdDocument);
-                List<PDPage> allPages = (List<PDPage>) pdDocument.getDocumentCatalog().getPages();
-                for (PDPage pdPage : allPages) {
-                    List<PDAnnotation> annotations = pdPage.getAnnotations();
-                    pdAnnotations.add(annotations);
-                }
-                in.close();
-            } catch (IOException ex) {
-                Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-
-    public static void repositionAnnotations(ArrayList<List<PDAnnotation>> pdAnnotations, int page, float a, float b, float c, float d, float e, float f) {
-        if (page > pdAnnotations.size())
-            return;
-
-        List<PDAnnotation> pageAnnotations = pdAnnotations.get(page - 1);
-        if (pageAnnotations == null) {
-            return;
-        }
-        for (PDAnnotation annot : pageAnnotations) {
-            PDRectangle rect = annot.getRectangle();
-
-            if (rect == null)
-                continue;
-
-            float llx = rect.getLowerLeftX();
-            float lly = rect.getLowerLeftY();
-            float urx = rect.getUpperRightX();
-            float ury = rect.getUpperRightY();
-
-            float x = llx * a + lly * c + e;
-            float y = llx * b + lly * d + f;
-            llx = x;
-            lly = y;
-            x = urx * a + ury * c + e;
-            y = urx * b + ury * d + f;
-            urx = x;
-            ury = y;
-
-            rect.setLowerLeftX(llx);
-            rect.setLowerLeftY(lly);
-            rect.setUpperRightX(urx);
-            rect.setUpperRightY(ury);
-
-            annot.setRectangle(rect);
-        }
+        annotationsProcessor.preserveHyperlinks(pageRanges);
     }
 
     private String expandOutputPath(final String rawOutputFile) {
@@ -416,35 +340,6 @@ public class PDFTwist {
 
     private void outputPdf(String outputFile, boolean fullyCompressed, int total) throws IOException, DocumentException {
         outputPdfProcessor.output(outputEventListener, outputFile, fullyCompressed, total);
-    }
-
-    private void preserveHyperlinks(String outputFile) throws IOException {
-        InputStream in = Files.newInputStream(Paths.get(outputFile));
-        PDFParser parser = new PDFParser((RandomAccessRead) in);
-        parser.parse();
-        PDDocument document = parser.getPDDocument();
-        List<PDPage> allPages = (List<PDPage>) document.getDocumentCatalog().getPages();
-        for (int i = 0; i < allPages.size(); i++) {
-            PDPage page = allPages.get(i);
-            page.setAnnotations(pdAnnotations.get(i));
-        }
-        try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            document.save(out);
-            document.close();
-            OutputStream outStream = Files.newOutputStream(Paths.get(outputFile));
-            out.writeTo(outStream);
-            out.close();
-            outStream.close();
-        } catch (IOException ex) {
-            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        if (!pdDocuments.isEmpty()) {
-            for (PDDocument pdDocument : pdDocuments) {
-                pdDocument.close();
-            }
-        }
     }
 
     public void cleanupOpenResources() {

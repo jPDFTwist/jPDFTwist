@@ -19,20 +19,23 @@ public class ShufflePagesProcessor {
 
     private final TempFileManager tempFileManager;
     private final PdfReaderManager pdfReaderManager;
+    private final AnnotationsProcessor annotationsProcessor;
 
-    public ShufflePagesProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager) {
+    public ShufflePagesProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager,
+                                 final AnnotationsProcessor annotationsProcessor) {
         this.tempFileManager = tempFileManager;
         this.pdfReaderManager = pdfReaderManager;
+        this.annotationsProcessor = annotationsProcessor;
     }
 
-    public ArrayList<List<PDAnnotation>> apply(OutputEventListener outputEventListener, int passLength, int blockSize, ShuffleRule[] shuffleRules,
-                               boolean preserveHyperlinks, ArrayList<List<PDAnnotation>> pdAnnotations, File tempFile) throws DocumentException, IOException {
+    public void apply(OutputEventListener outputEventListener, int passLength, int blockSize, ShuffleRule[] shuffleRules,
+                      File tempFile) throws DocumentException, IOException {
         OutputStream baos = tempFileManager.createTempOutputStream();
         outputEventListener.setAction("Shuffling");
         outputEventListener.setPageCount(pdfReaderManager.getPageCount());
 
-        RemoveRotationProcessor removeRotationProcessor = new RemoveRotationProcessor(tempFileManager, pdfReaderManager);
-        removeRotationProcessor.apply(outputEventListener, preserveHyperlinks, pdAnnotations, tempFile);
+        RemoveRotationProcessor removeRotationProcessor = new RemoveRotationProcessor(tempFileManager, pdfReaderManager, annotationsProcessor);
+        removeRotationProcessor.apply(outputEventListener, tempFile);
 
         Rectangle size = pdfReaderManager.getCurrentReader().getPageSize(1);
         for (int i = 1; i <= pdfReaderManager.getCurrentReader().getNumberOfPages(); i++) {
@@ -166,9 +169,9 @@ public class ShufflePagesProcessor {
                     if (pg <= cnt) {
                         page = writer.getImportedPage(pdfReaderManager.getCurrentReader(), pg);
                         cb.addTemplate(page, a, b, c, d, e, f);
-                        if (preserveHyperlinks)
-                            PDFTwist.repositionAnnotations(pdAnnotations, pg, a, b, c, d, e, f);
-
+                        if (annotationsProcessor.isPreserveHyperlinks()) {
+                            annotationsProcessor.repositionAnnotations(pg, a, b, c, d, e, f);
+                        }
                         if (sr.getFrameWidth() > 0) {
                             cb.setLineWidth((float) sr.getFrameWidth());
                             cb.rectangle(e, f, a * size.getWidth() + c * size.getHeight(),
@@ -179,12 +182,12 @@ public class ShufflePagesProcessor {
                         writer.setPageEmpty(false);
                     }
 
-                    if (preserveHyperlinks) {
+                    if (annotationsProcessor.isPreserveHyperlinks()) {
                         if (pg < destinationPageNumbers.length) {
                             if (destinationPageNumbers[pg] - 1 < tmp.size()) {
-                                tmp.get(destinationPageNumbers[pg] - 1).addAll(pdAnnotations.get(pg - 1));
+                                tmp.get(destinationPageNumbers[pg] - 1).addAll(annotationsProcessor.getAnnotations(pg - 1));
                             } else {
-                                tmp.add(destinationPageNumbers[pg] - 1, pdAnnotations.get(pg - 1));
+                                tmp.add(destinationPageNumbers[pg] - 1, annotationsProcessor.getAnnotations(pg - 1));
                             }
                         }
                     }
@@ -199,7 +202,6 @@ public class ShufflePagesProcessor {
         PDFTwist.copyInformation(pdfReaderManager.getCurrentReader(), resultReader);
 
         pdfReaderManager.setCurrentReader(resultReader);
-
-        return tmp;
+        annotationsProcessor.setAnnotations(tmp);
     }
 }

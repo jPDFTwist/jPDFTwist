@@ -10,26 +10,25 @@ import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfNumber;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfWriter;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 public class CropProcessor {
 
     private final TempFileManager tempFileManager;
     private final PdfReaderManager pdfReaderManager;
+    private final AnnotationsProcessor annotationsProcessor;
 
-    public CropProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager) {
+    public CropProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager,
+                         final AnnotationsProcessor annotationsProcessor) {
         this.tempFileManager = tempFileManager;
         this.pdfReaderManager = pdfReaderManager;
+        this.annotationsProcessor = annotationsProcessor;
     }
 
-    public void apply(OutputEventListener outputEventListener, PageBox cropTo, boolean preserveHyperlinks,
-                           ArrayList<List<PDAnnotation>> pdAnnotations, File tempFile) throws DocumentException, IOException {
+    public void apply(OutputEventListener outputEventListener, PageBox cropTo, File tempFile) throws DocumentException, IOException {
         OutputStream baos = tempFileManager.createTempOutputStream();
 
         outputEventListener.setAction("Cropping");
@@ -67,8 +66,8 @@ public class CropProcessor {
             PdfImportedPage page = writer.getImportedPage(pdfReaderManager.getCurrentReader(), i);
             cb.addTemplate(page, pageSize.getLeft() - currentSize.getLeft(),
                 pageSize.getBottom() - currentSize.getBottom());
-            if (preserveHyperlinks) {
-                PDFTwist.repositionAnnotations(pdAnnotations, i, 1, 0, 0, 1, pageSize.getLeft() - currentSize.getLeft(),
+            if (annotationsProcessor.isPreserveHyperlinks()) {
+                annotationsProcessor.repositionAnnotations(i, 1, 0, 0, 1, pageSize.getLeft() - currentSize.getLeft(),
                     pageSize.getBottom() - currentSize.getBottom());
             }
         }

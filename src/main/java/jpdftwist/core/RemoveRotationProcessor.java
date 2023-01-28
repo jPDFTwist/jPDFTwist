@@ -7,26 +7,24 @@ import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfImportedPage;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfWriter;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 public class RemoveRotationProcessor {
 
     private final TempFileManager tempFileManager;
     private final PdfReaderManager pdfReaderManager;
+    private final AnnotationsProcessor annotationsProcessor;
 
-    public RemoveRotationProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager) {
+    public RemoveRotationProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager, final AnnotationsProcessor annotationsProcessor) {
         this.tempFileManager = tempFileManager;
         this.pdfReaderManager = pdfReaderManager;
+        this.annotationsProcessor = annotationsProcessor;
     }
 
-    public void apply(OutputEventListener outputEventListener, boolean preserveHyperlinks,
-                           ArrayList<List<PDAnnotation>> pdAnnotations, File tempFile) throws DocumentException, IOException {
+    public void apply(OutputEventListener outputEventListener, File tempFile) throws DocumentException, IOException {
         OutputStream baos = tempFileManager.createTempOutputStream();
         outputEventListener.setAction("Removing Rotation");
         outputEventListener.setPageCount(pdfReaderManager.getPageCount());
@@ -89,8 +87,9 @@ public class RemoveRotationProcessor {
                 throw new IOException("Unparsable rotation value: " + rotation);
             }
             cb.addTemplate(page, a, b, c, d, e, f);
-            if (preserveHyperlinks)
-                PDFTwist.repositionAnnotations(pdAnnotations, i, a, b, c, d, e, f);
+            if (annotationsProcessor.isPreserveHyperlinks()) {
+                annotationsProcessor.repositionAnnotations(i, a, b, c, d, e, f);
+            }
         }
         PDFTwist.copyXMPMetadata(pdfReaderManager.getCurrentReader(), writer);
         document.close();
