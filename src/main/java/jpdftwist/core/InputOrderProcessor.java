@@ -73,23 +73,14 @@ public class InputOrderProcessor {
             return null;
         }
         document.open();
-        int[][] pagesPerRange = new int[pageRanges.size()][];
-        int maxLength = 0;
+        PagesPerRange pagesPerRange = calculateMaxLength(pageRanges);
 
-        for (int i = 0; i < pagesPerRange.length; i++) {
-            PageRange range = pageRanges.get(i);
-            pagesPerRange[i] = range.getPages(0);
-            if (pagesPerRange[i].length > maxLength) {
-                maxLength = pagesPerRange[i].length;
-            }
-        }
-
-        int blockCount = (maxLength + interleaveSize - 1) / interleaveSize;
+        int blockCount = (pagesPerRange.getMaxLength() + interleaveSize - 1) / interleaveSize;
         for (int i = 0; i < blockCount; i++) {
             for (int j = 0; j < pageRanges.size(); j++) {
                 InputReader inputReader = new InputReader();
                 PdfReader currentReader = inputReader.getPdfReader(pageRanges.get(j), ownerPassword);
-                int[] pages = pagesPerRange[j];
+                int[] pages = pagesPerRange.getPagesPerRange()[j];
                 for (int k = 0; k < interleaveSize; k++) {
                     int pageIndex = i * interleaveSize + k;
                     int pageNum = pageIndex < pages.length ? pages[pageIndex] : -1;
@@ -105,5 +96,39 @@ public class InputOrderProcessor {
 
         document.close();
         return PDFTwist.getTempPdfReader(baos, tempFile);
+    }
+
+    public PagesPerRange calculateMaxLength(List<PageRange> pageRanges) {
+        int[][] pagesPerRange = new int[pageRanges.size()][];
+        int maxLength = 0;
+
+        for (int i = 0; i < pagesPerRange.length; i++) {
+            PageRange range = pageRanges.get(i);
+            pagesPerRange[i] = range.getPages(0);
+            if (pagesPerRange[i].length > maxLength) {
+                maxLength = pagesPerRange[i].length;
+            }
+        }
+
+        return new PagesPerRange(pagesPerRange, maxLength);
+    }
+
+    public static class PagesPerRange {
+
+        private final int[][] pagesPerRange;
+        private final int maxLength;
+
+        public PagesPerRange(final int[][] pagesPerRange, final int maxLength) {
+            this.pagesPerRange = pagesPerRange;
+            this.maxLength = maxLength;
+        }
+
+        public int[][] getPagesPerRange() {
+            return pagesPerRange;
+        }
+
+        public int getMaxLength() {
+            return maxLength;
+        }
     }
 }

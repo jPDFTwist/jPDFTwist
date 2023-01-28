@@ -58,6 +58,7 @@ public class PDFTwist {
     private PdfReader currentReader;
 
     private final TempFileManager tempFileManager;
+    private final InputOrderProcessor inputOrderProcessor;
     private final PageMarksProcessor pageMarksProcessor;
 
     private int encryptionMode = -1, encryptionPermissions = -1;
@@ -106,10 +107,10 @@ public class PDFTwist {
         pdDocuments = new ArrayList<>();
 
         try {
-            InputOrderProcessor inputOrderProcessor = new InputOrderProcessor();
+            this.inputOrderProcessor = new InputOrderProcessor();
             currentReader = inputOrderProcessor.initializeReader(tempFileManager, pageRanges, ownerPassword, interleaveSize, tempFileManager.getTempFile());
         } catch (DocumentException ex) {
-            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
+            throw new IOException("Could not read the input", ex);
         }
 
         keepFileParents();
@@ -294,16 +295,7 @@ public class PDFTwist {
 
     public void addWatermark(WatermarkStyle style) throws DocumentException, IOException {
         WatermarkProcessor watermarkProcessor = new WatermarkProcessor(tempFileManager);
-        int[][] pagesPerRange = new int[pageRanges.size()][];
-        int maxLength = 0;
-
-        for (int i = 0; i < pagesPerRange.length; i++) {
-            PageRange range = pageRanges.get(i);
-            pagesPerRange[i] = range.getPages(0);
-            if (pagesPerRange[i].length > maxLength) {
-                maxLength = pagesPerRange[i].length;
-            }
-        }
+        int maxLength = inputOrderProcessor.calculateMaxLength(pageRanges).getMaxLength();
         currentReader = watermarkProcessor.apply(currentReader, style, pageRanges, maxLength, interleaveSize, tempFileManager.getTempFile());
     }
 
