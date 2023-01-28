@@ -14,14 +14,11 @@ import com.itextpdf.text.pdf.PdfPageLabels;
 import com.itextpdf.text.pdf.PdfPageLabels.PdfPageLabelFormat;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfSignatureAppearance;
-import com.itextpdf.text.pdf.PdfSmartCopy;
 import com.itextpdf.text.pdf.PdfStamper;
 import com.itextpdf.text.pdf.PdfString;
 import com.itextpdf.text.pdf.PdfTransition;
 import com.itextpdf.text.pdf.PdfWriter;
-import com.itextpdf.text.pdf.SimpleBookmark;
 import com.itextpdf.text.pdf.interfaces.PdfEncryptionSettings;
-import com.itextpdf.text.pdf.internal.PdfViewerPreferencesImp;
 import jpdftwist.core.tabparams.RotateParameters;
 import jpdftwist.core.tabparams.ScaleParameters;
 import jpdftwist.core.watermark.WatermarkProcessor;
@@ -60,6 +57,7 @@ public class PDFTwist {
     private final TempFileManager tempFileManager;
     private final InputOrderProcessor inputOrderProcessor;
     private final PageMarksProcessor pageMarksProcessor;
+    private final OptimizeSizeProcessor optimizeSizeProcessor;
 
     private int encryptionMode = -1, encryptionPermissions = -1;
     private byte[] userPassword = null;
@@ -94,6 +92,7 @@ public class PDFTwist {
 
         this.tempFileManager = new TempFileManager(useTempFiles);
         this.pageMarksProcessor = new PageMarksProcessor();
+        this.optimizeSizeProcessor = new OptimizeSizeProcessor(tempFileManager);
 
         this.inputFilePath = pageRanges.get(0).getParentName();
         this.inputFileFullName = pageRanges.get(0).getFilename();
@@ -118,6 +117,7 @@ public class PDFTwist {
 
     public void cancel() {
         this.isCanceled = true;
+        this.optimizeSizeProcessor.cancel();
     }
 
     public static PdfReader getTempPdfReader(OutputStream out, File tempFile) throws IOException {
@@ -453,45 +453,7 @@ public class PDFTwist {
     }
 
     private PdfReader optimizeSize() throws IOException, DocumentException {
-        Document document = new Document(currentReader.getPageSizeWithRotation(1));
-        OutputStream baos = tempFileManager.createTempOutputStream();
-        PdfSmartCopy copy = new PdfSmartCopy(document, baos);
-        document.open();
-        PdfImportedPage page;
-        outputEventListener.setPageCount(currentReader.getNumberOfPages());
-        if (isCanceled) {
-            throw new CancelOperationException();
-        }
-        for (int i = 0; i < currentReader.getNumberOfPages(); i++) {
-            outputEventListener.updatePagesProgress();
-            if (isCanceled) {
-                throw new CancelOperationException();
-            }
-            page = copy.getImportedPage(currentReader, i + 1);
-            copy.addPage(page);
-        }
-        PRAcroForm form = currentReader.getAcroForm();
-        if (form != null) {
-            copy.copyAcroForm(currentReader);
-        }
-        copy.setOutlines(SimpleBookmark.getBookmark(currentReader));
-        PdfViewerPreferencesImp.getViewerPreferences(currentReader.getCatalog())
-            .addToCatalog(copy.getExtraCatalog());
-        copyXMPMetadata(currentReader, copy);
-        PdfPageLabelFormat[] formats = PdfPageLabels.getPageLabelFormats(currentReader);
-        if (formats != null) {
-            PdfPageLabels lbls = new PdfPageLabels();
-            for (PdfPageLabelFormat format : formats) {
-                lbls.addPageLabel(format);
-            }
-            copy.setPageLabels(lbls);
-        }
-        document.close();
-
-        PdfReader optimizedSizeReader = getTempPdfReader(baos, tempFileManager.getTempFile());
-        copyInformation(currentReader, optimizedSizeReader);
-
-        return optimizedSizeReader;
+        return optimizeSizeProcessor.optimizeSize(outputEventListener, currentReader);
     }
 
     private void outputMultiPageTiff(String outputFile) throws IOException, DocumentException {
