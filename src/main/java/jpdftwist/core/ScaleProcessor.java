@@ -21,15 +21,17 @@ public class ScaleProcessor {
     private final TempFileManager tempFileManager;
     private final PdfReaderManager pdfReaderManager;
     private final AnnotationsProcessor annotationsProcessor;
+    private final InfoDictionaryProcessor infoDictionaryProcessor;
 
     private float offsetX;
     private float offsetY;
 
     public ScaleProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager,
-                          final AnnotationsProcessor annotationsProcessor) {
+                          final AnnotationsProcessor annotationsProcessor, final InfoDictionaryProcessor infoDictionaryProcessor) {
         this.tempFileManager = tempFileManager;
         this.pdfReaderManager = pdfReaderManager;
         this.annotationsProcessor = annotationsProcessor;
+        this.infoDictionaryProcessor = infoDictionaryProcessor;
     }
 
     public void apply(OutputEventListener outputEventListener, ScaleParameters param, File tempFile) throws DocumentException, IOException {
@@ -148,7 +150,7 @@ public class ScaleProcessor {
         PDFTwist.copyXMPMetadata(pdfReaderManager.getCurrentReader(), writer);
         document.close();
         PdfReader resultReader = PDFTwist.getTempPdfReader(baos, tempFile);
-        PDFTwist.copyInformation(pdfReaderManager.getCurrentReader(), resultReader);
+        infoDictionaryProcessor.copyInformation(pdfReaderManager.getCurrentReader(), resultReader);
         pdfReaderManager.setCurrentReader(resultReader);
     }
 

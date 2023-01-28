@@ -20,12 +20,14 @@ public class ShufflePagesProcessor {
     private final TempFileManager tempFileManager;
     private final PdfReaderManager pdfReaderManager;
     private final AnnotationsProcessor annotationsProcessor;
+    private final InfoDictionaryProcessor infoDictionaryProcessor;
 
     public ShufflePagesProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager,
-                                 final AnnotationsProcessor annotationsProcessor) {
+                                 final AnnotationsProcessor annotationsProcessor, final InfoDictionaryProcessor infoDictionaryProcessor) {
         this.tempFileManager = tempFileManager;
         this.pdfReaderManager = pdfReaderManager;
         this.annotationsProcessor = annotationsProcessor;
+        this.infoDictionaryProcessor = infoDictionaryProcessor;
     }
 
     public void apply(OutputEventListener outputEventListener, int passLength, int blockSize, ShuffleRule[] shuffleRules,
@@ -34,7 +36,7 @@ public class ShufflePagesProcessor {
         outputEventListener.setAction("Shuffling");
         outputEventListener.setPageCount(pdfReaderManager.getPageCount());
 
-        RemoveRotationProcessor removeRotationProcessor = new RemoveRotationProcessor(tempFileManager, pdfReaderManager, annotationsProcessor);
+        RemoveRotationProcessor removeRotationProcessor = new RemoveRotationProcessor(tempFileManager, pdfReaderManager, annotationsProcessor, infoDictionaryProcessor);
         removeRotationProcessor.apply(outputEventListener, tempFile);
 
         Rectangle size = pdfReaderManager.getCurrentReader().getPageSize(1);
@@ -199,7 +201,7 @@ public class ShufflePagesProcessor {
         document.close();
 
         PdfReader resultReader = PDFTwist.getTempPdfReader(baos, tempFile);
-        PDFTwist.copyInformation(pdfReaderManager.getCurrentReader(), resultReader);
+        infoDictionaryProcessor.copyInformation(pdfReaderManager.getCurrentReader(), resultReader);
 
         pdfReaderManager.setCurrentReader(resultReader);
         annotationsProcessor.setAnnotations(tmp);

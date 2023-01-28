@@ -17,11 +17,14 @@ public class RemoveRotationProcessor {
     private final TempFileManager tempFileManager;
     private final PdfReaderManager pdfReaderManager;
     private final AnnotationsProcessor annotationsProcessor;
+    private final InfoDictionaryProcessor infoDictionaryProcessor;
 
-    public RemoveRotationProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager, final AnnotationsProcessor annotationsProcessor) {
+    public RemoveRotationProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager,
+                                   final AnnotationsProcessor annotationsProcessor, final InfoDictionaryProcessor infoDictionaryProcessor) {
         this.tempFileManager = tempFileManager;
         this.pdfReaderManager = pdfReaderManager;
         this.annotationsProcessor = annotationsProcessor;
+        this.infoDictionaryProcessor = infoDictionaryProcessor;
     }
 
     public void apply(OutputEventListener outputEventListener, File tempFile) throws DocumentException, IOException {
@@ -95,7 +98,7 @@ public class RemoveRotationProcessor {
         document.close();
 
         PdfReader resultReader = PDFTwist.getTempPdfReader(baos, tempFile);
-        PDFTwist.copyInformation(pdfReaderManager.getCurrentReader(), resultReader);
+        infoDictionaryProcessor.copyInformation(pdfReaderManager.getCurrentReader(), resultReader);
         pdfReaderManager.setCurrentReader(resultReader);
     }
 }

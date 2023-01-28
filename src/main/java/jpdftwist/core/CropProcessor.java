@@ -20,12 +20,14 @@ public class CropProcessor {
     private final TempFileManager tempFileManager;
     private final PdfReaderManager pdfReaderManager;
     private final AnnotationsProcessor annotationsProcessor;
+    private final InfoDictionaryProcessor infoDictionaryProcessor;
 
     public CropProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager,
-                         final AnnotationsProcessor annotationsProcessor) {
+                         final AnnotationsProcessor annotationsProcessor, final InfoDictionaryProcessor infoDictionaryProcessor) {
         this.tempFileManager = tempFileManager;
         this.pdfReaderManager = pdfReaderManager;
         this.annotationsProcessor = annotationsProcessor;
+        this.infoDictionaryProcessor = infoDictionaryProcessor;
     }
 
     public void apply(OutputEventListener outputEventListener, PageBox cropTo, File tempFile) throws DocumentException, IOException {
@@ -75,7 +77,7 @@ public class CropProcessor {
         document.close();
 
         PdfReader resultReader = PDFTwist.getTempPdfReader(baos, tempFile);
-        PDFTwist.copyInformation(pdfReaderManager.getCurrentReader(), resultReader);
+        infoDictionaryProcessor.copyInformation(pdfReaderManager.getCurrentReader(), resultReader);
         // restore rotation
         for (int i = 1; i <= pdfReaderManager.getCurrentReader().getNumberOfPages(); i++) {
             PdfDictionary dic = pdfReaderManager.getCurrentReader().getPageN(i);

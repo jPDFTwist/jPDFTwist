@@ -16,10 +16,13 @@ public class PageNumberProcessor {
 
     private final TempFileManager tempFileManager;
     private final PdfReaderManager pdfReaderManager;
+    private final InfoDictionaryProcessor infoDictionaryProcessor;
 
-    public PageNumberProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager) {
+    public PageNumberProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager,
+                               final InfoDictionaryProcessor infoDictionaryProcessor) {
         this.tempFileManager = tempFileManager;
         this.pdfReaderManager = pdfReaderManager;
+        this.infoDictionaryProcessor = infoDictionaryProcessor;
     }
 
     public void addPageNumbers(OutputEventListener outputEventListener, PdfPageLabels.PdfPageLabelFormat[] labelFormats, File tempFile) throws DocumentException, IOException {
@@ -48,7 +51,7 @@ public class PageNumberProcessor {
         document.close();
 
         PdfReader resultReader = PDFTwist.getTempPdfReader(baos, tempFile);
-        PDFTwist.copyInformation(pdfReaderManager.getCurrentReader(), resultReader);
+        infoDictionaryProcessor.copyInformation(pdfReaderManager.getCurrentReader(), resultReader);
         pdfReaderManager.setCurrentReader(resultReader);
     }
 }

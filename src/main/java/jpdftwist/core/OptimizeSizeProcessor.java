@@ -17,12 +17,15 @@ public class OptimizeSizeProcessor {
 
     private final TempFileManager tempFileManager;
     private final PdfReaderManager pdfReaderManager;
+    private final InfoDictionaryProcessor infoDictionaryProcessor;
 
     private boolean isCanceled = false;
 
-    public OptimizeSizeProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager) {
+    public OptimizeSizeProcessor(final TempFileManager tempFileManager, final PdfReaderManager pdfReaderManager,
+                                 final InfoDictionaryProcessor infoDictionaryProcessor) {
         this.tempFileManager = tempFileManager;
         this.pdfReaderManager = pdfReaderManager;
+        this.infoDictionaryProcessor = infoDictionaryProcessor;
     }
 
     /**
@@ -65,7 +68,7 @@ public class OptimizeSizeProcessor {
         document.close();
 
         PdfReader optimizedSizeReader = PDFTwist.getTempPdfReader(baos, tempFileManager.getTempFile());
-        PDFTwist.copyInformation(pdfReaderManager.getCurrentReader(), optimizedSizeReader);
+        infoDictionaryProcessor.copyInformation(pdfReaderManager.getCurrentReader(), optimizedSizeReader);
 
         pdfReaderManager.setCurrentReader(optimizedSizeReader);
     }
