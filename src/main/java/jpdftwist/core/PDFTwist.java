@@ -9,7 +9,6 @@ import com.itextpdf.text.pdf.PdfCopy;
 import com.itextpdf.text.pdf.PdfDictionary;
 import com.itextpdf.text.pdf.PdfImportedPage;
 import com.itextpdf.text.pdf.PdfName;
-import com.itextpdf.text.pdf.PdfNumber;
 import com.itextpdf.text.pdf.PdfObject;
 import com.itextpdf.text.pdf.PdfPageLabels;
 import com.itextpdf.text.pdf.PdfPageLabels.PdfPageLabelFormat;
@@ -56,9 +55,10 @@ import java.util.logging.Logger;
 
 public class PDFTwist {
 
-    private static final String PDFTK_PAGE_MARKER = "pdftk_PageNum";
-
     private PdfReader currentReader;
+
+    private final PageMarksProcessor pageMarksProcessor;
+
     private int encryptionMode = -1, encryptionPermissions = -1;
     private byte[] userPassword = null;
     private byte[] ownerPassword = null;
@@ -92,6 +92,8 @@ public class PDFTwist {
         this.pageRanges = pageRanges;
         this.mergeByDir = mergeByDir;
         this.interleaveSize = interleaveSize;
+
+        this.pageMarksProcessor = new PageMarksProcessor();
 
         this.inputFilePath = pageRanges.get(0).getParentName();
         this.inputFileFullName = pageRanges.get(0).getFilename();
@@ -322,23 +324,11 @@ public class PDFTwist {
     }
 
     public void addPageMarks() {
-        int pageCount = currentReader.getNumberOfPages();
-        for (int i = 1; i <= pageCount; ++i) {
-            PdfDictionary p = currentReader.getPageN(i);
-            if (p != null && p.isDictionary()) {
-                p.put(new PdfName(PDFTK_PAGE_MARKER), new PdfNumber(i));
-            }
-        }
+        pageMarksProcessor.addPageMarks(currentReader);
     }
 
     public void removePageMarks() {
-        int pageCount = currentReader.getNumberOfPages();
-        for (int i = 1; i <= pageCount; ++i) {
-            PdfDictionary p = currentReader.getPageN(i);
-            if (p != null && p.isDictionary()) {
-                p.remove(new PdfName(PDFTK_PAGE_MARKER));
-            }
-        }
+        pageMarksProcessor.removePageMarks(currentReader);
     }
 
     public void updateBookmarks(PdfBookmark[] bm) throws DocumentException, IOException {
