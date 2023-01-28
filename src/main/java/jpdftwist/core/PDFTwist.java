@@ -3,14 +3,10 @@ package jpdftwist.core;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.pdf.PRAcroForm;
 import com.itextpdf.text.pdf.PRStream;
-import com.itextpdf.text.pdf.PdfCopy;
 import com.itextpdf.text.pdf.PdfDictionary;
-import com.itextpdf.text.pdf.PdfImportedPage;
 import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfObject;
-import com.itextpdf.text.pdf.PdfPageLabels;
 import com.itextpdf.text.pdf.PdfPageLabels.PdfPageLabelFormat;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfSignatureAppearance;
@@ -18,7 +14,6 @@ import com.itextpdf.text.pdf.PdfStamper;
 import com.itextpdf.text.pdf.PdfString;
 import com.itextpdf.text.pdf.PdfTransition;
 import com.itextpdf.text.pdf.PdfWriter;
-import com.itextpdf.text.pdf.interfaces.PdfEncryptionSettings;
 import jpdftwist.core.tabparams.RotateParameters;
 import jpdftwist.core.tabparams.ScaleParameters;
 import jpdftwist.core.watermark.WatermarkProcessor;
@@ -55,14 +50,13 @@ public class PDFTwist {
     private PdfReader currentReader;
 
     private final TempFileManager tempFileManager;
+    private final PdfEncryptionManager pdfEncryptionManager;
     private final InputOrderProcessor inputOrderProcessor;
     private final PageMarksProcessor pageMarksProcessor;
     private final OptimizeSizeProcessor optimizeSizeProcessor;
     private final OutputMultiPageTiffProcessor outputMultiPageTiffProcessor;
+    private final BurstFilesProcessor burstFilesProcessor;
 
-    private int encryptionMode = -1, encryptionPermissions = -1;
-    private byte[] userPassword = null;
-    private byte[] ownerPassword = null;
     private int[][] transitionValues;
     private Map<PdfName, PdfObject> optionalViewerPreferences;
     private int simpleViewerPreferences;
@@ -92,9 +86,11 @@ public class PDFTwist {
         this.interleaveSize = interleaveSize;
 
         this.tempFileManager = new TempFileManager(useTempFiles);
+        this.pdfEncryptionManager = new PdfEncryptionManager();
         this.pageMarksProcessor = new PageMarksProcessor();
         this.optimizeSizeProcessor = new OptimizeSizeProcessor(tempFileManager);
         this.outputMultiPageTiffProcessor = new OutputMultiPageTiffProcessor();
+        this.burstFilesProcessor = new BurstFilesProcessor(pdfEncryptionManager);
 
         this.inputFilePath = pageRanges.get(0).getParentName();
         this.inputFileFullName = pageRanges.get(0).getFilename();
@@ -109,7 +105,7 @@ public class PDFTwist {
 
         try {
             this.inputOrderProcessor = new InputOrderProcessor();
-            currentReader = inputOrderProcessor.initializeReader(tempFileManager, pageRanges, ownerPassword, interleaveSize, tempFileManager.getTempFile());
+            currentReader = inputOrderProcessor.initializeReader(tempFileManager, pageRanges, pdfEncryptionManager.getOwnerPassword(), interleaveSize, tempFileManager.getTempFile());
         } catch (DocumentException ex) {
             throw new IOException("Could not read the input", ex);
         }
@@ -121,6 +117,7 @@ public class PDFTwist {
         this.isCanceled = true;
         this.optimizeSizeProcessor.cancel();
         this.outputMultiPageTiffProcessor.cancel();
+        this.burstFilesProcessor.cancel();
     }
 
     public static PdfReader getTempPdfReader(OutputStream out, File tempFile) throws IOException {
@@ -197,19 +194,14 @@ public class PDFTwist {
     }
 
     public void setEncryption(int mode, int permissions, byte[] ownerPassword, byte[] userPassword) throws IOException {
-        this.encryptionMode = mode;
-        this.encryptionPermissions = permissions;
-        this.userPassword = userPassword;
-        this.ownerPassword = ownerPassword;
         if (ownerPassword.length == 0) {
             throw new IOException("Owner password may not be empty");
         }
-    }
 
-    private void setEncryptionSettings(PdfEncryptionSettings w) throws DocumentException {
-        if (encryptionMode != -1) {
-            w.setEncryption(userPassword, ownerPassword, encryptionPermissions, encryptionMode);
-        }
+        pdfEncryptionManager.setEncryptionMode(mode);
+        pdfEncryptionManager.setEncryptionPermissions(permissions);
+        pdfEncryptionManager.setUserPassword(userPassword);
+        pdfEncryptionManager.setOwnerPassword(ownerPassword);
     }
 
     public void writeOutput(String rawOutputFile, boolean multiPageTiff, boolean burst, boolean uncompressed, boolean sizeOptimize, boolean fullyCompressed)
@@ -464,51 +456,7 @@ public class PDFTwist {
     }
 
     private void burstFiles(String outputFile, boolean fullyCompressed) throws IOException, DocumentException {
-        if (outputFile.indexOf('*') == -1) {
-            throw new IOException("Output filename does not contain *");
-        }
-        String prefix = outputFile.substring(0, outputFile.indexOf('*'));
-        String suffix = outputFile.substring(outputFile.indexOf('*') + 1);
-        String[] pageLabels = PdfPageLabels.getPageLabels(currentReader);
-        PdfCopy copy;
-        ByteArrayOutputStream baos = null;
-        for (int pagenum = 1; pagenum <= currentReader.getNumberOfPages(); pagenum++) {
-            outputEventListener.updatePagesProgress();
-            if (isCanceled) {
-                throw new CancelOperationException();
-            }
-            Document document = new Document(currentReader.getPageSizeWithRotation(1));
-            String pageNumber = "" + pagenum;
-            if (pageLabels != null && pagenum <= pageLabels.length) {
-                pageNumber = pageLabels[pagenum - 1];
-            }
-            File outFile = new File(prefix + pageNumber + suffix);
-            if (!outFile.getParentFile().isDirectory()) {
-                outFile.getParentFile().mkdirs();
-            }
-            if (pdfImages.shouldExecute()) {
-                baos = new ByteArrayOutputStream();
-                copy = new PdfCopy(document, baos);
-            } else {
-                copy = new PdfCopy(document, Files.newOutputStream(outFile.toPath()));
-                setEncryptionSettings(copy);
-                if (fullyCompressed) {
-                    copy.setFullCompression();
-                }
-            }
-            document.open();
-            PdfImportedPage page;
-            page = copy.getImportedPage(currentReader, pagenum);
-            copy.addPage(page);
-            PRAcroForm form = currentReader.getAcroForm();
-            if (form != null) {
-                copy.copyAcroForm(currentReader);
-            }
-            document.close();
-            if (pdfImages.shouldExecute()) {
-                pdfImages.convertToImage(baos.toByteArray(), prefix + pageNumber + suffix);
-            }
-        }
+        burstFilesProcessor.burst(outputEventListener, currentReader, outputFile, fullyCompressed, pdfImages);
     }
 
     private void outputPdf(String outputFile, boolean fullyCompressed, int total) throws IOException, DocumentException {
@@ -527,7 +475,7 @@ public class PDFTwist {
             new File(outputFile).getParentFile().mkdirs();
             stamper = new PdfStamper(currentReader, Files.newOutputStream(Paths.get(outputFile)));
         }
-        setEncryptionSettings(stamper);
+        pdfEncryptionManager.setEncryptionSettings(stamper);
         if (fullyCompressed) {
             stamper.setFullCompression();
         }
