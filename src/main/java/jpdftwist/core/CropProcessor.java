@@ -21,7 +21,7 @@ import java.util.List;
 public class CropProcessor {
 
     public PdfReader apply(OutputEventListener outputEventListener, PdfReader currentReader, OutputStream baos, PageBox cropTo, boolean preserveHyperlinks,
-                      ArrayList<List<PDAnnotation>> pdAnnotations, boolean useTempFiles, File tempFile) throws DocumentException, IOException {
+                      ArrayList<List<PDAnnotation>> pdAnnotations, File tempFile) throws DocumentException, IOException {
         outputEventListener.setAction("Cropping");
         outputEventListener.setPageCount(currentReader.getNumberOfPages());
 
@@ -65,7 +65,7 @@ public class CropProcessor {
         PDFTwist.copyXMPMetadata(currentReader, writer);
         document.close();
 
-        PdfReader resultReader = PDFTwist.getTempPdfReader(baos, useTempFiles, tempFile);
+        PdfReader resultReader = PDFTwist.getTempPdfReader(baos, tempFile);
         PDFTwist.copyInformation(currentReader, resultReader);
         // restore rotation
         for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {

@@ -11,7 +11,6 @@ import com.itextpdf.text.pdf.PdfImportedPage;
 import com.itextpdf.text.pdf.PdfPageLabels;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
-import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.PageRange;
 import jpdftwist.core.UnitTranslator;
@@ -24,7 +23,6 @@ import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.joda.time.DateTime;
 
 import java.awt.*;
@@ -35,7 +33,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.IllegalFormatException;
 import java.util.List;
@@ -46,9 +43,9 @@ public class WatermarkProcessor {
     private int bateRepeat;
     private BufferedReader br;
 
-    public PdfReader apply(OutputEventListener outputEventListener, PdfReader currentReader, OutputStream baos, String wmFile, String wmText, int wmSize, float wmOpacity, Color wmColor, int pnPosition,
-                           boolean pnFlipEven, int pnSize, float pnHOff, float pnVOff, String mask, boolean preserveHyperlinks,
-                           ArrayList<List<PDAnnotation>> pdAnnotations, boolean useTempFiles, File tempFile) throws DocumentException, IOException {
+    public PdfReader apply(PdfReader currentReader, OutputStream baos, String wmFile, String wmText, int wmSize, float wmOpacity, Color wmColor, int pnPosition,
+                           boolean pnFlipEven, int pnSize, float pnHOff, float pnVOff, String mask,
+                           File tempFile) throws DocumentException, IOException {
         int pagecount = currentReader.getNumberOfPages();
         PdfGState gs1 = new PdfGState();
         gs1.setFillOpacity(wmOpacity);
@@ -139,10 +136,10 @@ public class WatermarkProcessor {
             }
         }
         stamper.close();
-        return PDFTwist.getTempPdfReader(baos, useTempFiles, tempFile);
+        return PDFTwist.getTempPdfReader(baos, tempFile);
     }
 
-    public PdfReader apply(OutputStream baos, PdfReader currentReader, WatermarkStyle style, List<PageRange> pageRanges, int maxLength, int interleaveSize, boolean useTempFiles, File tempFile) throws DocumentException, IOException {
+    public PdfReader apply(OutputStream baos, PdfReader currentReader, WatermarkStyle style, List<PageRange> pageRanges, int maxLength, int interleaveSize, File tempFile) throws DocumentException, IOException {
         int pagecount = currentReader.getNumberOfPages();
 
         PdfStamper stamper = new PdfStamper(currentReader, baos);
@@ -170,7 +167,7 @@ public class WatermarkProcessor {
                             continue;
                         }
                         Rectangle size = currentReader.getPageSizeWithRotation(i);
-                        doWatermark(i, lim, logical, style, pagecount, pageRange, stamper, batesList, size);
+                        doWatermark(i, logical, style, pagecount, pageRange, stamper, batesList, size);
                     }
                 }
             }
@@ -183,7 +180,7 @@ public class WatermarkProcessor {
                     }
                     logical++;
                     Rectangle size = currentReader.getPageSizeWithRotation(i);
-                    doWatermark(i, j, logical, style, pagecount, pageRange, stamper, batesList, size);
+                    doWatermark(i, logical, style, pagecount, pageRange, stamper, batesList, size);
                 }
                 offset += pageRange.getPages(0).length;
             }
@@ -192,10 +189,10 @@ public class WatermarkProcessor {
             br.close();
         }
         stamper.close();
-        return PDFTwist.getTempPdfReader(baos, useTempFiles, tempFile);
+        return PDFTwist.getTempPdfReader(baos, tempFile);
     }
 
-    private void doWatermark(int i, int j, int logical, WatermarkStyle style, int pageCount, PageRange pageRange,
+    private void doWatermark(int i, int logical, WatermarkStyle style, int pageCount, PageRange pageRange,
                              PdfStamper stamper, List<Integer> batesList, Rectangle size) throws IOException {
         PdfContentByte overContent = stamper.getOverContent(i);
 
@@ -231,7 +228,7 @@ public class WatermarkProcessor {
 
                 String zeroPadding = "%d";
                 if (style.getBatesZeroPadding() > 0) {
-                    zeroPadding = "%0" + Integer.toString(style.getBatesZeroPadding()) + "d";
+                    zeroPadding = "%0" + style.getBatesZeroPadding() + "d";
                 }
                 String bate = String.format(zeroPadding, bateIndex);
 

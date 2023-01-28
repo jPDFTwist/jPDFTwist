@@ -14,15 +14,15 @@ import java.util.logging.Logger;
 
 public class InputOrderProcessor {
 
-    public PdfReader initializeReader(OutputStream baos, List<PageRange> pageRanges, byte[] ownerPassword, int interleaveSize, boolean useTempFiles, File tempFile) throws DocumentException, IOException {
+    public PdfReader initializeReader(OutputStream baos, List<PageRange> pageRanges, byte[] ownerPassword, int interleaveSize, File tempFile) throws DocumentException, IOException {
         if (interleaveSize == 0) {
-            return serial(baos, pageRanges, ownerPassword, useTempFiles, tempFile);
+            return serial(baos, pageRanges, ownerPassword, tempFile);
         }
 
-        return interleaved(baos, pageRanges, ownerPassword, interleaveSize, useTempFiles, tempFile);
+        return interleaved(baos, pageRanges, ownerPassword, interleaveSize, tempFile);
     }
 
-    public PdfReader serial(OutputStream baos, List<PageRange> pageRanges, byte[] ownerPassword, boolean useTempFiles, File tempFile) throws DocumentException, IOException {
+    public PdfReader serial(OutputStream baos, List<PageRange> pageRanges, byte[] ownerPassword, File tempFile) throws DocumentException, IOException {
         Document document = new Document();
         PdfReader currentReader;
         PdfCopy copy;
@@ -54,10 +54,10 @@ public class InputOrderProcessor {
         }
 
         document.close();
-        return PDFTwist.getTempPdfReader(baos, useTempFiles, tempFile);
+        return PDFTwist.getTempPdfReader(baos, tempFile);
     }
 
-    public PdfReader interleaved(OutputStream baos, List<PageRange> pageRanges, byte[] ownerPassword, int interleaveSize, boolean useTempFiles, File tempFile) throws IOException, DocumentException {
+    public PdfReader interleaved(OutputStream baos, List<PageRange> pageRanges, byte[] ownerPassword, int interleaveSize, File tempFile) throws IOException, DocumentException {
         Document document = new Document();
         PdfCopy copy;
         try {
@@ -98,6 +98,6 @@ public class InputOrderProcessor {
         }
 
         document.close();
-        return PDFTwist.getTempPdfReader(baos, useTempFiles, tempFile);
+        return PDFTwist.getTempPdfReader(baos, tempFile);
     }
 }

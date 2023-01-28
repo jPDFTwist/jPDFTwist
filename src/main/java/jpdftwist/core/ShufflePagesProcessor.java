@@ -18,12 +18,12 @@ import java.util.List;
 public class ShufflePagesProcessor {
 
     public ShuffleResult apply(OutputEventListener outputEventListener, PdfReader currentReader, OutputStream baos, int passLength, int blockSize, ShuffleRule[] shuffleRules,
-                           boolean preserveHyperlinks, ArrayList<List<PDAnnotation>> pdAnnotations, boolean useTempFiles, File tempFile) throws DocumentException, IOException {
+                           boolean preserveHyperlinks, ArrayList<List<PDAnnotation>> pdAnnotations, File tempFile) throws DocumentException, IOException {
         outputEventListener.setAction("Shuffling");
         outputEventListener.setPageCount(currentReader.getNumberOfPages());
 
         RemoveRotationProcessor removeRotationProcessor = new RemoveRotationProcessor();
-        currentReader = removeRotationProcessor.apply(outputEventListener, currentReader, baos, preserveHyperlinks, pdAnnotations, useTempFiles, tempFile);
+        currentReader = removeRotationProcessor.apply(outputEventListener, currentReader, baos, preserveHyperlinks, pdAnnotations, tempFile);
 
         Rectangle size = currentReader.getPageSize(1);
         for (int i = 1; i <= currentReader.getNumberOfPages(); i++) {
@@ -186,7 +186,7 @@ public class ShufflePagesProcessor {
         PDFTwist.copyXMPMetadata(currentReader, writer);
         document.close();
 
-        PdfReader resultReader = PDFTwist.getTempPdfReader(baos, useTempFiles, tempFile);
+        PdfReader resultReader = PDFTwist.getTempPdfReader(baos, tempFile);
         PDFTwist.copyInformation(currentReader, resultReader);
 
         return new ShuffleResult(resultReader, tmp);

@@ -14,7 +14,7 @@ import java.io.OutputStream;
 
 public class PageNumberProcessor {
 
-    public PdfReader addPageNumbers(OutputEventListener outputEventListener, PdfReader currentReader, OutputStream baos, PdfPageLabels.PdfPageLabelFormat[] labelFormats, boolean useTempFiles, File tempFile) throws DocumentException, IOException {
+    public PdfReader addPageNumbers(OutputEventListener outputEventListener, PdfReader currentReader, OutputStream baos, PdfPageLabels.PdfPageLabelFormat[] labelFormats, File tempFile) throws DocumentException, IOException {
         PdfPageLabels lbls = new PdfPageLabels();
         for (PdfPageLabels.PdfPageLabelFormat format : labelFormats) {
             lbls.addPageLabel(format);
@@ -38,7 +38,7 @@ public class PageNumberProcessor {
         PDFTwist.copyXMPMetadata(currentReader, copy);
         document.close();
 
-        PdfReader resultReader = PDFTwist.getTempPdfReader(baos, useTempFiles, tempFile);
+        PdfReader resultReader = PDFTwist.getTempPdfReader(baos, tempFile);
         PDFTwist.copyInformation(currentReader, resultReader);
         return resultReader;
     }

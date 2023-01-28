@@ -57,6 +57,7 @@ public class PDFTwist {
 
     private PdfReader currentReader;
 
+    private final TempFileManager tempFileManager;
     private final PageMarksProcessor pageMarksProcessor;
 
     private int encryptionMode = -1, encryptionPermissions = -1;
@@ -74,10 +75,8 @@ public class PDFTwist {
     private final String inputFileName;
     private final String inputFileFullName;
     private boolean preserveHyperlinks;
-    private File tempfile1 = null, tempfile2 = null;
     private PdfToImage pdfImages;
     private final boolean mergeByDir;
-    private final boolean useTempFiles;
     private String rootFolder;
     private ArrayList<List<PDAnnotation>> pdAnnotations = new ArrayList<>();
     private final ArrayList<PDDocument> pdDocuments;
@@ -87,12 +86,12 @@ public class PDFTwist {
     private boolean isCanceled = false;
 
     public PDFTwist(List<PageRange> pageRanges, boolean useTempFiles, boolean mergeByDir, int interleaveSize, OutputEventListener outputEventListener) throws IOException {
-        this.useTempFiles = useTempFiles;
         this.outputEventListener = outputEventListener;
         this.pageRanges = pageRanges;
         this.mergeByDir = mergeByDir;
         this.interleaveSize = interleaveSize;
 
+        this.tempFileManager = new TempFileManager(useTempFiles);
         this.pageMarksProcessor = new PageMarksProcessor();
 
         this.inputFilePath = pageRanges.get(0).getParentName();
@@ -104,17 +103,13 @@ public class PDFTwist {
             inputFileName = inputFileFullName.substring(0, pos);
         }
 
-        if (useTempFiles) {
-            tryToCreateTempOutputFiles();
-        }
-
         pdDocuments = new ArrayList<>();
 
-        OutputStream baos = createTempOutputStream();
+        OutputStream baos = tempFileManager.createTempOutputStream();
 
         try {
             InputOrderProcessor inputOrderProcessor = new InputOrderProcessor();
-            currentReader = inputOrderProcessor.initializeReader(baos, pageRanges, ownerPassword, interleaveSize, useTempFiles, tempfile1);
+            currentReader = inputOrderProcessor.initializeReader(baos, pageRanges, ownerPassword, interleaveSize, tempFileManager.getTempFile());
         } catch (IOException | DocumentException ex) {
             Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
@@ -134,40 +129,8 @@ public class PDFTwist {
         this.isCanceled = true;
     }
 
-    private void tryToCreateTempOutputFiles() {
-        try {
-            createTempOutputFiles();
-        } catch (IOException ex) {
-            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    /**
-     * Create 2 temporary files not sure why it must be 2
-     */
-    private void createTempOutputFiles() throws IOException {
-        tempfile1 = File.createTempFile("~jpdftwist", ".tmp").getAbsoluteFile();
-        tempfile2 = File.createTempFile("~jpdftwist", ".tmp").getAbsoluteFile();
-        tempfile1.deleteOnExit();
-        tempfile2.deleteOnExit();
-    }
-
-    private OutputStream createTempOutputStream() throws IOException {
-        if (useTempFiles) {
-            File swap = tempfile1;
-            tempfile1 = tempfile2;
-            tempfile2 = swap;
-            if (!tempfile1.delete()) {
-                throw new IOException("Cannot delete " + tempfile1);
-            }
-            return Files.newOutputStream(tempfile1.toPath());
-        } else {
-            return new ByteArrayOutputStream();
-        }
-    }
-
-    public static PdfReader getTempPdfReader(OutputStream out, boolean useTempFiles, File tempFile) throws IOException {
-        return new InputReader().getTempPdfReader(out, useTempFiles, tempFile);
+    public static PdfReader getTempPdfReader(OutputStream out, File tempFile) throws IOException {
+        return new InputReader().getTempPdfReader(out, tempFile);
     }
 
     private void keepFileParents() {
@@ -293,9 +256,9 @@ public class PDFTwist {
     }
 
     public void cropPages(PageBox cropTo) throws IOException, DocumentException {
-        OutputStream baos = createTempOutputStream();
+        OutputStream baos = tempFileManager.createTempOutputStream();
         CropProcessor cropProcessor = new CropProcessor();
-        currentReader = cropProcessor.apply(outputEventListener, currentReader, baos, cropTo, preserveHyperlinks, pdAnnotations, useTempFiles, tempfile1);
+        currentReader = cropProcessor.apply(outputEventListener, currentReader, baos, cropTo, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
     }
 
     public void rotatePages(RotateParameters param) {
@@ -304,21 +267,21 @@ public class PDFTwist {
     }
 
     public void removeRotation() throws DocumentException, IOException {
-        OutputStream baos = createTempOutputStream();
+        OutputStream baos = tempFileManager.createTempOutputStream();
         RemoveRotationProcessor removeRotationProcessor = new RemoveRotationProcessor();
-        removeRotationProcessor.apply(outputEventListener, currentReader, baos, preserveHyperlinks, pdAnnotations, useTempFiles, tempfile1);
+        removeRotationProcessor.apply(outputEventListener, currentReader, baos, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
     }
 
     public void scalePages(ScaleParameters param) throws DocumentException, IOException {
-        OutputStream baos = createTempOutputStream();
+        OutputStream baos = tempFileManager.createTempOutputStream();
         ScaleProcessor scaleProcessor = new ScaleProcessor();
-        currentReader = scaleProcessor.apply(outputEventListener, currentReader, baos, param, preserveHyperlinks, pdAnnotations, useTempFiles, tempfile1);
+        currentReader = scaleProcessor.apply(outputEventListener, currentReader, baos, param, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
     }
 
     public void shufflePages(int passLength, int blockSize, ShuffleRule[] shuffleRules) throws DocumentException, IOException {
-        OutputStream baos = createTempOutputStream();
+        OutputStream baos = tempFileManager.createTempOutputStream();
         ShufflePagesProcessor shufflePagesProcessor = new ShufflePagesProcessor();
-        ShufflePagesProcessor.ShuffleResult result = shufflePagesProcessor.apply(outputEventListener, currentReader, baos, passLength, blockSize, shuffleRules, preserveHyperlinks, pdAnnotations, useTempFiles, tempfile1);
+        ShufflePagesProcessor.ShuffleResult result = shufflePagesProcessor.apply(outputEventListener, currentReader, baos, passLength, blockSize, shuffleRules, preserveHyperlinks, pdAnnotations, tempFileManager.getTempFile());
         this.pdAnnotations = result.getPdAnnotations();
         this.currentReader = result.getResultReader();
     }
@@ -332,21 +295,21 @@ public class PDFTwist {
     }
 
     public void updateBookmarks(PdfBookmark[] bm) throws DocumentException, IOException {
-        OutputStream baos = createTempOutputStream();
+        OutputStream baos = tempFileManager.createTempOutputStream();
         BookmarksProcessor bookmarksProcessor = new BookmarksProcessor();
-        bookmarksProcessor.updateBookmarks(currentReader, baos, bm, useTempFiles, tempfile1);
+        bookmarksProcessor.updateBookmarks(currentReader, baos, bm, tempFileManager.getTempFile());
     }
 
     public void addWatermark(String wmFile, String wmText, int wmSize, float wmOpacity, Color wmColor, int pnPosition,
                              boolean pnFlipEven, int pnSize, float pnHOff, float pnVOff, String mask)
         throws DocumentException, IOException {
-        OutputStream baos = createTempOutputStream();
+        OutputStream baos = tempFileManager.createTempOutputStream();
         WatermarkProcessor watermarkProcessor = new WatermarkProcessor();
-        currentReader = watermarkProcessor.apply(outputEventListener, currentReader, baos, wmFile, wmText, wmSize, wmOpacity, wmColor, pnPosition, pnFlipEven, pnSize, pnHOff, pnVOff, mask, preserveHyperlinks, pdAnnotations, useTempFiles, tempfile1);
+        currentReader = watermarkProcessor.apply(currentReader, baos, wmFile, wmText, wmSize, wmOpacity, wmColor, pnPosition, pnFlipEven, pnSize, pnHOff, pnVOff, mask, tempFileManager.getTempFile());
     }
 
     public void addWatermark(WatermarkStyle style) throws DocumentException, IOException {
-        final OutputStream baos = createTempOutputStream();
+        final OutputStream baos = tempFileManager.createTempOutputStream();
         WatermarkProcessor watermarkProcessor = new WatermarkProcessor();
         int[][] pagesPerRange = new int[pageRanges.size()][];
         int maxLength = 0;
@@ -358,7 +321,7 @@ public class PDFTwist {
                 maxLength = pagesPerRange[i].length;
             }
         }
-        currentReader = watermarkProcessor.apply(baos, currentReader, style, pageRanges, maxLength, interleaveSize, useTempFiles, tempfile1);
+        currentReader = watermarkProcessor.apply(baos, currentReader, style, pageRanges, maxLength, interleaveSize, tempFileManager.getTempFile());
     }
 
     public int getPageCount() {
@@ -407,9 +370,9 @@ public class PDFTwist {
     }
 
     public void setPageNumbers(PdfPageLabelFormat[] labelFormats) throws DocumentException, IOException {
-        OutputStream baos = createTempOutputStream();
+        OutputStream baos = tempFileManager.createTempOutputStream();
         PageNumberProcessor pageNumberProcessor = new PageNumberProcessor();
-        currentReader = pageNumberProcessor.addPageNumbers(outputEventListener, currentReader, baos, labelFormats, useTempFiles, tempfile1);
+        currentReader = pageNumberProcessor.addPageNumbers(outputEventListener, currentReader, baos, labelFormats, tempFileManager.getTempFile());
     }
 
     public void preserveHyperlinks() {
@@ -517,7 +480,7 @@ public class PDFTwist {
 
     private PdfReader optimizeSize() throws IOException, DocumentException {
         Document document = new Document(currentReader.getPageSizeWithRotation(1));
-        OutputStream baos = createTempOutputStream();
+        OutputStream baos = tempFileManager.createTempOutputStream();
         PdfSmartCopy copy = new PdfSmartCopy(document, baos);
         document.open();
         PdfImportedPage page;
@@ -551,7 +514,7 @@ public class PDFTwist {
         }
         document.close();
 
-        PdfReader optimizedSizeReader = getTempPdfReader(baos, useTempFiles, tempfile1);
+        PdfReader optimizedSizeReader = getTempPdfReader(baos, tempFileManager.getTempFile());
         copyInformation(currentReader, optimizedSizeReader);
 
         return optimizedSizeReader;
@@ -715,14 +678,6 @@ public class PDFTwist {
             currentReader = null;
         }
 
-        if (tempfile1 != null && !tempfile1.delete()) {
-            Logger.getLogger(PDFTwist.class.getName()).log(Level.WARNING, "Cannot delete " + tempfile1);
-        }
-        tempfile1 = null;
-
-        if (tempfile2 != null && !tempfile2.delete()) {
-            Logger.getLogger(PDFTwist.class.getName()).log(Level.WARNING, "Cannot delete " + tempfile2);
-        }
-        tempfile2 = null;
+        tempFileManager.cleanup();
     }
 }

@@ -42,8 +42,8 @@ public class InputReader {
         return null;
     }
 
-    public PdfReader getTempPdfReader(OutputStream out, boolean useTempFiles, File tempFile) throws IOException {
-        if (useTempFiles) {
+    public PdfReader getTempPdfReader(OutputStream out, File tempFile) throws IOException {
+        if (tempFile != null) {
             return new PdfReader(tempFile.getPath(), null);
         }
 
