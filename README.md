@@ -57,7 +57,7 @@ If you have any issues or feature requests, please open an issue on the [issues 
 
 Special thanks for all the people who had helped this project so far:
 
-* [Ed Victor](https://github.com/xlance-github) - Project Director
+* [Ed Victor](https://github.com/xlance-github) - Project Manager
 * [Vasilis Naskos](https://github.com/vnaskos) - Lead Developer
 
 If you would like to contribute to the development of jPDFTwist, please fork the repository and submit a pull request with your changes.
