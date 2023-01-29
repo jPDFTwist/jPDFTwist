@@ -66,7 +66,7 @@ If you would like to contribute to the development of jPDFTwist, please fork the
 
 # License
 
-jPDFTwist is licensed under the [AGPLv3](LICENSE.md)
+jPDFTwist is licensed under the [AGPLv3](LICENSE)
 
 # Acknowledgments
 
