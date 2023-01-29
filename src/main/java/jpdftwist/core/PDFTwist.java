@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeSet;
 
 public class PDFTwist {
 
@@ -31,6 +30,7 @@ public class PDFTwist {
     private final TransitionManager transitionManager;
     private final ViewerPreferencesManager viewerPreferencesManager;
     private final InputOrderManager inputOrderManager;
+    private final OutputFilePathManager outputFilePathManager;
     private final PageMarksProcessor pageMarksProcessor;
     private final OptimizeSizeProcessor optimizeSizeProcessor;
     private final OutputMultiPageTiffProcessor outputMultiPageTiffProcessor;
@@ -39,12 +39,7 @@ public class PDFTwist {
     private final AnnotationsProcessor annotationsProcessor;
     private final InfoDictionaryProcessor infoDictionaryProcessor;
 
-    private final String inputFilePath;
-    private final String inputFileName;
-    private final String inputFileFullName;
     private PdfToImage pdfImages;
-    private final boolean mergeByDir;
-    private String rootFolder;
     private final List<PageRange> pageRanges;
     private final int interleaveSize;
     private final OutputEventListener outputEventListener;
@@ -52,7 +47,6 @@ public class PDFTwist {
     public PDFTwist(List<PageRange> pageRanges, boolean useTempFiles, boolean mergeByDir, int interleaveSize, OutputEventListener outputEventListener) throws IOException {
         this.outputEventListener = outputEventListener;
         this.pageRanges = pageRanges;
-        this.mergeByDir = mergeByDir;
         this.interleaveSize = interleaveSize;
 
         this.tempFileManager = new TempFileManager(useTempFiles);
@@ -63,6 +57,7 @@ public class PDFTwist {
         this.attachmentsManager = new AttachmentsManager();
         this.transitionManager = new TransitionManager(pdfReaderManager);
         this.viewerPreferencesManager = new ViewerPreferencesManager();
+        this.outputFilePathManager = new OutputFilePathManager(pageRanges, mergeByDir);
 
         this.infoDictionaryProcessor = new InfoDictionaryProcessor(pdfReaderManager);
         this.pageMarksProcessor = new PageMarksProcessor(pdfReaderManager);
@@ -72,18 +67,7 @@ public class PDFTwist {
         this.outputPdfProcessor = new OutputPdfProcessor(pdfReaderManager, pdfEncryptionManager, signatureManager, attachmentsManager, transitionManager, viewerPreferencesManager);
         this.annotationsProcessor = new AnnotationsProcessor();
 
-        this.inputFilePath = pageRanges.get(0).getParentName();
-        this.inputFileFullName = pageRanges.get(0).getFilename();
-        int pos = inputFileFullName.lastIndexOf('.');
-        if (pos == -1) {
-            inputFileName = inputFileFullName;
-        } else {
-            inputFileName = inputFileFullName.substring(0, pos);
-        }
-
         pdfReaderManager.initializeReader(pageRanges, interleaveSize);
-
-        keepFileParents();
     }
 
     public void cancel() {
@@ -95,16 +79,6 @@ public class PDFTwist {
 
     public static PdfReader getTempPdfReader(OutputStream out, File tempFile) throws IOException {
         return new InputReader().getTempPdfReader(out, tempFile);
-    }
-
-    private void keepFileParents() {
-        TreeSet<String> set = new TreeSet<>();
-
-        pageRanges.stream()
-            .map(PageRange::getParentName)
-            .forEach(set::add);
-
-        rootFolder = (new File(set.first())).getParent() + File.separator;
     }
 
     public void setPdfImages(PdfToImage pdfImages) {
@@ -137,7 +111,7 @@ public class PDFTwist {
     public void writeOutput(String rawOutputFile, boolean multiPageTiff, boolean burst, boolean uncompressed, boolean sizeOptimize, boolean fullyCompressed)
         throws IOException, DocumentException {
 
-        final String outputFile = expandOutputPath(rawOutputFile);
+        final String outputFile = outputFilePathManager.expandOutputPath(rawOutputFile);
 
         try {
             if (sizeOptimize) {
@@ -250,46 +224,6 @@ public class PDFTwist {
 
     public void preserveHyperlinks() {
         annotationsProcessor.preserveHyperlinks(pageRanges);
-    }
-
-    private String expandOutputPath(final String rawOutputFile) {
-        String outputFile = rawOutputFile;
-
-        if (!outputFile.contains(File.separator)) {
-            File temp = new File(outputFile);
-            outputFile = temp.getAbsolutePath();
-        }
-
-        String outpath = inputFilePath;
-        outpath = outpath.replace(rootFolder, "");
-        if (outpath.contains(":") && System.getProperty("os.name").toLowerCase().contains("win")) {
-            outpath = outpath.replace(":", "");
-            outpath = File.separator + outpath;
-        }
-
-        outputFile = outputFile.replace("<T>", outpath);
-
-        if (mergeByDir) {
-            outpath = outpath.replace(File.separatorChar, '_');
-            outputFile = outputFile.replace("<F>", outpath);
-            outputFile = outputFile.replace("<FX>", outpath + ".pdf");
-        } else {
-            outputFile = outputFile.replace("<F>", inputFileName);
-            outputFile = outputFile.replace("<FX>", inputFileFullName);
-        }
-
-        outputFile = outputFile.replace("<P>", inputFilePath);
-        if (outputFile.contains("<#>")) {
-            for (int i = 1; ; i++) {
-                String f = outputFile.replace("<#>", "" + i);
-                if (!new File(f).exists()) {
-                    outputFile = f;
-                    break;
-                }
-            }
-        }
-
-        return outputFile;
     }
 
     private void optimizeSize() throws IOException, DocumentException {
