@@ -100,6 +100,10 @@ public class ImagePreviewPanel extends JPanel {
     public void preview(Image previewImage) {
         clearPreview();
 
+        if (previewImage == null) {
+            return;
+        }
+
         this.originalImage = previewImage;
         jLabelListModel.addElement(new JLabel(new ImageIcon(previewImage)));
 

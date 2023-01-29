@@ -164,6 +164,9 @@ public class JImageParser {
     private static java.awt.Image readImageMultiTiff(String filepath) {
         try {
             RenderedImage[] r = readMultiPageTiff(filepath);
+            if (r == null) {
+                return null;
+            }
             return convertRenderedImage(r[0]);
         } catch (IOException ex) {
             Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
