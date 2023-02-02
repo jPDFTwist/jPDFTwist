@@ -6,7 +6,7 @@ jPDFTwist is a powerful, multi-functional tool for batch PDF tweaking, with the 
 
 ## Features
 
-* Batch edit PDFs including:
+* High volume Batch edit PDFs including:
   * Crop
   * Scale
   * Rotate
