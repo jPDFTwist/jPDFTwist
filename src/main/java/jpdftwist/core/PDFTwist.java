@@ -12,6 +12,7 @@ import jpdftwist.core.tabparams.RotateParameters;
 import jpdftwist.core.tabparams.ScaleParameters;
 import jpdftwist.core.watermark.WatermarkProcessor;
 import jpdftwist.core.watermark.WatermarkStyle;
+import jpdftwist.gui.tab.watermark.WatermarkTab;
 
 import java.awt.*;
 import java.io.File;
@@ -19,6 +20,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PDFTwist {
 
@@ -99,6 +102,7 @@ public class PDFTwist {
 
     public void setEncryption(int mode, int permissions, byte[] ownerPassword, byte[] userPassword) throws IOException {
         if (ownerPassword.length == 0) {
+            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, "Ex116");
             throw new IOException("Owner password may not be empty");
         }
 
@@ -127,12 +131,15 @@ public class PDFTwist {
             outputEventListener.setPageCount(pageCount);
             if (multiPageTiff) {
                 outputMultiPageTiff(outputFile);
+
             } else if (burst) {
                 burstFiles(outputFile, fullyCompressed);
+
             } else {
                 outputPdf(outputFile, fullyCompressed, pageCount);
             }
         } catch (CancelOperationException ignored) {
+            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, "Ex152", ignored);
             return;
         } finally {
             Document.compress = true;

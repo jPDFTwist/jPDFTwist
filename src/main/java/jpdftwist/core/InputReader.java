@@ -130,8 +130,8 @@ public class InputReader {
             com.itextpdf.text.Image pdfImage = JImageParser.readItextImage(srcFile);
 
             if (pdfImage == null) {
-                throw new IOException(
-                    String.format("Image %s\n not supported or corrupted!", pageRange.getName()));
+                Logger.getLogger(InputReader.class.getName()).log(Level.SEVERE, "Ex094");
+                throw new IOException(String.format("Image %s\n not supported or corrupted!", pageRange.getName()));
             }
 
             for (int i = 0; i < repeat; i++) {
@@ -149,7 +149,7 @@ public class InputReader {
 
             return rdr;
         } catch (DocumentException | IOException ex) {
-            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(InputReader.class.getName()).log(Level.SEVERE, "Ex005", ex);
         }
 
         return null;

@@ -81,7 +81,7 @@ public class InputTabActions extends ActionTab {
         try {
             return new PDFTwist(ranges, useTempFiles, mergeByDir, interleaveSize, outputEventListener);
         } catch (Exception ex) {
-            Logger.getLogger(InputTabActions.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(InputTabActions.class.getName()).log(Level.SEVERE, "Ex028", ex);
         }
 
         return null;

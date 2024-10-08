@@ -34,7 +34,7 @@ public class VirtualPdfNodeFactory extends FileNodeFactory {
         try {
             this.reader = PdfParser.open(srcFile, optimize);
         } catch (IOException ex) {
-            Logger.getLogger(VirtualPdfNodeFactory.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(VirtualPdfNodeFactory.class.getName()).log(Level.SEVERE, "Ex025", ex);
             // TODO throw Exception
         }
 

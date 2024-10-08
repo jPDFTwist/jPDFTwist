@@ -1,6 +1,7 @@
 package jpdftwist.tabs.input.pagerange;
 
 import jpdftwist.core.IntegerList;
+import jpdftwist.core.OutputPdfProcessor;
 import jpdftwist.core.PageRange;
 import jpdftwist.core.input.FileInputElement;
 import jpdftwist.core.input.FileInputElementType;
@@ -17,6 +18,8 @@ import org.jdesktop.swingx.treetable.MutableTreeTableNode;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Vasilis Naskos
@@ -93,6 +96,7 @@ public abstract class PageRangeGenerator {
             case BLANK:
                 return FileInputElementType.BLANK;
             default:
+                //Logger.getLogger(PageRangeGenerator.class.getName()).log(Level.SEVERE, "Ex138");
                 throw new RuntimeException("Cannot parse unknown type " + fileRowSubType);
         }
     }

@@ -34,7 +34,7 @@ public class RealPdfNodeFactory extends FileNodeFactory {
         try {
             this.reader = PdfParser.open(filepath, optimize, autoRestrictionsOverwrite, autoRestrictionsNew);
         } catch (IOException ex) {
-            Logger.getLogger(RealPdfNodeFactory.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(RealPdfNodeFactory.class.getName()).log(Level.SEVERE, "Ex023", ex);
             // TODO throw Exception
         }
 

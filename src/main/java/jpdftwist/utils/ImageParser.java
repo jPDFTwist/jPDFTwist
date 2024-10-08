@@ -8,6 +8,7 @@ import com.sun.media.jai.codec.ImageDecoder;
 import com.sun.media.jai.codec.SeekableStream;
 import ij.IJ;
 import ij.ImagePlus;
+import jpdftwist.gui.tab.output.OutputTab;
 import loci.formats.FormatException;
 import loci.plugins.BF;
 import org.apache.sanselan.ImageInfo;
@@ -43,10 +44,10 @@ public class ImageParser {
         try {
             return readImage(filepath);
         } catch (BadElementException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex030", ex);
             return null;
         } catch (IOException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex031", ex);
             return null;
         }
     }
@@ -60,15 +61,17 @@ public class ImageParser {
             return null;
         }
 
-        int physicalWidthDpi = 72;
-        int physicalHeightDpi = 72;
+        OutputTab LINK = new OutputTab();
+        int physicalWidthDpi = Integer.parseInt(LINK.DPIvalue());
+        int physicalHeightDpi = Integer.parseInt(LINK.DPIvalue());
+
 
         try {
             ImageInfo imageInfo = Sanselan.getImageInfo(new File(filepath));
             physicalWidthDpi = imageInfo.getPhysicalWidthDpi();
             physicalHeightDpi = imageInfo.getPhysicalHeightDpi();
         } catch (ImageReadException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex032", ex);
         }
 
         ImageObject imgObj = new ImageObject(Image.getInstance(awtImage, null));
@@ -79,7 +82,7 @@ public class ImageParser {
             imgObj.setHeight(awtImage.getHeight(null));
             imgObj.setDepth(getBitDepth(awtImage));
         } catch (Exception ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex033", ex);
         }
 
         awtImage.flush();
@@ -93,9 +96,9 @@ public class ImageParser {
             java.awt.Image awtImage = readAwtImage(filepath);
             return Image.getInstance(awtImage, null);
         } catch (BadElementException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex034", ex);
         } catch (IOException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex035", ex);
         }
         return null;
     }
@@ -130,7 +133,7 @@ public class ImageParser {
             ImagePlus imp = IJ.openImage(filepath);
             return imp.getImage();
         } catch (Exception ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex036", ex);
             return null;
         }
     }
@@ -146,10 +149,10 @@ public class ImageParser {
 
             return awtImage;
         } catch (FormatException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex037", ex);
             return null;
         } catch (IOException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex038", ex);
             return null;
         }
     }
@@ -159,7 +162,7 @@ public class ImageParser {
             RenderedImage[] r = readMultiPageTiff(filepath);
             return convertRenderedImage(r[0]);
         } catch (IOException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex039", ex);
             return null;
         }
     }
@@ -169,10 +172,10 @@ public class ImageParser {
             JpegReader jpeg = new JpegReader();
             return jpeg.readImage(new File(filepath));
         } catch (IOException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex040", ex);
             return null;
         } catch (ImageReadException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex041", ex);
             return null;
         }
     }
@@ -181,7 +184,7 @@ public class ImageParser {
         try {
             return tryWithImageIO(filepath);
         } catch (IOException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex042", ex);
             return null;
         }
     }
@@ -208,8 +211,7 @@ public class ImageParser {
     }
 
     private static RenderedImage[] readMultiPageTiff(String filename) throws IOException {
-        if (!(filename.toLowerCase().endsWith(".tiff")
-            || filename.toLowerCase().endsWith(".tif"))) {
+        if (!(filename.toLowerCase().endsWith(".tiff") || filename.toLowerCase().endsWith(".tif"))) {
             return null;
         }
 
@@ -273,6 +275,7 @@ public class ImageParser {
     public static int getBitDepth(java.awt.Image img) throws IOException {
         ImageInputStream in = ImageIO.createImageInputStream(img);
         if (in == null) {
+            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex145");
             throw new IOException("Can't create ImageInputStream!");
         }
 
@@ -281,6 +284,7 @@ public class ImageParser {
 
             ImageReader reader;
             if (!readers.hasNext()) {
+                Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex146");
                 throw new IOException("Can't read image format!");
             } else {
                 reader = readers.next();

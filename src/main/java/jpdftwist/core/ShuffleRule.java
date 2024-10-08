@@ -1,5 +1,7 @@
 package jpdftwist.core;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -150,6 +152,7 @@ public class ShuffleRule {
         Matcher m = p.matcher(rule);
         if (!m.matches())
             throw new NumberFormatException(rule);
+
         return new ShuffleRule(m.group(1).length() == 1,
             m.group(2).length() == 0 ? PageBase.ABSOLUTE
                 : (m.group(2).charAt(0) == '+' ? PageBase.BEGINNING : PageBase.END),
@@ -169,6 +172,7 @@ public class ShuffleRule {
             case 'L':
                 return 270;
             default:
+                //Logger.getLogger(ShuffleRule.class.getName()).log(Level.SEVERE, "Ex123");
                 throw new IllegalStateException();
         }
     }
@@ -185,11 +189,13 @@ public class ShuffleRule {
         int size = pos2 == pos ? 0 : Integer.parseInt(ruleSet.substring(pos2 + 1, pos));
         String[] ruleStrings = ruleSet.substring(pos + 1).split(",");
         ShuffleRule[] rules = new ShuffleRule[ruleStrings.length];
+
         for (int i = 0; i < rules.length; i++) {
             rules[i] = ShuffleRule.parseRule(ruleStrings[i]);
         }
         if (rules.length == 0)
             throw new NumberFormatException("No rules found");
+
         if (!rules[0].isNewPageBefore())
             throw new NumberFormatException("First rule must have new page before");
         out_passLength[0] = pages;

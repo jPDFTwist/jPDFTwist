@@ -5,6 +5,8 @@ import jpdftwist.core.PageRange;
 import javax.swing.*;
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Vasilis Naskos
@@ -35,9 +37,10 @@ public class InputValidator {
         try {
             check();
         } catch (NumberFormatException ex) {
+            Logger.getLogger(InputValidator.class.getName()).log(Level.SEVERE, "Ex077", ex);
             showException(ex, "Invalid interleave value");
         } catch (IOException ex) {
-            showException(ex);
+            Logger.getLogger(InputValidator.class.getName()).log(Level.SEVERE, "Ex078", ex);
         }
     }
 
@@ -85,11 +88,11 @@ public class InputValidator {
     }
 
     private void showException(Exception ex) {
-        showException(ex, ex.getMessage());
+        Logger.getLogger(InputValidator.class.getName()).log(Level.SEVERE, "Ex079", ex);
     }
 
     private void showException(Exception ex, String message) {
-        ex.printStackTrace();
+        Logger.getLogger(InputValidator.class.getName()).log(Level.SEVERE, "Ex080", ex);
         JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 

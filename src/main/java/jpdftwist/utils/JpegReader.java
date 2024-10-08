@@ -49,7 +49,7 @@ public class JpegReader {
             ICC_Profile profile;
             try {
                 image = reader.read(0);
-            } catch (IIOException e) {
+            } catch (IIOException ex) {
                 colorType = COLOR_TYPE_CMYK;
                 checkAdobeMarker(file);
                 profile = Sanselan.getICCProfile(file);

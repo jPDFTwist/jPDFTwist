@@ -8,11 +8,15 @@ import com.itextpdf.text.pdf.PdfSignatureAppearance;
 import com.itextpdf.text.pdf.PdfStamper;
 import com.itextpdf.text.pdf.PdfTransition;
 
+import jpdftwist.utils.ImageParser;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class OutputPdfProcessor {
 
@@ -59,6 +63,7 @@ public class OutputPdfProcessor {
         for (int i = 1; i <= total; i++) {
             outputEventListener.updatePagesProgress();
             if (isCanceled) {
+                Logger.getLogger(OutputPdfProcessor.class.getName()).log(Level.SEVERE, "Ex098");
                 throw new CancelOperationException();
             }
 

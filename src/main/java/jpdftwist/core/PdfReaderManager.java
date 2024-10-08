@@ -5,6 +5,8 @@ import com.itextpdf.text.pdf.PdfReader;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PdfReaderManager {
 
@@ -25,7 +27,8 @@ public class PdfReaderManager {
         try {
             this.currentReader = inputOrderManager.initializeReader(tempFileManager, pageRanges, pdfEncryptionManager.getOwnerPassword(), interleaveSize, tempFileManager.getTempFile());
         } catch (DocumentException ex) {
-            throw new IOException("Could not read the input", ex);
+            Logger.getLogger(PdfReaderManager.class.getName()).log(Level.SEVERE, "Ex059", ex);
+            throw new IOException("Could not read Input !", ex);
         }
     }
 

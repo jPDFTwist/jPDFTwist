@@ -1,5 +1,8 @@
 package jpdftwist.core;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Rectangle;
 

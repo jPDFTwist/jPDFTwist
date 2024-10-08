@@ -37,6 +37,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.IllegalFormatException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class WatermarkProcessor {
 
@@ -55,6 +57,7 @@ public class WatermarkProcessor {
     public void apply(String wmFile, String wmText, int wmSize, float wmOpacity, Color wmColor, int pnPosition,
                            boolean pnFlipEven, int pnSize, float pnHOff, float pnVOff, String mask,
                            File tempFile) throws DocumentException, IOException {
+        try {
         OutputStream baos = tempFileManager.createTempOutputStream();
         int pageCount = pdfReaderManager.getPageCount();
         PdfGState gs1 = new PdfGState();
@@ -133,12 +136,14 @@ public class WatermarkProcessor {
                     try {
                         number = String.format(mask, i, pageCount, pagenumber, pagenumbertext);
                     } catch (IllegalFormatException ex) {
-                        throw new IOException(ex.toString());
+                        Logger.getLogger(WatermarkProcessor.class.getName()).log(Level.SEVERE, "Ex057", ex);
+                        throw new IOException();
                     }
                 }
                 if ((pnXPosition != 1 && pnHOff * 2 < bf.getWidthPoint(number, pnSize))
                     || (pnPosition / 3 == 0 && pnVOff < bf.getDescentPoint(number, pnSize))
                     || (pnPosition / 3 == 2 && pnVOff < bf.getAscentPoint(number, pnSize))) {
+                    Logger.getLogger(WatermarkProcessor.class.getName()).log(Level.SEVERE, "Ex090");
                     throw new IOException("Page number " + number + " is not within page bounding box");
                 }
                 overContent.showTextAligned(PdfContentByte.ALIGN_CENTER, number, xx, yy, 0);
@@ -147,9 +152,13 @@ public class WatermarkProcessor {
         }
         stamper.close();
         pdfReaderManager.setCurrentReader(PDFTwist.getTempPdfReader(baos, tempFile));
+        } catch (Exception ex) {
+            Logger.getLogger(WatermarkProcessor.class.getName()).log(Level.SEVERE, "Ex153", ex);
+        }
     }
 
     public void apply(WatermarkStyle style, List<PageRange> pageRanges, int maxLength, int interleaveSize, File tempFile) throws DocumentException, IOException {
+        try {
         OutputStream baos = tempFileManager.createTempOutputStream();
         int pageCount = pdfReaderManager.getPageCount();
 
@@ -201,10 +210,14 @@ public class WatermarkProcessor {
         }
         stamper.close();
         pdfReaderManager.setCurrentReader(PDFTwist.getTempPdfReader(baos, tempFile));
+        } catch (Exception ex) {
+            Logger.getLogger(WatermarkProcessor.class.getName()).log(Level.SEVERE, "Ex154", ex);
+        }
     }
 
     private void doWatermark(int i, int logical, WatermarkStyle style, int pageCount, PageRange pageRange,
                              PdfStamper stamper, List<Integer> batesList, Rectangle size) throws IOException {
+        try {
         PdfContentByte overContent = stamper.getOverContent(i);
 
         String text = null;
@@ -436,14 +449,20 @@ public class WatermarkProcessor {
                 source = (BufferedImage) JImageParser.readAwtImage(style.getImagePath());
             }
 
-            target = new BufferedImage(source.getWidth(null), source.getHeight(null),
-                java.awt.Transparency.TRANSLUCENT);
+            //target = new BufferedImage(source.getWidth(null), source.getHeight(null), java.awt.Transparency.TRANSLUCENT);
+
+            target = new BufferedImage(source.getWidth(null), source.getHeight(null), BufferedImage.TYPE_INT_ARGB);
             Graphics2D g = target.createGraphics();
 
             float alpha = (100 - style.getOpacity()) / 100.0F;
-            int rule = AlphaComposite.SRC_OVER;
-            AlphaComposite ac = AlphaComposite.getInstance(rule, alpha);
-            g.setComposite(ac);
+
+            int mode = AlphaComposite.SRC_OVER;
+            AlphaComposite AC = AlphaComposite.getInstance(mode, alpha);
+
+            //g.setColor(new Color(255,255,255,0));
+            //g.setXORMode(new Color(255,255,255,0));
+            g.setBackground(new Color(255, 255, 255, 0));
+            g.setComposite(AC);
             g.drawImage(source, null, 0, 0);
             g.dispose();
 
@@ -525,6 +544,9 @@ public class WatermarkProcessor {
         }
 
         g2d.dispose();
+        } catch (Exception ex) {
+            Logger.getLogger(WatermarkProcessor.class.getName()).log(Level.SEVERE, "Ex108", ex);
+        }
     }
 
     private String toAlphabetic(int i) {

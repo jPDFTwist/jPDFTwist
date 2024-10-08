@@ -2,6 +2,7 @@ package jpdftwist.tabs.input.treetable.node;
 
 import com.itextpdf.text.Rectangle;
 import jpdftwist.core.IntegerList;
+import jpdftwist.core.OutputPdfProcessor;
 import jpdftwist.core.UnitTranslator;
 import jpdftwist.gui.component.treetable.Node;
 import jpdftwist.gui.component.treetable.row.FileTreeTableRow;
@@ -31,7 +32,7 @@ public class RealImageNodeFactory extends FileNodeFactory {
             insertPages(file);
             return file;
         } catch (IOException ex) {
-            Logger.getLogger(RealImageNodeFactory.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(RealImageNodeFactory.class.getName()).log(Level.SEVERE, "Ex022", ex);
             // TODO throw exception
         }
 
@@ -62,6 +63,7 @@ public class RealImageNodeFactory extends FileNodeFactory {
         JImageParser.ImageObject imageObj = JImageParser.tryToReadImage(filepath);
 
         if (imageObj == null || imageObj.getImage() == null) {
+            //Logger.getLogger(RealImageNodeFactory.class.getName()).log(Level.SEVERE, "Ex139");
             throw new IOException(String.format("Image %s\n not supported or corrupted!", filepath));
         }
 

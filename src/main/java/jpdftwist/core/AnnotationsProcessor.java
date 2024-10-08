@@ -85,7 +85,7 @@ public class AnnotationsProcessor {
                 }
                 in.close();
             } catch (IOException ex) {
-                Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AnnotationsProcessor.class.getName()).log(Level.SEVERE, "Ex001", ex);
             }
         }
     }
@@ -109,7 +109,7 @@ public class AnnotationsProcessor {
             out.close();
             outStream.close();
         } catch (IOException ex) {
-            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AnnotationsProcessor.class.getName()).log(Level.SEVERE, "Ex002", ex);
         }
 
         if (!pdDocuments.isEmpty()) {

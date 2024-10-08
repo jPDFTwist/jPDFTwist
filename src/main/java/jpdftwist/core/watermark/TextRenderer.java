@@ -8,6 +8,10 @@ import java.awt.font.TextLayout;
 import java.awt.geom.Rectangle2D;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import jpdftwist.utils.ImageParser;
 
 public class TextRenderer {
 
@@ -35,18 +39,23 @@ public class TextRenderer {
     public static void drawString(Graphics g, String text, Font font, Color color, Rectangle bounds,
                                   TextAlignment align, boolean underline, boolean strikethrough, boolean draw) {
         if (g == null) {
+            Logger.getLogger(TextRenderer.class.getName()).log(Level.SEVERE, "Ex085");
             throw new NullPointerException("The graphics handle cannot be null.");
         }
         if (text == null) {
+            Logger.getLogger(TextRenderer.class.getName()).log(Level.SEVERE, "Ex086");
             throw new NullPointerException("The text cannot be null.");
         }
         if (font == null) {
+            Logger.getLogger(TextRenderer.class.getName()).log(Level.SEVERE, "Ex087");
             throw new NullPointerException("The font cannot be null.");
         }
         if (color == null) {
+            Logger.getLogger(TextRenderer.class.getName()).log(Level.SEVERE, "Ex088");
             throw new NullPointerException("The text color cannot be null.");
         }
         if (bounds == null) {
+            Logger.getLogger(TextRenderer.class.getName()).log(Level.SEVERE, "Ex089");
             throw new NullPointerException("The text bounds cannot be null.");
         }
 

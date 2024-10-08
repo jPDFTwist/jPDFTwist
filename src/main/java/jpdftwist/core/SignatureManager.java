@@ -7,6 +7,8 @@ import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SignatureManager {
 
@@ -22,13 +24,15 @@ public class SignatureManager {
             ks.load(Files.newInputStream(keystoreFile.toPath()), password);
             key = (PrivateKey) ks.getKey(alias, password);
             if (key == null) {
+                Logger.getLogger(SignatureManager.class.getName()).log(Level.SEVERE, "Ex124");
                 throw new IOException("No private key found with alias " + alias);
             }
             certChain = ks.getCertificateChain(alias);
             this.certificationLevel = certificationLevel;
             this.sigVisible = visible;
         } catch (GeneralSecurityException ex) {
-            throw new IOException(ex.toString(), ex);
+            Logger.getLogger(SignatureManager.class.getName()).log(Level.SEVERE, "Ex060", ex);
+            throw new IOException();
         }
     }
 

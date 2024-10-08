@@ -5,6 +5,9 @@ import com.itextpdf.text.exceptions.BadPasswordException;
 import com.itextpdf.text.exceptions.InvalidPdfException;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.RandomAccessFileOrArray;
+
+import jpdftwist.core.OutputPdfProcessor;
+import jpdftwist.core.PDFTwist;
 import jpdftwist.gui.component.PdfUnlockDialog;
 import jpdftwist.tabs.input.password.Password;
 
@@ -21,7 +24,7 @@ public class PdfParser {
         try {
             return open(filepath, false);
         } catch (IOException ex) {
-            Logger.getLogger(PdfParser.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PdfParser.class.getName()).log(Level.SEVERE, "Ex056", ex);
             return null;
         }
     }
@@ -35,6 +38,7 @@ public class PdfParser {
         try {
             return open(filepath, "", optimize);
         } catch (Exception ex) {
+            Logger.getLogger(PdfParser.class.getName()).log(Level.SEVERE, "Ex081", ex);
             return openWithPass(filepath, optimize, autoRestrictionsOverwrite, autoRestrictionsNew);
         }
     }
@@ -75,12 +79,15 @@ public class PdfParser {
                     System.out.println("in invalid pdf");
                     return reader;
                 } catch (ExceptionConverter ex2) {
+                    Logger.getLogger(PdfParser.class.getName()).log(Level.SEVERE, "Ex149");
                     throw ex;
                 }
             } else {
+                Logger.getLogger(PdfParser.class.getName()).log(Level.SEVERE, "Ex150");
                 throw ex;
             }
         } catch (NullPointerException ex) {
+            Logger.getLogger(PdfParser.class.getName()).log(Level.SEVERE, "Ex082", ex);
             throw new IOException(ex);
         }
     }
@@ -89,6 +96,7 @@ public class PdfParser {
         PdfReader rdr = reader;
 
         if (!rdr.isOpenedWithFullPermissions()) {
+            Logger.getLogger(PdfParser.class.getName()).log(Level.SEVERE, "Ex151");
             throw new BadPasswordException("PdfReader not opened with owner password");
         }
         rdr.consolidateNamedDestinations();

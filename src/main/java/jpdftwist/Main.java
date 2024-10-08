@@ -6,9 +6,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Main {
-    public static final String VERSION = "1.1 Stage XIV";
+    public static final String VERSION = "1.1 Stage XVI";
 
     public static void main(final String[] args) {
         System.out.println("");
@@ -16,8 +18,6 @@ public class Main {
         final long heapSize = Runtime.getRuntime().totalMemory();
         System.out.println("Heap Size     =  " + heapSize / 1024L / 1024L + " MB");
 
-        final long maxBytes = Runtime.getRuntime().maxMemory();
-        System.out.println("Max Memory    =  " + maxBytes / 1024L / 1024L + " MB");
 
         System.out.println("");
         System.out.println("");
@@ -25,11 +25,11 @@ public class Main {
         final String missingLib = findMissingLibName();
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-        } catch (Exception e) {
+        } catch (Exception Ex1) {
             try {
                 UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-            } catch (Exception ex) {
-
+            } catch (Exception Ex2) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, "Ex083", Ex2);
             }
         }
 

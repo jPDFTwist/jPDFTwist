@@ -107,7 +107,7 @@ public class FileImporter implements Runnable {
 
             FileNodeFactory fileNodeFactory = NodeFactory.getFileNodeFactory(TreeTableRowType.REAL_FILE, subType);
             if (fileNodeFactory == null) {
-                throw new IllegalArgumentException("Cannot parse file " + file.getAbsolutePath()); // TODO: throw in the factory instead of null
+                Logger.getLogger(FileImporter.class.getName()).log(Level.SEVERE, "Ex141");
             }
 
             if (fileNodeFactory instanceof RealPdfNodeFactory) {
@@ -130,7 +130,7 @@ public class FileImporter implements Runnable {
                 modelHandler.insertFileNode(node);
             }
         } catch (Exception ex) {
-            Logger.getLogger(FileImporter.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FileImporter.class.getName()).log(Level.SEVERE, "Ex027", ex);
             String exceptionTrace = getExceptionTrace(ex);
             importItemsListener.onError(file.getPath(), exceptionTrace);
         }
@@ -139,7 +139,8 @@ public class FileImporter implements Runnable {
     private String getExceptionTrace(Exception ex) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
-        ex.printStackTrace(pw);
+
+        Logger.getLogger(FileImporter.class.getName()).log(Level.SEVERE, "Ex076", ex);
 
         return sw.toString();
     }

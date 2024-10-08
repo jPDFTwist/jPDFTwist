@@ -152,7 +152,7 @@ public class WatermarkOptionsPanel extends javax.swing.JPanel {
         verticalReference.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"From Top", "Center", "From Bottom"}));
         verticalReference.addItemListener(this::verticalReferenceItemStateChanged);
 
-        jLabel9.setText("Opacity:");
+        jLabel9.setText("Transparency %");
 
         opacitySpinner.setModel(new javax.swing.SpinnerNumberModel(0, 0, 100, 1));
         opacitySpinner.addChangeListener(this::opacitySpinnerStateChanged);

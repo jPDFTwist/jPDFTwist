@@ -5,11 +5,23 @@ import com.jmupdf.Page;
 import com.jmupdf.PageRenderer;
 import com.jmupdf.pdf.PdfDocument;
 
+import jpdftwist.gui.tab.BookmarkTab;
+import jpdftwist.gui.tab.output.OutputTab;
+import ucar.nc2.util.xml.Parse;
+
 import javax.imageio.ImageIO;
+import javax.swing.JComponent;
+
+import java.awt.Color;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.IllegalFormatException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * PdfToImage Class uses JmuPdf and ImageIO libraries to produce image files
@@ -75,7 +87,7 @@ public class PdfToImage {
 
     public enum ImageType {
         PDF, PSD, SVG, EMF, WMF,
-        JPG, JP2, PNG, PAM, PNM, TGA, TIFF,
+        JPG, JP2, PNG, PAM, PBM, PNM, TGA, TIFF,
         BMP, GIF, PCX
     }
 
@@ -119,20 +131,22 @@ public class PdfToImage {
             String outputFilePath = outputPath.substring(0, outputPath.lastIndexOf(".") + 1)
                 + imageType.toString().toLowerCase();
             if (imageType == ImageType.JPG
-                || imageType == ImageType.JP2
                 || imageType == ImageType.PNG
                 || imageType == ImageType.PAM
+                || imageType == ImageType.PBM
                 || imageType == ImageType.PNM
-                || imageType == ImageType.TGA) {
+                || imageType == ImageType.TIFF) {
                 exportUsingJmuPdf(document, outputFilePath);
 
-            } else if (imageType == ImageType.TIFF) {
+            } else if (imageType == ImageType.PCX
+                || imageType == ImageType.TGA) {
                 exportUsingImageIO(renderPage(page), outputFilePath);
 
-            } else if (imageType == ImageType.BMP
-                || imageType == ImageType.GIF
-                || imageType == ImageType.PCX) {
-                exportUsingImageIO(renderPage(page), outputFilePath);
+            } else if (imageType == ImageType.BMP) {
+                exportUsingImageIO_BMP(renderPage(page), outputFilePath);
+
+            } else if (imageType == ImageType.GIF) {
+                exportUsingImageIO_GIF(renderPage(page), outputFilePath);
 
             } else if (imageType == ImageType.PSD) {
                 exportUsingImageIO(renderPage(page), outputFilePath);
@@ -145,8 +159,9 @@ public class PdfToImage {
                 exportUsingImageIO(renderPage(page), outputFilePath);
             }
             document.dispose();
-        } catch (Exception e) {
-            throw new IOException(e.toString(), e);
+        } catch (Exception ex) {
+            Logger.getLogger(PdfToImage.class.getName()).log(Level.SEVERE, "Ex101", ex);
+            //throw new IOException(ex.toString(), ex);
         }
     }
 
@@ -163,13 +178,14 @@ public class PdfToImage {
         try {
             document = new PdfDocument(docByte);
             String outputFilePath = outputPath.substring(0, outputPath.lastIndexOf(".") + 1) + "tiff";
+
             for (int i = 0; i < document.getPageCount(); i++) {
-                document.saveAsTif((i + 1), outputFilePath, 1.0f, transparent, colorMode, compressionType,
-                    Document.TIF_DATA_APPEND, quality);
+                document.saveAsTif((i + 1), outputFilePath, 1.0f, transparent, colorMode, compressionType, Document.TIF_DATA_APPEND, quality);
             }
             document.dispose();
-        } catch (Exception e) {
-            throw new IOException(e.toString(), e);
+        } catch (Exception ex) {
+            Logger.getLogger(PdfToImage.class.getName()).log(Level.SEVERE, "Ex102", ex);
+            //throw new IOException(ex.toString(), ex);
         }
     }
 
@@ -184,6 +200,9 @@ public class PdfToImage {
             case PAM:
                 document.saveAsPam(1, outputFilePath, 1.0f, transparent, colorMode);
                 break;
+            case PBM:
+                document.saveAsPbm(1, outputFilePath, 1.0f);
+                break;
             case PNM:
                 document.saveAsPnm(1, outputFilePath, 1f, colorMode);
                 break;
@@ -196,15 +215,58 @@ public class PdfToImage {
     }
 
     private void exportUsingImageIO(BufferedImage bufferedImage, String outputFilePath) throws IOException {
-        ImageIO.write(bufferedImage, imageType.toString(), new File(outputFilePath));
+        try {
+            ImageIO.write(bufferedImage, imageType.toString(), new File(outputFilePath));
+        } catch (Exception ex) {
+            Logger.getLogger(PdfToImage.class.getName()).log(Level.SEVERE, "Ex006", ex);
+        }
+    }
+
+    private void exportUsingImageIO_BMP(BufferedImage bufferedImage, String outputFilePath) throws IOException {
+        try {
+            OutputTab LINK = new OutputTab();
+
+            BufferedImage RGBImage = new BufferedImage(bufferedImage.getWidth() * 1,
+                bufferedImage.getHeight() * 1, BufferedImage.TYPE_INT_RGB);
+
+            //System.out.println(String.valueOf((int)(Integer.parseInt(LINK.DPIvalue()) / 72)));
+
+            RGBImage.createGraphics().drawImage(bufferedImage.getScaledInstance(bufferedImage.getWidth() * 1,
+                bufferedImage.getHeight() * 1, Image.SCALE_DEFAULT), 0, 0, Color.WHITE, null);
+
+            ImageIO.write(RGBImage, imageType.toString(), new File(outputFilePath));
+        } catch (Exception ex) {
+            Logger.getLogger(PdfToImage.class.getName()).log(Level.SEVERE, "Ex007", ex);
+        }
+    }
+
+    private void exportUsingImageIO_GIF(BufferedImage bufferedImage, String outputFilePath) throws IOException {
+        try {
+            Color BGColor = new Color(255, 0, 255, 0);
+
+            BufferedImage ARGBImage = new BufferedImage(bufferedImage.getWidth() * 1,
+                bufferedImage.getHeight() * 1, java.awt.Transparency.TRANSLUCENT);
+
+            ARGBImage.createGraphics().drawImage(bufferedImage.getScaledInstance(bufferedImage.getWidth() * 1,
+                bufferedImage.getHeight() * 1, Image.SCALE_DEFAULT), 0, 0, BGColor, null);
+
+            ImageIO.write(ARGBImage, imageType.toString(), new File(outputFilePath));
+        } catch (Exception ex) {
+            Logger.getLogger(PdfToImage.class.getName()).log(Level.SEVERE, "Ex008", ex);
+        }
     }
 
     private BufferedImage renderPage(Page page) {
-        PageRenderer render = new PageRenderer(page, 1.0f, Page.PAGE_ROTATE_AUTO, colorMode);
-        render.render(true);
-        BufferedImage currentImage = render.getImage();
-        render.dispose();
-        return currentImage;
+        try {
+            PageRenderer render = new PageRenderer(page, 1.0f, Page.PAGE_ROTATE_AUTO, colorMode);
+            render.render(true);
+            BufferedImage currentImage = render.getImage();
+            render.dispose();
+            return currentImage;
+        } catch (Exception ex) {
+            Logger.getLogger(PdfToImage.class.getName()).log(Level.SEVERE, "Ex009", ex);
+            return null;
+        }
     }
 
     /**

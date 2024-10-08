@@ -101,9 +101,12 @@ public class InputOptionsPanel extends JPanel {
         mergeByDir = new JCheckBox("Merge by directory");
         mergeByDir.addItemListener(this::mergeByDirItemStateChanged);
         this.add(mergeByDir, "4, 2");
+        mergeByDir.setSelected(false);
+        mergeByDir.setEnabled(false);
+
         this.add(autoRemoveRestrictionsNew, "6, 2");
 
-        optimizePDF = new JCheckBox("Optimize PDF");
+        optimizePDF = new JCheckBox("Optimize / Compress");
         this.add(optimizePDF, "8, 2");
     }
 
@@ -139,6 +142,9 @@ public class InputOptionsPanel extends JPanel {
         if (ReadPageSizes == null) {
             ReadPageSizes = new JCheckBox("Read Page Sizes");
         }
+        ReadPageSizes.setSelected(true);
+        ReadPageSizes.setEnabled(false);
+        
         return ReadPageSizes;
     }
 }

@@ -11,6 +11,8 @@ import com.itextpdf.text.pdf.PdfWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class RemoveRotationProcessor {
 
@@ -87,6 +89,7 @@ public class RemoveRotationProcessor {
                 e = currentSize.getWidth();
                 f = 0;
             } else {
+                Logger.getLogger(RemoveRotationProcessor.class.getName()).log(Level.SEVERE, "Ex117");
                 throw new IOException("Unparsable rotation value: " + rotation);
             }
             cb.addTemplate(page, a, b, c, d, e, f);

@@ -4,6 +4,7 @@ import com.itextpdf.text.DocumentException;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import jpdftwist.core.OutputEventListener;
+import jpdftwist.core.OutputPdfProcessor;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.PageDimension;
 import jpdftwist.core.ShuffleRule;
@@ -16,6 +17,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ShuffleTab extends Tab {
 
@@ -120,6 +123,7 @@ public class ShuffleTab extends Tab {
                 int page = Integer.parseInt(tmp);
                 if (page <= 0)
                     throw new NumberFormatException((String) row[0]);
+                //Logger.getLogger(ShuffleTab.class.getName()).log(Level.SEVERE, "Ex135");
                 tmp = (String) row[1];
                 boolean oxp = false, oyp = false;
                 if (tmp.endsWith("%")) {
@@ -143,9 +147,11 @@ public class ShuffleTab extends Tab {
                 sb.append(rule);
             }
         } catch (NumberFormatException ex) {
+            Logger.getLogger(ShuffleTab.class.getName()).log(Level.SEVERE, "Ex068", ex);
             JOptionPane.showMessageDialog(mf, "Unparsable option: " + ex.getMessage());
             return;
         } catch (NullPointerException ex) {
+            Logger.getLogger(ShuffleTab.class.getName()).log(Level.SEVERE, "Ex069", ex);
             JOptionPane.showMessageDialog(mf, "Please fill in all the fields.");
             return;
         }
@@ -157,10 +163,12 @@ public class ShuffleTab extends Tab {
         try {
             parseConfigStringInternal();
         } catch (NumberFormatException ex) {
-            ex.printStackTrace();
+            Logger.getLogger(ShuffleTab.class.getName()).log(Level.SEVERE, "Ex070", ex);
+            //ex.printStackTrace();
             JOptionPane.showMessageDialog(mf, "Cannot parse config string: " + ex.getMessage());
         } catch (IllegalArgumentException ex) {
-            ex.printStackTrace();
+            Logger.getLogger(ShuffleTab.class.getName()).log(Level.SEVERE, "Ex071", ex);
+            //ex.printStackTrace();
             JOptionPane.showMessageDialog(mf, "Cannot parse config string: " + configString.getText());
         }
     }
@@ -200,6 +208,7 @@ public class ShuffleTab extends Tab {
             case 'U':
                 return "Upside-Down";
             default:
+                //Logger.getLogger(ShuffleTab.class.getName()).log(Level.SEVERE, "Ex136");
                 throw new IllegalArgumentException();
         }
     }
@@ -228,7 +237,9 @@ public class ShuffleTab extends Tab {
                 int shuffleSize = Integer.parseInt(blockSize.getText());
                 if (shuffleSize < 2)
                     throw new NumberFormatException();
+                //Logger.getLogger(ShuffleTab.class.getName()).log(Level.SEVERE, "Ex137");
             } catch (NumberFormatException ex) {
+                Logger.getLogger(ShuffleTab.class.getName()).log(Level.SEVERE, "Ex072", ex);
                 throw new IOException("Invalid shuffle block size");
             }
         }
@@ -240,9 +251,10 @@ public class ShuffleTab extends Tab {
             int shuffleSize = blockShuffle.isSelected() ? Integer.parseInt(blockSize.getText()) : 0;
             try {
                 pdfTwist.shufflePages(shufflePagesPerPass, shuffleSize, shuffleRules);
-            } catch (DocumentException | IOException e) {
+            } catch (DocumentException | IOException ex) {
                 outputEventListener.dispose();
-                throw e;
+                Logger.getLogger(ShuffleTab.class.getName()).log(Level.SEVERE, "Ex103", ex);
+                throw ex;
             }
         }
         return pdfTwist;

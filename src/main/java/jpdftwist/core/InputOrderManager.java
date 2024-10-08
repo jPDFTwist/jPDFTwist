@@ -34,7 +34,7 @@ public class InputOrderManager {
         try {
             copy = new PdfCopy(document, baos);
         } catch (DocumentException ex) {
-            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(InputOrderManager.class.getName()).log(Level.SEVERE, "Ex003", ex);
             return null;
         }
         document.open();
@@ -69,7 +69,7 @@ public class InputOrderManager {
         try {
             copy = new PdfCopy(document, baos);
         } catch (DocumentException ex) {
-            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(InputOrderManager.class.getName()).log(Level.SEVERE, "Ex004", ex);
             return null;
         }
         document.open();

@@ -32,8 +32,7 @@ public class FileChooser {
         fileChooser.setMultiSelectionEnabled(true);
         fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         FileNameExtensionFilter[] filters = {new FileNameExtensionFilter("JPEG Image(*.jpg, *.jpeg)", "JPG", "JPEG"),
-            new FileNameExtensionFilter("JPEG2000 Image(*.jp2, *.j2k, *.jpf, *.jpx, *.jpm, *.mj2)", "JP2", "J2K",
-                "JPF", "JPX", "JPM", "MJ2"),
+            new FileNameExtensionFilter("JPEG2000 Image(*.jp2, *.j2k, *.jpf, *.jpx, *.jpm, *.mj2)", "JP2", "J2K", "JPF", "JPX", "JPM", "MJ2"),
             new FileNameExtensionFilter("PNG Images(*.png)", "PNG"),
             new FileNameExtensionFilter("BMP Images(*.bmp)", "BMP"),
             new FileNameExtensionFilter("TIFF Images(*.tiff, *.tif)", "TIFF", "TIF"),

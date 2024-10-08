@@ -67,7 +67,7 @@ public class WatermarkPreviewComponent extends JComponent implements MouseListen
         //        try {
         //            background = ImageIO.read(getClass().getResource("/background.png"));
         //        } catch (IOException ex) {
-        //            Logger.getLogger(WatermarkPreviewBox.class.getName()).log(Level.SEVERE, null, ex);
+        //            Logger.getLogger(WatermarkPreviewComponent.class.getName()).log(Level.SEVERE, "Ex019", ex);
         //        }
 
         //        int w = background.getWidth(this);

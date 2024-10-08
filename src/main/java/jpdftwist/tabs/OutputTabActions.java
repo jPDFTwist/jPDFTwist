@@ -61,13 +61,13 @@ public class OutputTabActions extends ActionTab {
             }
         }
 
-        input.setPdfImages(parameters.getPdfToImage());
         try {
+            input.setPdfImages(parameters.getPdfToImage());
             input.writeOutput(
                 parameters.getOutputFilepath(), parameters.isMultiPageTiff(), parameters.isBurst(), parameters.isUncompressed(),
                 parameters.isOptimizeSize(), parameters.isFullyCompressed());
         } catch (Exception ex) {
-            Logger.getLogger(OutputTabActions.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(OutputTabActions.class.getName()).log(Level.SEVERE, "Ex029", ex);
         }
 
         return input;

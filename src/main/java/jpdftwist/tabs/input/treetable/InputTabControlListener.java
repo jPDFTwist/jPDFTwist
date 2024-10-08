@@ -54,7 +54,7 @@ public class InputTabControlListener implements ControlListener {
                 }
 
             } catch (IOException ex) {
-                Logger.getLogger(TreeTableComponent.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(InputTabControlListener.class.getName()).log(Level.SEVERE, "Ex026", ex);
             }
         }
     }
@@ -63,8 +63,8 @@ public class InputTabControlListener implements ControlListener {
     public void onSelectNode(Node selectedNode) {
         try {
             updatePreview(selectedNode);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException ex) {
+            Logger.getLogger(InputTabControlListener.class.getName()).log(Level.SEVERE, "Ex084", ex);
         }
     }
 
@@ -147,8 +147,8 @@ public class InputTabControlListener implements ControlListener {
             document.close();
             JOptionPane.showMessageDialog(null, "File successfully saved at \"" + filepath + "\"");
 
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
+        } catch (Exception ex) {
+            Logger.getLogger(InputTabControlListener.class.getName()).log(Level.SEVERE, "Ex104", ex);
         }
     }
 
@@ -206,8 +206,8 @@ public class InputTabControlListener implements ControlListener {
             jsonFile.close();
             JOptionPane.showMessageDialog(null, "File successfully saved at \"" + filepath + "\"");
 
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
+        } catch (Exception ex) {
+            Logger.getLogger(InputTabControlListener.class.getName()).log(Level.SEVERE, "Ex105", ex);
         }
     }
 
@@ -243,8 +243,8 @@ public class InputTabControlListener implements ControlListener {
                     files[i] = new File(inputFiles.getString(i));
                 }
                 inputTabFileImporter.importFilesToInputTab(files);
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
+            } catch (Exception ex) {
+                Logger.getLogger(InputTabControlListener.class.getName()).log(Level.SEVERE, "Ex106", ex);
             }
         }
     }
