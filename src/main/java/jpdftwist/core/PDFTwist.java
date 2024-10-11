@@ -12,7 +12,6 @@ import jpdftwist.core.tabparams.RotateParameters;
 import jpdftwist.core.tabparams.ScaleParameters;
 import jpdftwist.core.watermark.WatermarkProcessor;
 import jpdftwist.core.watermark.WatermarkStyle;
-import jpdftwist.gui.tab.watermark.WatermarkTab;
 
 import java.awt.*;
 import java.io.File;
@@ -47,7 +46,7 @@ public class PDFTwist {
     private final int interleaveSize;
     private final OutputEventListener outputEventListener;
 
-    public PDFTwist(List<PageRange> pageRanges, boolean useTempFiles, boolean mergeByDir, int interleaveSize, OutputEventListener outputEventListener) throws IOException {
+    public PDFTwist(List<PageRange> pageRanges, boolean useTempFiles, boolean mergeByDir, int interleaveSize, OutputEventListener outputEventListener, String rootDir) throws IOException {
         this.outputEventListener = outputEventListener;
         this.pageRanges = pageRanges;
         this.interleaveSize = interleaveSize;
@@ -60,7 +59,7 @@ public class PDFTwist {
         this.attachmentsManager = new AttachmentsManager();
         this.transitionManager = new TransitionManager(pdfReaderManager);
         this.viewerPreferencesManager = new ViewerPreferencesManager();
-        this.outputFilePathManager = new OutputFilePathManager(pageRanges, mergeByDir);
+        this.outputFilePathManager = new OutputFilePathManager(pageRanges, mergeByDir, rootDir);
 
         this.infoDictionaryProcessor = new InfoDictionaryProcessor(pdfReaderManager);
         this.pageMarksProcessor = new PageMarksProcessor(pdfReaderManager);

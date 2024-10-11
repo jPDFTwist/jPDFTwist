@@ -209,8 +209,6 @@ public class WatermarkTab extends Tab {
                 File f = new File(Path + "\\" + "BLANK.pdf");
                 if (f.exists() && !f.isDirectory()) {
                     filename.setText(Path + "\\" + "BLANK.pdf");
-                } else {
-                    return null;
                 }
                 //Sleep
                 //TimeUnit.SECONDS.sleep(1);

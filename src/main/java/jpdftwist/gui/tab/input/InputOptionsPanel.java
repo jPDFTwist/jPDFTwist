@@ -102,7 +102,6 @@ public class InputOptionsPanel extends JPanel {
         mergeByDir.addItemListener(this::mergeByDirItemStateChanged);
         this.add(mergeByDir, "4, 2");
         mergeByDir.setSelected(false);
-        mergeByDir.setEnabled(false);
 
         this.add(autoRemoveRestrictionsNew, "6, 2");
 
@@ -144,7 +143,7 @@ public class InputOptionsPanel extends JPanel {
         }
         ReadPageSizes.setSelected(true);
         ReadPageSizes.setEnabled(false);
-        
+
         return ReadPageSizes;
     }
 }

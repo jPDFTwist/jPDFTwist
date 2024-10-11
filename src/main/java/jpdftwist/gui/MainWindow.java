@@ -170,6 +170,8 @@ public class MainWindow extends JFrame {
                 }
             };
 
+            inputTabActions.calculateLowestCommonRoot();
+
             for (int task = 0; task < batchLength; task++) {
                 if (!outputProgressDialog.isVisible()) {
                     break;
@@ -177,6 +179,10 @@ public class MainWindow extends JFrame {
                 outputProgressDialog.resetTwistValue();
                 inputTabActions.selectBatchTask(task);
                 pdfTwist = inputTabActions.run(pdfTwist, outputEventListener, outputProgressDialog);
+                if (pdfTwist == null) {
+                    outputProgressDialog.updateOverallProgress();
+                    continue;
+                }
                 outputProgressDialog.setDisposeListener(pdfTwist::cancel);
                 for (Tab tab : tabs) {
                     if (!outputProgressDialog.isVisible()) {
