@@ -64,11 +64,11 @@ The resulting PDFs/Images will be saved in the location specified at the "Output
 
 jPDFTwist depends on these additional libraries:
 
-* bioformats_package.jar
+* bioformats_package.jar  [ v5.0.6 ]
 * fontbox-2.0.02.jar
 * fontbox-2.0.11.jar
 * fontbox-3.0.30.jar
-* itext.jar (v5.1.3)
+* itext.jar  [ v5.1.3 ]
 * pdfbox-2.0.02.jar
 * pdfbox-2.0.11.jar
 * pdfbox-3.0.30.jar
