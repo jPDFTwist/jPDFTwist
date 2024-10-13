@@ -10,23 +10,25 @@ jPDFTwist is a powerful, multi-functional tool for batch PDF tweaking, with the 
   * Crop
   * Scale
   * Rotate
-  * Conditional scale
-  * Conditional rotate
+  * Conditional Scale
+  * Conditional Rotate
   * Watermark
+  * Advanced Watermark
   * Page numbering
-  * Bookmark and annotations management
-  * Page shuffling
-  * Print imposition
+  * Bookmark and Annotations Management
+  * Page Shuffling
+  * Print Imposition
   * Encrypt
   * Dencrypt
   * Sign
 * Merge multiple files (PDFs and images)
 * Save & Load complete structure tree (folders\sub-folders\files\pages)
-* Generate blank page(s)
+* Generate Blank page(s) with white or colored background
 * Burst file to PDFs or Images
 * Export detailed report of all pages
 * Convert images to PDFs
-* Export to including multi-page TIFFs
+* Export PDFs to images (*.BMP, *.GIF, *.JPG, *.PNG, *.PSD, *.TGA +more)
+* Export PDFs to single-page and multi-page TIFFs
 * etc...
 
 ## Disclaimer
