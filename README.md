@@ -27,7 +27,7 @@ jPDFTwist is a powerful, multi-functional tool for batch PDF tweaking, with the 
 * Burst file to PDFs or Images
 * Export detailed report of all pages
 * Convert images to PDFs
-* Export PDFs to images (*.BMP, *.GIF, *.JPG, *.PNG, *.PSD, *.TGA +more)
+* Export PDFs to images (*.bmp, *.gif, *.jpg, *.png, *.psd, *.tga +more)
 * Export PDFs to single-page and multi-page TIFFs
 * etc...
 
