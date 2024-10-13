@@ -221,7 +221,7 @@ public class InputProgressDialog extends JFrame {
             Thread.sleep(500);
             clean();
         } catch (InterruptedException ex) {
-            Logger.getLogger(InputProgressDialog.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(InputProgressDialog.class.getName()).log(Level.SEVERE, "Ex017", ex);
         } finally {
             this.dispose();
         }

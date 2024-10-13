@@ -1,9 +1,14 @@
 package jpdftwist.gui.component.table;
 
 import javax.swing.table.AbstractTableModel;
+
+import jpdftwist.core.OutputPdfProcessor;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class TableComponentModel extends AbstractTableModel {
 
@@ -23,6 +28,7 @@ public class TableComponentModel extends AbstractTableModel {
         }
 
         if (this.columnClasses.length != columnNames.length) {
+            Logger.getLogger(TableComponentModel.class.getName()).log(Level.SEVERE, "Ex128");
             throw new IllegalArgumentException();
         }
     }

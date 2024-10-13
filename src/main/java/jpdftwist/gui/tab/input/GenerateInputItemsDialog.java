@@ -73,13 +73,13 @@ public class GenerateInputItemsDialog extends JFrame {
         blankDocumentRadioButton.setSelected(true);
         blankDocumentRadioButton.setText("Blank Document");
         blankDocumentRadioButton.addItemListener(this::jRadioButton1ItemStateChanged);
-        widthModel = new SpinnerNumberModel(8F, 1F, null, 1F);
+        widthModel = new SpinnerNumberModel(8.5F, 1F, null, 1F);
         JSpinner widthSpinner = new JSpinner(widthModel);
         heightModel = new SpinnerNumberModel(11F, 1F, null, 1F);
         JSpinner heightSpinner = new JSpinner(heightModel);
         unitsComboBox = new JComboBox<>();
         unitsComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"inches", "mm", "points"}));
-        numberOfPagesModel = new SpinnerNumberModel(1, 1, null, 1);
+        numberOfPagesModel = new SpinnerNumberModel(2, 1, null, 1);
         JSpinner numberOfPagesSpinner = new JSpinner(numberOfPagesModel);
         backgroundColorChooserButton = new ColorChooserButton();
         backgroundColorChooserButton.setSelectedColor(new java.awt.Color(254, 254, 254));
@@ -100,9 +100,8 @@ public class GenerateInputItemsDialog extends JFrame {
         okButton.addActionListener(evt -> {
             try {
                 okButtonActionPerformed();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            } catch (Exception ex) {
+                Logger.getLogger(GenerateInputItemsDialog.class.getName()).log(Level.SEVERE, "Ex014", ex);
             }
         });
         ButtonGroup generateTypeButtonGroup = new ButtonGroup();
@@ -190,7 +189,7 @@ public class GenerateInputItemsDialog extends JFrame {
                 populatePlaceholders(templateNode, placeholders);
             }
         } catch (CloneNotSupportedException ex) {
-            Logger.getLogger(GenerateInputItemsDialog.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(GenerateInputItemsDialog.class.getName()).log(Level.SEVERE, "Ex015", ex);
         }
 
         this.dispose();
@@ -231,7 +230,7 @@ public class GenerateInputItemsDialog extends JFrame {
     }
 
     private Node createBlankFileNode() throws IOException {
-        String key = "blank_" + getSaltString();
+        String key = "BLANK_" + getSaltString();
         PDDocument document = new PDDocument();
         PDPageContentStream cos;
 
@@ -258,7 +257,7 @@ public class GenerateInputItemsDialog extends JFrame {
         try {
             temp.createNewFile();
         } catch (IOException ex) {
-            ex.printStackTrace();
+            Logger.getLogger(GenerateInputItemsDialog.class.getName()).log(Level.SEVERE, "Ex061", ex);
         }
 
         temp.deleteOnExit();
@@ -331,11 +330,11 @@ public class GenerateInputItemsDialog extends JFrame {
     }
 
     protected String getSaltString() {
-        String SALT_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+        String SALT_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
         StringBuilder salt = new StringBuilder();
         Random rnd = new Random();
 
-        while (salt.length() < 11) {
+        while (salt.length() < 12) {
             int index = (int) (rnd.nextFloat() * SALT_CHARS.length());
             salt.append(SALT_CHARS.charAt(index));
         }
@@ -378,21 +377,25 @@ public class GenerateInputItemsDialog extends JFrame {
     }
 
     private void populatePlaceholders(Node node, List<Placeholder> placeholders) throws CloneNotSupportedException {
-        Kryo kryo = new Kryo();
-        List<Node> pages = (List<Node>) Collections.list(node.children());
+        try {
+            Kryo kryo = new Kryo();
+            List<Node> pages = (List<Node>) Collections.list(node.children());
 
-        for (Node page : pages) {
-            node.remove(page);
-        }
-
-        for (Placeholder p : placeholders) {
-            Node cloneNode = kryo.copy(node);
-            VirtualFileTreeTableRow vfuo = (VirtualFileTreeTableRow) cloneNode.getUserObject();
-            vfuo.setParent(p.getParent());
-            l.importNode(cloneNode, p.getIndex());
-            for (int i = 0; i < pages.size(); i++) {
-                l.insertNodeInto(kryo.copy(pages.get(i)), cloneNode, i);
+            for (Node page : pages) {
+                node.remove(page);
             }
+
+            for (Placeholder p : placeholders) {
+                Node cloneNode = kryo.copy(node);
+                VirtualFileTreeTableRow vfuo = (VirtualFileTreeTableRow) cloneNode.getUserObject();
+                vfuo.setParent(p.getParent());
+                l.importNode(cloneNode, p.getIndex());
+                for (int i = 0; i < pages.size(); i++) {
+                    l.insertNodeInto(kryo.copy(pages.get(i)), cloneNode, i);
+                }
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(GenerateInputItemsDialog.class.getName()).log(Level.SEVERE, "Ex016", ex);
         }
     }
 

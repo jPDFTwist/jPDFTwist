@@ -27,6 +27,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class BookmarkTab extends Tab {
 
@@ -67,9 +69,8 @@ public class BookmarkTab extends Tab {
                         appendBookmarks(PdfBookmark.parseBookmarks(bmk, 1));
                         reader.close();
                     } catch (Exception ex) {
-                        ex.printStackTrace();
-                        JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Error reading file",
-                            JOptionPane.ERROR_MESSAGE);
+                        Logger.getLogger(BookmarkTab.class.getName()).log(Level.SEVERE, "Ex064", ex);
+                        JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Error reading file", JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }
@@ -119,7 +120,7 @@ public class BookmarkTab extends Tab {
             bookmarks.clear();
             appendBookmarks(bmks);
         } catch (IOException ex) {
-            ex.printStackTrace();
+            Logger.getLogger(BookmarkTab.class.getName()).log(Level.SEVERE, "Ex065", ex);
             JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Error reading file", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -134,7 +135,7 @@ public class BookmarkTab extends Tab {
             }
             w.close();
         } catch (IOException ex) {
-            ex.printStackTrace();
+            Logger.getLogger(BookmarkTab.class.getName()).log(Level.SEVERE, "Ex066", ex);
             JOptionPane.showMessageDialog(mainWindow, ex.getMessage(), "Error reading file", JOptionPane.ERROR_MESSAGE);
         }
     }

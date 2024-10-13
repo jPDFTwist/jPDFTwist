@@ -4,12 +4,19 @@ import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.PageRange;
 import jpdftwist.core.PdfBookmark;
+import jpdftwist.gui.component.treetable.Node;
+import jpdftwist.gui.component.treetable.row.TreeTableRow;
+import jpdftwist.gui.component.treetable.row.TreeTableRowType;
 import jpdftwist.gui.dialog.OutputProgressDialog;
 import jpdftwist.tabs.input.InputValidator;
 import jpdftwist.tabs.input.pagerange.PageRangeGenerator;
+import org.jdesktop.swingx.treetable.MutableTreeTableNode;
 
 import javax.swing.*;
+import java.io.File;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,6 +31,7 @@ public class InputTabActions extends ActionTab {
     private int interleaveSize;
     private int batchTaskSelection;
     private PageRangeGenerator generator;
+    private String rootDir;
 
     public String getTabName() {
         return TAB_NAME;
@@ -70,18 +78,21 @@ public class InputTabActions extends ActionTab {
         return ranges;
     }
 
+    public void calculateLowestCommonRoot() {
+        rootDir = (new File(getFolders(inputTab.getRootNode()).first())).getParent() + File.separator;
+    }
+
     public PDFTwist run(PDFTwist input, OutputEventListener outputEventListener, OutputProgressDialog outputProgressDialog) {
         List<PageRange> ranges = generatePageRanges(batchTaskSelection, batch, mergeByDir);
 
-        int n = 0;
-        if (batch) {
-            n = batchTaskSelection;
+        if (ranges.isEmpty()) {
+            return null;
         }
 
         try {
-            return new PDFTwist(ranges, useTempFiles, mergeByDir, interleaveSize, outputEventListener);
+            return new PDFTwist(ranges, useTempFiles, mergeByDir, interleaveSize, outputEventListener, rootDir);
         } catch (Exception ex) {
-            Logger.getLogger(InputTabActions.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(InputTabActions.class.getName()).log(Level.SEVERE, "Ex028", ex);
         }
 
         return null;
@@ -93,6 +104,23 @@ public class InputTabActions extends ActionTab {
         }
 
         return generator.generate(taskIndex);
+    }
+
+    private TreeSet<String> getFolders(Node parent) {
+        TreeSet<String> set = new TreeSet<>();
+
+        Enumeration<? extends MutableTreeTableNode> e = parent.children();
+        while (e.hasMoreElements()) {
+            Node child = (Node) e.nextElement();
+            if (child.getUserObject().getType() == TreeTableRowType.REAL_FILE || child.getUserObject().getType() == TreeTableRowType.VIRTUAL_FILE) {
+                set.add(((TreeTableRow) child.getParent().getUserObject()).getKey());
+            }
+            if (child.getUserObject().getType() == TreeTableRowType.FOLDER) {
+                set.addAll(getFolders(child));
+            }
+        }
+
+        return set;
     }
 
     // TODO

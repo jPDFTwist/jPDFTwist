@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ShufflePagesProcessor {
 
@@ -44,10 +46,12 @@ public class ShufflePagesProcessor {
             outputEventListener.updatePagesProgress();
             if (pdfReaderManager.getCurrentReader().getPageSize(i).getWidth() != size.getWidth()
                 || pdfReaderManager.getCurrentReader().getPageSize(i).getHeight() != size.getHeight()) {
+                Logger.getLogger(ShufflePagesProcessor.class.getName()).log(Level.SEVERE, "Ex118");
                 throw new IOException(
                     "Pages must have equals sizes to be shuffled. Use the Scale option on the PageSize tab first.");
             }
             if (pdfReaderManager.getCurrentReader().getPageRotation(i) != 0) {
+                Logger.getLogger(ShufflePagesProcessor.class.getName()).log(Level.SEVERE, "Ex119");
                 throw new RuntimeException();
             }
         }
@@ -85,6 +89,7 @@ public class ShufflePagesProcessor {
                         pg += reverseIdx;
                     }
                     if (pg < 1) {
+                        Logger.getLogger(ShufflePagesProcessor.class.getName()).log(Level.SEVERE, "Ex120");
                         throw new IOException("Invalid page number. Check your n-up rules.");
                     }
                     if (pg <= cnt) {
@@ -157,6 +162,7 @@ public class ShufflePagesProcessor {
                             f = offsetx * s;
                             break;
                         default:
+                            //Logger.getLogger(ShufflePagesProcessor.class.getName()).log(Level.SEVERE, "Ex121");
                             throw new RuntimeException("" + sr.getRotate());
                     }
                     int pg = sr.getPageNumber();
@@ -166,6 +172,7 @@ public class ShufflePagesProcessor {
                         pg += reverseIdx;
                     }
                     if (pg < 1) {
+                        //Logger.getLogger(ShufflePagesProcessor.class.getName()).log(Level.SEVERE, "Ex122");
                         throw new IOException("Invalid page number. Check your n-up rules.");
                     }
                     if (pg <= cnt) {

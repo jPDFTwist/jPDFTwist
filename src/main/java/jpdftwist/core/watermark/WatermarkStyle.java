@@ -4,6 +4,8 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class WatermarkStyle {
 
@@ -368,7 +370,8 @@ public class WatermarkStyle {
             try {
                 int val = Integer.parseInt(str);
                 batesPagesList.add(val);
-            } catch (Exception e) {
+            } catch (Exception ex) {
+                Logger.getLogger(WatermarkStyle.class.getName()).log(Level.SEVERE, "Ex091", ex);
             }
         }
 

@@ -14,7 +14,11 @@ import jpdftwist.gui.tab.Tab;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class WatermarkTab extends Tab {
 
@@ -49,7 +53,8 @@ public class WatermarkTab extends Tab {
         pdfWatermark.addActionListener(e -> updatePDFWatermarkEnabled());
         add(new JLabel("Filename: "), CC.xy(1, 2));
         add(filename = new JTextField(""), CC.xyw(2, 2, 2));
-        filename.setEditable(false);
+        filename.setEditable(true);
+
         add(fileButton = new JButton("..."), CC.xy(4, 2));
         fileButton.addActionListener(e -> {
             FileChooser fileChooser = new FileChooser();
@@ -167,6 +172,7 @@ public class WatermarkTab extends Tab {
                 wmSize = Integer.parseInt(watermarkSize.getText());
                 wmOpacity = Float.parseFloat(watermarkOpacity.getText());
                 if (wmSize == 0) {
+                    Logger.getLogger(WatermarkTab.class.getName()).log(Level.SEVERE, "Ex132");
                     throw new IOException("Font size may not be zero");
                 }
             }
@@ -186,6 +192,7 @@ public class WatermarkTab extends Tab {
                 pnHOff = Float.parseFloat(pgnoHOffset.getText());
                 pnVOff = Float.parseFloat(pgnoVOffset.getText());
                 if (pnSize == 0) {
+                    Logger.getLogger(WatermarkTab.class.getName()).log(Level.SEVERE, "Ex133");
                     throw new IOException("Font size may not be zero");
                 }
             }
@@ -195,7 +202,22 @@ public class WatermarkTab extends Tab {
             if (useMask.isSelected()) {
                 mask = maskText.getText();
             }
+
+            if (filename.getText().isEmpty()) {
+                String Path = Paths.get(".").toAbsolutePath().normalize().toString();
+
+                File f = new File(Path + "\\" + "BLANK.pdf");
+                if (f.exists() && !f.isDirectory()) {
+                    filename.setText(Path + "\\" + "BLANK.pdf");
+                }
+                //Sleep
+                //TimeUnit.SECONDS.sleep(1);
+
+                //MessageBox
+                //JOptionPane.showMessageDialog(null, "Please choose \"BLANK.pdf\" as background watermark !", " Note", JOptionPane.INFORMATION_MESSAGE);
+            }
         } catch (NumberFormatException ex) {
+            Logger.getLogger(WatermarkTab.class.getName()).log(Level.SEVERE, "Ex063", ex);
             throw new IOException("Cannot parse value: " + ex.getMessage());
         }
         if (run) {

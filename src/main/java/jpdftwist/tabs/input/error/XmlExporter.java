@@ -39,11 +39,11 @@ public class XmlExporter implements ErrorReportExporter {
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, "Error Report Failed", "Cannot create error report file.",
                 JOptionPane.WARNING_MESSAGE);
-            Logger.getLogger(XmlExporter.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(XmlExporter.class.getName()).log(Level.SEVERE, "Ex020", ex);
         } catch (ParserConfigurationException ex) {
             JOptionPane.showMessageDialog(null, "Error Report Failed", "XML Structure fail.",
                 JOptionPane.WARNING_MESSAGE);
-            Logger.getLogger(XmlExporter.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(XmlExporter.class.getName()).log(Level.SEVERE, "Ex021", ex);
         }
     }
 

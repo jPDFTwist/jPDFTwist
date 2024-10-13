@@ -93,6 +93,9 @@ public class FormsTab extends Tab {
             gl_panel.setVerticalGroup(gl_panel.createParallelGroup(Alignment.LEADING).addGroup(gl_panel
                 .createSequentialGroup().addComponent(getFlatten_fields()).addContainerGap(104, Short.MAX_VALUE)));
             panel.setLayout(gl_panel);
+
+            changeFormsCheckBox.setEnabled(false);
+            flatten_fields.setEnabled(false);
         }
         return panel;
     }
@@ -107,7 +110,7 @@ public class FormsTab extends Tab {
 
     private JButton getImport_2() {
         if (import_2 == null) {
-            import_2 = new JButton("Import Properties of fields from TXT");
+            import_2 = new JButton("Import fields Properties from TXT");
             import_2.setEnabled(false);
         }
         return import_2;
@@ -115,7 +118,7 @@ public class FormsTab extends Tab {
 
     private JButton getImport_1() {
         if (import_1 == null) {
-            import_1 = new JButton("Import Data of fields from TXT");
+            import_1 = new JButton("Import fields Data from TXT");
             import_1.setEnabled(false);
         }
         return import_1;
@@ -123,7 +126,7 @@ public class FormsTab extends Tab {
 
     private JButton getExport_1() {
         if (export_1 == null) {
-            export_1 = new JButton("Export Data of fields to TXT");
+            export_1 = new JButton("Export fields Data to TXT");
             export_1.addActionListener(arg0 -> {
             });
             export_1.setEnabled(false);
@@ -133,7 +136,7 @@ public class FormsTab extends Tab {
 
     private JButton getExport_2() {
         if (export_2 == null) {
-            export_2 = new JButton("Export Properties of fields to TXT");
+            export_2 = new JButton("Export fields Properties to TXT");
             export_2.setEnabled(false);
         }
         return export_2;

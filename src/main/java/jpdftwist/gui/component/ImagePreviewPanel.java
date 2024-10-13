@@ -93,7 +93,7 @@ public class ImagePreviewPanel extends JPanel {
         }
 
         @Override
-        public void setSelectionInterval(final int index0, final int index1) {
+        public void setSelectionInterval(final int indEx0, final int indEx1) {
         }
     }
 

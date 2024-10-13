@@ -30,6 +30,9 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
+import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MainWindow extends JFrame {
 
@@ -85,7 +88,16 @@ public class MainWindow extends JFrame {
         JProgressBar heapMemoryProgressBar = new JProgressBar();
         heapMemoryProgressBar.setStringPainted(true);
         heapMemoryProgressBar.setToolTipText("Commit Size / Max Heap Size");
-        heapMemoryProgressBar.setForeground(new Color(95, 158, 160));
+
+        Random RNDr = new Random(System.currentTimeMillis() * 314159265 + 314159265);
+        Random RNDg = new Random(System.currentTimeMillis() * 628318530 + 628318530);
+        Random RNDb = new Random(System.currentTimeMillis() * 942477795 + 942477795);
+        int RCr = RNDr.nextInt((63 - 0) + 1) + 0;
+        int RCg = RNDg.nextInt((63 - 0) + 1) + 0;
+        int RCb = RNDb.nextInt((63 - 0) + 1) + 0;
+
+        //heapMemoryProgressBar.setForeground(new Color(95, 158, 160));
+        heapMemoryProgressBar.setForeground(new Color(RCr, RCg, RCb));
 
         new Timer(10, e1 -> {
             MemoryMXBean memBean = ManagementFactory.getMemoryMXBean();
@@ -96,7 +108,7 @@ public class MainWindow extends JFrame {
 
             heapMemoryProgressBar.setMaximum((int) maxHeap);
             heapMemoryProgressBar.setValue((int) committedHeap);
-            heapMemoryProgressBar.setString("Commit Size = " + committedHeap + " MB / " + maxHeap + " MB");
+            heapMemoryProgressBar.setString("Heap Size = " + committedHeap + " MB / " + maxHeap + " MB");
         }).start();
         getContentPane().add(heapMemoryProgressBar, "1, 3, 3, 1, fill, center");
         pack();
@@ -115,6 +127,7 @@ public class MainWindow extends JFrame {
             try {
                 inputTabActions.checkRun();
             } catch (Exception ex) {
+                Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, "Ex073", ex);
                 JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
             for (Tab tab : tabs) {
@@ -157,6 +170,8 @@ public class MainWindow extends JFrame {
                 }
             };
 
+            inputTabActions.calculateLowestCommonRoot();
+
             for (int task = 0; task < batchLength; task++) {
                 if (!outputProgressDialog.isVisible()) {
                     break;
@@ -164,6 +179,10 @@ public class MainWindow extends JFrame {
                 outputProgressDialog.resetTwistValue();
                 inputTabActions.selectBatchTask(task);
                 pdfTwist = inputTabActions.run(pdfTwist, outputEventListener, outputProgressDialog);
+                if (pdfTwist == null) {
+                    outputProgressDialog.updateOverallProgress();
+                    continue;
+                }
                 outputProgressDialog.setDisposeListener(pdfTwist::cancel);
                 for (Tab tab : tabs) {
                     if (!outputProgressDialog.isVisible()) {
@@ -184,10 +203,12 @@ public class MainWindow extends JFrame {
                 JOptionPane.showMessageDialog(this, "Finished", "JPDFTwist", JOptionPane.INFORMATION_MESSAGE);
             }
         } catch (DocumentException | IOException ex) {
+            //Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, "Ex074", ex);
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } catch (OutOfMemoryError ex) {
-            ex.printStackTrace();
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, "Ex075", ex);
+            //ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
                 "JPDFTwist has run out of memory. You may configure Java so that it may use more RAM, or you can enable the Tempfile option on the output tab.",
                 "Out of memory: " + ex.getMessage(), JOptionPane.ERROR_MESSAGE);

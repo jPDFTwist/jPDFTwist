@@ -26,7 +26,7 @@ public class TempFileManager {
         try {
             createTempOutputFiles();
         } catch (IOException ex) {
-            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TempFileManager.class.getName()).log(Level.SEVERE, "Ex010", ex);
         }
     }
 
@@ -49,6 +49,7 @@ public class TempFileManager {
         tempFile1 = tempFile2;
         tempFile2 = swap;
         if (!tempFile1.delete()) {
+            Logger.getLogger(TempFileManager.class.getName()).log(Level.SEVERE, "Ex125");
             throw new IOException("Cannot delete " + tempFile1);
         }
         return Files.newOutputStream(tempFile1.toPath());
@@ -60,12 +61,12 @@ public class TempFileManager {
 
     public void cleanup() {
         if (tempFile1 != null && !tempFile1.delete()) {
-            Logger.getLogger(TempFileManager.class.getName()).log(Level.WARNING, "Cannot delete " + tempFile1);
+            Logger.getLogger(TempFileManager.class.getName()).log(Level.WARNING, "Cannot delete " + tempFile1, "Ex099");
         }
         tempFile1 = null;
 
         if (tempFile2 != null && !tempFile2.delete()) {
-            Logger.getLogger(TempFileManager.class.getName()).log(Level.WARNING, "Cannot delete " + tempFile2);
+            Logger.getLogger(TempFileManager.class.getName()).log(Level.WARNING, "Cannot delete " + tempFile2, "Ex100");
         }
         tempFile2 = null;
     }

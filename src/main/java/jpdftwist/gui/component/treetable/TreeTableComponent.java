@@ -47,6 +47,7 @@ public class TreeTableComponent extends JPanel {
         this.ascendingOrder = true;
         this.controlListener = controlListener;
         if (headers.length != classes.length) {
+            Logger.getLogger(TreeTableComponent.class.getName()).log(Level.SEVERE, "Ex129");
             throw new IllegalArgumentException();
         }
 
@@ -142,7 +143,7 @@ public class TreeTableComponent extends JPanel {
                 try {
                     deleteButtonListenerAction();
                 } catch (Exception ex) {
-                    Logger.getLogger(TreeTableComponent.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(TreeTableComponent.class.getName()).log(Level.SEVERE, "Ex011", ex);
                 }
             });
             this.add(this.orderBtn, CC.xy(5, 2));
@@ -159,8 +160,8 @@ public class TreeTableComponent extends JPanel {
             this.add(this.openList, CC.xy(9, 2));
             this.openList.addActionListener(e -> controlListener.onLoad(this));
 
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
+        } catch (Exception ex) {
+            System.err.println(ex.getMessage());
         }
     }
 

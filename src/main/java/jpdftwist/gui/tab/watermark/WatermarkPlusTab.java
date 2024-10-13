@@ -39,7 +39,7 @@ public class WatermarkPlusTab extends ActionTab {
             try {
                 input.addWatermark(style);
             } catch (DocumentException | IOException ex) {
-                Logger.getLogger(WatermarkPlusTab.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(WatermarkPlusTab.class.getName()).log(Level.SEVERE, "Ex018", ex);
             }
         }
 

@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,6 +44,7 @@ public class PdfBookmark {
         }
         this.moreOptions = moreOptions;
         if (moreOptions != null && !moreOptions.equals(makeString(parseString(moreOptions)))) {
+            Logger.getLogger(PdfBookmark.class.getName()).log(Level.SEVERE, "Ex112");
             throw new IllegalArgumentException("More options incorrect");
         }
     }
@@ -115,6 +118,7 @@ public class PdfBookmark {
         while (pos < to) {
             PdfBookmark b = pdfBookmarks[pos];
             if (b.getDepth() != depth) {
+                Logger.getLogger(PdfBookmark.class.getName()).log(Level.SEVERE, "Ex113");
                 throw new IOException("Invalid depth value");
             }
             int endPos = pos + 1;
@@ -159,6 +163,7 @@ public class PdfBookmark {
                 pagePosition = page.substring(pos + 1);
             }
             if (pageNumber == 0) {
+                Logger.getLogger(PdfBookmark.class.getName()).log(Level.SEVERE, "Ex114");
                 throw new RuntimeException();
             }
         } else {
@@ -267,6 +272,7 @@ public class PdfBookmark {
     public static PdfBookmark parseBookmark(String line) {
         Matcher m = Pattern.compile("(-?[0-9]+);(O?B?I?);([^;]*);(-?[0-9]+)( [^;]+)?(;[^;]*)?").matcher(line);
         if (!m.matches()) {
+            Logger.getLogger(PdfBookmark.class.getName()).log(Level.SEVERE, "Ex115");
             throw new RuntimeException("Cannot parse bookmark");
         }
         String flags = m.group(2);

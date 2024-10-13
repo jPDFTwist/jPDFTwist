@@ -6,6 +6,9 @@
 
 package jpdftwist.core;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.swing.*;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -55,8 +58,9 @@ public class NumberField extends JTextField {
 
                 try {
                     Double.parseDouble(String.valueOf(chars[i]));
-                } catch (NumberFormatException exc) {
+                } catch (NumberFormatException ex) {
                     ok = false;
+                    Logger.getLogger(NumberField.class.getName()).log(Level.SEVERE, "Ex058", ex);
                     break;
                 }
 

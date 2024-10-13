@@ -2,7 +2,6 @@ package jpdftwist.core;
 
 import java.io.File;
 import java.util.List;
-import java.util.TreeSet;
 
 public class OutputFilePathManager {
 
@@ -13,7 +12,7 @@ public class OutputFilePathManager {
     private final String rootFolder;
     private final boolean mergeByDir;
 
-    public OutputFilePathManager(final List<PageRange> pageRanges, final boolean mergeByDir) {
+    public OutputFilePathManager(final List<PageRange> pageRanges, final boolean mergeByDir, String rootDir) {
         this.pageRanges = pageRanges;
         this.mergeByDir = mergeByDir;
 
@@ -26,7 +25,7 @@ public class OutputFilePathManager {
             inputFileName = inputFileFullName.substring(0, pos);
         }
 
-        rootFolder = keepFileParents();
+        rootFolder = rootDir;
     }
 
     public String expandOutputPath(final String rawOutputFile) {
@@ -67,15 +66,5 @@ public class OutputFilePathManager {
         }
 
         return outputFile;
-    }
-
-    private String keepFileParents() {
-        TreeSet<String> set = new TreeSet<>();
-
-        pageRanges.stream()
-            .map(PageRange::getParentName)
-            .forEach(set::add);
-
-        return (new File(set.first())).getParent() + File.separator;
     }
 }

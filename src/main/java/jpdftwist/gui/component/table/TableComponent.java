@@ -2,6 +2,8 @@ package jpdftwist.gui.component.table;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+
+import jpdftwist.core.OutputPdfProcessor;
 import jpdftwist.core.watermark.WatermarkStyle;
 
 import javax.swing.*;
@@ -9,6 +11,8 @@ import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class TableComponent extends JPanel {
     private final JScrollPane jsp;
@@ -19,6 +23,7 @@ public class TableComponent extends JPanel {
 
     public TableComponent(String[] captions, Class[] classes, Object[] sample) {
         if (sample.length != classes.length) {
+            Logger.getLogger(TableComponent.class.getName()).log(Level.SEVERE, "Ex126");
             throw new IllegalArgumentException();
         }
         this.sample = sample;
@@ -137,6 +142,7 @@ public class TableComponent extends JPanel {
 
     public void checkRun(String strTableName) throws IOException {
         if (jt.getCellEditor() != null && !jt.getCellEditor().stopCellEditing()) {
+            Logger.getLogger(TableComponent.class.getName()).log(Level.SEVERE, "Ex127");
             throw new IOException("Please finish editing the " + strTableName + " table!");
         }
     }

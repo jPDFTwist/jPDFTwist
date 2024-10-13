@@ -4,10 +4,13 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import jpdftwist.core.NumberField;
+import jpdftwist.core.OutputPdfProcessor;
 import jpdftwist.core.UnitTranslator;
 
 import javax.swing.*;
 import java.math.BigDecimal;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Vasilis Naskos
@@ -59,7 +62,7 @@ public class ScaleCustomSizeDialog extends JPanel {
         double width = 0;
         try {
             width = Double.parseDouble(widthField.getText());
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException ex) {
 
         }
         switch (unitsBox.getSelectedIndex()) {
@@ -86,7 +89,7 @@ public class ScaleCustomSizeDialog extends JPanel {
         double height = 0;
         try {
             height = Double.parseDouble(heightField.getText());
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException ex) {
 
         }
         switch (unitsBox.getSelectedIndex()) {
@@ -123,6 +126,7 @@ public class ScaleCustomSizeDialog extends JPanel {
 
     private double round(double value, int places) {
         if (places < 0) {
+            Logger.getLogger(ScaleCustomSizeDialog.class.getName()).log(Level.SEVERE, "Ex130");
             throw new IllegalArgumentException();
         }
 

@@ -10,8 +10,12 @@ import com.itextpdf.text.pdf.PdfSmartCopy;
 import com.itextpdf.text.pdf.SimpleBookmark;
 import com.itextpdf.text.pdf.internal.PdfViewerPreferencesImp;
 
+import jpdftwist.utils.ImageParser;
+
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class OptimizeSizeProcessor {
 
@@ -39,11 +43,13 @@ public class OptimizeSizeProcessor {
         PdfImportedPage page;
         outputEventListener.setPageCount(pdfReaderManager.getPageCount());
         if (isCanceled) {
+            Logger.getLogger(OptimizeSizeProcessor.class.getName()).log(Level.SEVERE, "Ex095");
             throw new CancelOperationException();
         }
         for (int i = 0; i < pdfReaderManager.getPageCount(); i++) {
             outputEventListener.updatePagesProgress();
             if (isCanceled) {
+                Logger.getLogger(OptimizeSizeProcessor.class.getName()).log(Level.SEVERE, "Ex096");
                 throw new CancelOperationException();
             }
             page = copy.getImportedPage(pdfReaderManager.getCurrentReader(), i + 1);

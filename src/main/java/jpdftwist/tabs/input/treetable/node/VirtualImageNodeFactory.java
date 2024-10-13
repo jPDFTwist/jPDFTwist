@@ -31,7 +31,7 @@ public class VirtualImageNodeFactory extends FileNodeFactory {
             insertPages(file);
             return file;
         } catch (IOException ex) {
-            Logger.getLogger(VirtualImageNodeFactory.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(VirtualImageNodeFactory.class.getName()).log(Level.SEVERE, "Ex024", ex);
             // TODO throw excpetion
         }
 

@@ -169,7 +169,7 @@ public class PdfUnlockDialog extends JDialog {
             unlockInfo.setUnlockedFilePath(unlockedPath);
         } catch (Exception ex) {
             unlockInfo.setSuccessfullyUnlocked(false);
-            Logger.getLogger(PdfUnlockDialog.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PdfUnlockDialog.class.getName()).log(Level.SEVERE, "Ex012", ex);
         }
     }
 
@@ -194,7 +194,7 @@ public class PdfUnlockDialog extends JDialog {
 
             doc.save(unlockedPath);
         } catch (Exception ex) {
-            Logger.getLogger(PdfUnlockDialog.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PdfUnlockDialog.class.getName()).log(Level.SEVERE, "Ex013", ex);
             return false;
         }
 

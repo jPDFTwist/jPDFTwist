@@ -182,7 +182,7 @@ public class TreeTableModel extends DefaultTreeTableModel implements SwapObserve
                 if (getFileCount(node) > 0)
                     folderCount++;
 
-                folderCount += getFileCount(child);
+                folderCount += getFolderCount(child);
             }
         }
 

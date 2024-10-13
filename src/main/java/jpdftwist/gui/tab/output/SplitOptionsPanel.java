@@ -47,28 +47,59 @@ public class SplitOptionsPanel extends JPanel {
             TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
 
         splitByOddPagesRadioButton = new JRadioButton("Split by odd pages");
+        splitByOddPagesRadioButton.setSelected(false);
+        splitByOddPagesRadioButton.setEnabled(false);
+
         splitByOddPagesRadioButton.setToolTipText("Split after each odd page");
+
         splitByEvenPagesRadioButton = new JRadioButton("Split by even pages");
+        splitByEvenPagesRadioButton.setSelected(false);
+        splitByEvenPagesRadioButton.setEnabled(false);
+
         splitByEvenPagesRadioButton.setToolTipText("Split after each even page");
+
         splitBySpecificPagesRadioButton = new JRadioButton("Split by specific pages");
+        splitBySpecificPagesRadioButton.setSelected(false);
+        splitBySpecificPagesRadioButton.setEnabled(false);
+
         splitBySpecificPagesRadioButton.setToolTipText("Split after specific pages (ex: 4-6, 9, 14)");
         splitBySpecificPagesTextField = new JTextField("");
+
         splitByChunkRadioButton = new JRadioButton("Split by chunk of  'n' pages");
+        splitByChunkRadioButton.setSelected(false);
+        splitByChunkRadioButton.setEnabled(false);
+
         splitByChunkRadioButton.setSelected(true);
         splitByChunkRadioButton.setToolTipText("Split after a chunk of pages (ex: 100)");
         splitByChunkTextField = new JTextField("1");
+
         splitBySizeRadioButton = new JRadioButton("Split by size");
+        splitBySizeRadioButton.setSelected(false);
+        splitBySizeRadioButton.setEnabled(false);
+
         splitBySizeRadioButton.setToolTipText("Split 'after' a specific size");
         splitBySizeComboBox = new JComboBox<>();
         splitBySizeComboBox.setModel(new DefaultComboBoxModel<>(new String[]{"(MB) > MegaBytes", "(KB)  > KiloBytes", "(B)    > Bytes"}));
         splitBySizeComboBox.setSelectedIndex(1);
+
         splitByBookmarkLevelRadioButton = new JRadioButton("Split by bookmark level");
+        splitByBookmarkLevelRadioButton.setSelected(false);
+        splitByBookmarkLevelRadioButton.setEnabled(false);
+
         splitByBookmarkLevelRadioButton.setToolTipText("Split 'before' the page linked to a bookmark level");
         splitByBookmarkLevelTextField = new JTextField("");
+
         splitByBookmarkTextRadioButton = new JRadioButton("Split by bookmark text");
+        splitByBookmarkTextRadioButton.setSelected(false);
+        splitByBookmarkTextRadioButton.setEnabled(false);
+
         splitByBookmarkTextRadioButton.setToolTipText("Split 'before' the bookmark containing a specific text");
         splitByBookmarkTextTextField = new JTextField("");
+
         splitByPageTextRadioButton = new JRadioButton("Split by page text");
+        splitByPageTextRadioButton.setSelected(false);
+        splitByPageTextRadioButton.setEnabled(false);
+
         splitByPageTextRadioButton.setToolTipText("Split 'after' the page containing a specific text");
         splitByPageTextTextField = new JTextField("");
 
@@ -92,19 +123,19 @@ public class SplitOptionsPanel extends JPanel {
 
     @Override
     public void setEnabled(boolean enabled) {
-        splitByOddPagesRadioButton.setEnabled(enabled);
-        splitByEvenPagesRadioButton.setEnabled(enabled);
-        splitBySpecificPagesRadioButton.setEnabled(enabled);
-        splitBySpecificPagesTextField.setEnabled(enabled);
-        splitByChunkRadioButton.setEnabled(enabled);
-        splitByChunkTextField.setEnabled(enabled);
-        splitByPageTextRadioButton.setEnabled(enabled);
-        splitByPageTextTextField.setEnabled(enabled);
-        splitByBookmarkLevelRadioButton.setEnabled(enabled);
-        splitByBookmarkLevelTextField.setEnabled(enabled);
-        splitByBookmarkTextTextField.setEnabled(enabled);
-        splitByBookmarkTextRadioButton.setEnabled(enabled);
-        splitBySizeRadioButton.setEnabled(enabled);
-        splitBySizeComboBox.setEnabled(enabled);
+        splitByOddPagesRadioButton.setEnabled(false);
+        splitByEvenPagesRadioButton.setEnabled(false);
+        splitBySpecificPagesRadioButton.setEnabled(false);
+        splitBySpecificPagesTextField.setEnabled(false);
+        splitByChunkRadioButton.setEnabled(false);
+        splitByChunkTextField.setEnabled(false);
+        splitByPageTextRadioButton.setEnabled(false);
+        splitByPageTextTextField.setEnabled(false);
+        splitByBookmarkLevelRadioButton.setEnabled(false);
+        splitByBookmarkLevelTextField.setEnabled(false);
+        splitByBookmarkTextTextField.setEnabled(false);
+        splitByBookmarkTextRadioButton.setEnabled(false);
+        splitBySizeRadioButton.setEnabled(false);
+        splitBySizeComboBox.setEnabled(false);
     }
 }

@@ -11,6 +11,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class BurstFilesProcessor {
 
@@ -26,6 +28,7 @@ public class BurstFilesProcessor {
 
     public void burst(OutputEventListener outputEventListener, String outputFile, boolean fullyCompressed, PdfToImage pdfImages) throws IOException, DocumentException {
         if (outputFile.indexOf('*') == -1) {
+            Logger.getLogger(BurstFilesProcessor.class.getName()).log(Level.SEVERE, "Ex092");
             throw new IOException("Output filename does not contain *");
         }
         String prefix = outputFile.substring(0, outputFile.indexOf('*'));
@@ -36,6 +39,7 @@ public class BurstFilesProcessor {
         for (int pagenum = 1; pagenum <= pdfReaderManager.getPageCount(); pagenum++) {
             outputEventListener.updatePagesProgress();
             if (isCanceled) {
+                Logger.getLogger(BurstFilesProcessor.class.getName()).log(Level.SEVERE, "Ex093");
                 throw new CancelOperationException();
             }
             Document document = new Document(pdfReaderManager.getCurrentReader().getPageSizeWithRotation(1));

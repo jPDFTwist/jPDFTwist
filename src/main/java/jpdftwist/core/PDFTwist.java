@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PDFTwist {
 
@@ -44,7 +46,7 @@ public class PDFTwist {
     private final int interleaveSize;
     private final OutputEventListener outputEventListener;
 
-    public PDFTwist(List<PageRange> pageRanges, boolean useTempFiles, boolean mergeByDir, int interleaveSize, OutputEventListener outputEventListener) throws IOException {
+    public PDFTwist(List<PageRange> pageRanges, boolean useTempFiles, boolean mergeByDir, int interleaveSize, OutputEventListener outputEventListener, String rootDir) throws IOException {
         this.outputEventListener = outputEventListener;
         this.pageRanges = pageRanges;
         this.interleaveSize = interleaveSize;
@@ -57,7 +59,7 @@ public class PDFTwist {
         this.attachmentsManager = new AttachmentsManager();
         this.transitionManager = new TransitionManager(pdfReaderManager);
         this.viewerPreferencesManager = new ViewerPreferencesManager();
-        this.outputFilePathManager = new OutputFilePathManager(pageRanges, mergeByDir);
+        this.outputFilePathManager = new OutputFilePathManager(pageRanges, mergeByDir, rootDir);
 
         this.infoDictionaryProcessor = new InfoDictionaryProcessor(pdfReaderManager);
         this.pageMarksProcessor = new PageMarksProcessor(pdfReaderManager);
@@ -99,6 +101,7 @@ public class PDFTwist {
 
     public void setEncryption(int mode, int permissions, byte[] ownerPassword, byte[] userPassword) throws IOException {
         if (ownerPassword.length == 0) {
+            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, "Ex116");
             throw new IOException("Owner password may not be empty");
         }
 
@@ -127,12 +130,15 @@ public class PDFTwist {
             outputEventListener.setPageCount(pageCount);
             if (multiPageTiff) {
                 outputMultiPageTiff(outputFile);
+
             } else if (burst) {
                 burstFiles(outputFile, fullyCompressed);
+
             } else {
                 outputPdf(outputFile, fullyCompressed, pageCount);
             }
         } catch (CancelOperationException ignored) {
+            Logger.getLogger(PDFTwist.class.getName()).log(Level.SEVERE, "Ex152", ignored);
             return;
         } finally {
             Document.compress = true;

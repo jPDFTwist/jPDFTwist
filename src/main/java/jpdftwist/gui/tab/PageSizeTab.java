@@ -19,6 +19,8 @@ import javax.swing.*;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PageSizeTab extends Tab {
     private JTextField scaleWidth;
@@ -366,6 +368,7 @@ public class PageSizeTab extends Tab {
                 Float.parseFloat(scaleWidth.getText());
                 Float.parseFloat(scaleHeight.getText());
             } catch (NumberFormatException ex) {
+                Logger.getLogger(PageSizeTab.class.getName()).log(Level.SEVERE, "Ex067", ex);
                 throw new IOException("Invalid scale size");
             }
 

@@ -167,7 +167,7 @@ public class WatermarkPlusTabPanel extends JPanel {
                     previewBox.setText("Watermark");
                     break;
             }
-        } catch (Exception e) {
+        } catch (Exception ex) {
 
         }
     }
