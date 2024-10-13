@@ -60,6 +60,40 @@ To convert images to PDFs, select the image files you wish to convert and choose
 
 The resulting PDFs/Images will be saved in the location specified at the "Output" tab.
 
+## Dependencies
+
+jPDFTwist depends on these libraries.
+
+bcmail.jar
+bcprov.jar
+bctsp.jar
+bioformats_package.jar
+common-image-3.10.1.jar
+common-io-3.10.1.jar
+common-lang-3.10.1.jar
+fontbox-2.0.02.jar
+fontbox-2.0.11.jar
+fontbox-3.0.30.jar
+ij.jar
+imageio-core-3.10.1.jar
+imageio-metadata-3.10.1.jar
+imageio-pict-3.12.0.jar
+imageio-psd-3.10.1.jar
+imageio-tga-3.10.1.jar
+itext.jar
+jai_codec-1.1.3.jar
+jfontchooser-1.0.5.jar
+jmupdf.jar
+json.jar
+list.txt
+pdfbox-2.0.02.jar
+pdfbox-2.0.11.jar
+pdfbox-3.0.30.jar
+pdfrenderercustom.jar
+roman-numerals-1.0.jar
+sanselan-0.97-incubator.jar
+swingx-all-1.6.5.jar
+
 # Support
 
 If you have any issues or feature requests, please open an issue on the [issues page](https://github.com/xlance-github/jPDFTwist/issues) or contact the developers directly.
