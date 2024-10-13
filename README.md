@@ -62,7 +62,7 @@ The resulting PDFs/Images will be saved in the location specified at the "Output
 
 ## Dependencies
 
-jPDFTwist depends on these libraries.
+jPDFTwist depends on these libraries:
 
 * bcmail.jar
 * bcprov.jar
@@ -85,7 +85,6 @@ jPDFTwist depends on these libraries.
 * jfontchooser-1.0.5.jar
 * jmupdf.jar
 * json.jar
-* list.txt
 * pdfbox-2.0.02.jar
 * pdfbox-2.0.11.jar
 * pdfbox-3.0.30.jar
