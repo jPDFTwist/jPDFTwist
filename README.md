@@ -22,12 +22,14 @@ jPDFTwist is a powerful, multi-functional tool for batch PDF tweaking, with the 
   * Dencrypt
   * Sign
 * Merge multiple files (PDFs and images)
-* Save & Load complete structure tree (folders\sub-folders\files\pages)
+* Merge files by Directory
+* Save & Load complete structure tree (folders \ sub-folders \ files \ pages)
+* Add Crop Marks for print (inch & mm)
 * Generate Blank page(s) with white or colored background
 * Burst file to PDFs or Images
-* Export detailed report of all pages
+* Export a detailed report of all pages
 * Convert images to PDFs
-* Export PDFs to images (*.bmp, *.gif, *.jpg, *.png, *.psd, *.tga +more)
+* Export PDFs to images (*.bmp, *.gif, *.jpg, *.png, *.psd, *.tga  +more)
 * Export PDFs to single-page and multi-page TIFFs
 * etc...
 
