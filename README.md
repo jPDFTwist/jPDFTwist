@@ -27,10 +27,15 @@ jPDFTwist is a powerful, multi-functional tool for batch PDF tweaking, with the 
 * Add Crop Marks for print (inch & mm)
 * Generate Blank page(s) with white or colored background
 * Burst file to PDFs or Images
-* Export a detailed report of all pages
+* Export a detailed report for all pages
 * Convert images to PDFs
-* Export PDFs to images (*.bmp, *.gif, *.jpg, *.png, *.psd, *.tga  +more)
+* Import support for (*.pdf, *.bmp, *.dds, *.gif, *.hdr, *.iff, *.j2k, *.jp2, *.jpeg, *.jpf,
+* *.jpg, *.jpm, *.jpx, *.mj2, *.pam,*.pbm, *.pct, *.pcx, *.pgm, *.pict, *.png, *.pnm, *.ppm,
+* *.psd, *.sgi, *.svg, *.tga, *.tif, *.tiff, *.webp)
+* Export PDFs to images (*.bmp, *.gif, *.iff, *.jpg, *.png, *.pam, *.pbm, *.pnm, *.ppm, *.psd,
+* *.tga, *.pict, *.tiff)
 * Export PDFs to single-page and multi-page TIFFs
+* Additional functions for Cropmarks, Bookmarks, Watermarks
 * etc...
 
 ## Disclaimer
@@ -65,6 +70,7 @@ The resulting PDFs/Images will be saved in the location specified at the "Output
 ## Dependencies
 
 jPDFTwist depends on these additional libraries:
+(not included in the repository)
 
 * bioformats_package.jar  [ v5.0.6 ]
 * fontbox-2.0.02.jar
