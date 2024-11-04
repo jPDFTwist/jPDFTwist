@@ -30,10 +30,10 @@ jPDFTwist is a powerful, multi-functional tool for batch PDF tweaking, with the 
 * Export a detailed report for all pages
 * Convert images to PDFs
 * Import support for (*.pdf, *.bmp, *.dds, *.gif, *.hdr, *.iff, *.j2k, *.jp2, *.jpeg, *.jpf,
-* *.jpg, *.jpm, *.jpx, *.mj2, *.pam,*.pbm, *.pct, *.pcx, *.pgm, *.pict, *.png, *.pnm, *.ppm,
-* *.psd, *.sgi, *.svg, *.tga, *.tif, *.tiff, *.webp)
+  *.jpg, *.jpm, *.jpx, *.mj2, *.pam,*.pbm, *.pct, *.pcx, *.pgm, *.pict, *.png, *.pnm, *.ppm,
+  *.psd, *.sgi, *.svg, *.tga, *.tif, *.tiff, *.webp)
 * Export PDFs to images (*.bmp, *.gif, *.iff, *.jpg, *.png, *.pam, *.pbm, *.pnm, *.ppm, *.psd,
-* *.tga, *.pict, *.tiff)
+  *.tga, *.pict, *.tiff)
 * Export PDFs to single-page and multi-page TIFFs
 * Additional functions for Cropmarks, Bookmarks, Watermarks
 * etc...
