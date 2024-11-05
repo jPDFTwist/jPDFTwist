@@ -2,6 +2,7 @@ package jpdftwist.core;
 
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.PdfFileSpecification;
 import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfObject;
 import com.itextpdf.text.pdf.PdfSignatureAppearance;
@@ -87,8 +88,10 @@ public class OutputPdfProcessor {
             }
         }
 
+        //add attachments
         for (File f : attachmentsManager.getAttachments()) {
-            stamper.addFileAttachment(f.getName(), null, f.getAbsolutePath(), f.getName());
+
+            stamper.addFileAttachment(String.format("%,d", f.length()), null, f.getAbsolutePath(), f.getName().toLowerCase());
         }
         stamper.close();
     }

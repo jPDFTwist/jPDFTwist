@@ -7,11 +7,19 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class WatermarkStyle {
+import javax.swing.JLabel;
+import javax.swing.JTextField;
 
+import jpdftwist.gui.tab.output.OutputTab;
+import jpdftwist.gui.tab.watermark.WatermarkOptionsPanel;
+
+public class WatermarkStyle 
+{
+	static WatermarkOptionsPanel LINK = new WatermarkOptionsPanel();
+	
     public enum WatermarkType {
         NUMBERS(0), LATIN_CAPITAL(1), LATIN_LOWERCASE(2), CAPITAL_LETTERS(3), LOWERCASE_LETTERS(4), BATES_NUMBERING(5),
-        REPEATED_TEXT(6), IMAGE(7), VARIABLE_TEXT(8), EMPTY(9);
+        REPEATED_TEXT(6), IMAGE(7), VARIABLE_TEXT(8), CROPMARKS_inch(9), CROPMARKS_mm(10), VECTOR(11), EMPTY(12);
 
         private final int mask;
 
@@ -54,11 +62,19 @@ public class WatermarkStyle {
                 case VARIABLE_TEXT:
                     value = "Variable Text";
                     break;
+                case CROPMARKS_inch:
+                    value = "Cropmarks  0.25 inch";
+                    break;
+                case CROPMARKS_mm:
+                    value = "Cropmarks 10.0 mm";
+                    break;
+                case VECTOR:
+                    value = "Vector";
+                    break;
                 case EMPTY:
                     value = "Empty";
                     break;
             }
-
             return value;
         }
     }
@@ -81,11 +97,12 @@ public class WatermarkStyle {
     private int fontSize = 12;
     private int fontStyle = 0;
 
-    private Color fontColor = Color.RED;
-
     private boolean underline = false;
+    private boolean cropmarks = false;
     private boolean strikethrough = false;
     private boolean background = false;
+    
+    private Color fontColor = Color.RED;
     private Color backgroundColor = Color.GREEN;
 
     private int angle = 0;
@@ -121,9 +138,13 @@ public class WatermarkStyle {
     private String prefix = "";
 
     private String imagePath = "";
-    private int pdfPage = 0;
+    private String vectorPath = "";
+    private int pdfPage = 1;
 
     private Units units = Units.POINTS;
+    
+	private JTextField imagePathField;
+	private JTextField vectorPathField;
 
     public WatermarkType getType() {
         return type;
@@ -178,7 +199,15 @@ public class WatermarkStyle {
     public void setUnderline(boolean underline) {
         this.underline = underline;
     }
+    
+    public boolean isCropmarks() {
+        return cropmarks;
+    }
 
+    public void setCropmarks(boolean cropmarks) {
+        this.cropmarks = cropmarks;
+    }
+    
     public boolean isStrikethrough() {
         return strikethrough;
     }
@@ -413,7 +442,23 @@ public class WatermarkStyle {
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
     }
+    
+    public JTextField getImagePathField() {
+        return imagePathField;
+    }
+    
+    public String getVectorPath() {
+        return vectorPath;
+    }
 
+    public void setVectorPath(String vectorPath) {
+        this.vectorPath = vectorPath;
+    }
+
+    public JTextField getVectorPathField() {
+        return vectorPathField;
+    }
+    
     public int getPdfPage() {
         return pdfPage;
     }

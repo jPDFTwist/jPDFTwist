@@ -3,19 +3,29 @@ package jpdftwist.core.watermark;
 import com.frequal.romannumerals.Converter;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfGState;
 import com.itextpdf.text.pdf.PdfImportedPage;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfPageLabels;
+import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
+import com.itextpdf.text.pdf.PdfTemplate;
+import com.itextpdf.text.pdf.PdfWriter;
+
+import javafx.stage.FileChooser;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.PageRange;
 import jpdftwist.core.PdfReaderManager;
 import jpdftwist.core.TempFileManager;
 import jpdftwist.core.UnitTranslator;
 import jpdftwist.core.input.PageDimensions;
+import jpdftwist.gui.tab.watermark.WatermarkOptionsPanel;
 import jpdftwist.utils.JImageParser;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -23,22 +33,30 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
+import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.joda.time.DateTime;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 
 public class WatermarkProcessor {
 
@@ -91,8 +109,13 @@ public class WatermarkProcessor {
         for (int i = 1; i <= pageCount; i++) {
             if (wmTemplate != null) {
                 PdfContentByte underContent = stamper.getUnderContent(i);
-                underContent.addTemplate(wmTemplate, 0, 0);
+                Rectangle Mediasize = pdfReaderManager.getCurrentReader().getPageSizeWithRotation(i);
+//                underContent.addTemplate(wmTemplate, 0, 0);
+                underContent.addTemplate(wmTemplate, 
+                		Mediasize.getWidth() / 2 - (wmTemplate.getWidth() / 2),
+                		Mediasize.getHeight() / 2 - (wmTemplate.getHeight() / 2));
             }
+            
             PdfContentByte overContent = stamper.getOverContent(i);
             Rectangle size = pdfReaderManager.getCurrentReader().getPageSizeWithRotation(i);
             if (wmText != null) {
@@ -219,7 +242,6 @@ public class WatermarkProcessor {
                              PdfStamper stamper, List<Integer> batesList, Rectangle size) throws IOException {
         try {
         PdfContentByte overContent = stamper.getOverContent(i);
-
         String text = null;
 
         switch (style.getType()) {
@@ -265,19 +287,305 @@ public class WatermarkProcessor {
                 }
                 break;
             case VARIABLE_TEXT:
-                if (br == null) {
-                    String filename = style.getVariableTextFile();
-                    br = new BufferedReader(new FileReader(filename));
+            	
+				String filename = style.getVariableTextFile();
+				if (br == null) {
+					br = new BufferedReader(new FileReader(filename));
+				}
+				if (filename.toLowerCase().contains(".txt")) 
+				{
+					String sCurrentLine;
+					if ((sCurrentLine = br.readLine()) != null) {
+						text = sCurrentLine;
+					} else {
+						text = "";
+						break; }
                 }
-                String sCurrentLine;
-                if ((sCurrentLine = br.readLine()) != null) {
-                    text = sCurrentLine;
-                } else {
-                    text = "";
-                    break;
+				if (filename.toLowerCase().contains(".csv")) 
+				{
+					String sCurrentLine;
+					if ((sCurrentLine = br.readLine()) != null) {
+							String[] values = sCurrentLine.split(",");
+							text = values[0];
+							
+//							for (int k = 0; k < values.length; k++) {		//Column number
+//								text = values[k];
+//							}
+					} else {
+						text = "";
+						break; }
                 }
             case IMAGE:
+            	
+			case VECTOR:
+				if (style.getType() == WatermarkStyle.WatermarkType.VECTOR) {
+					try {
+						// Get Page
+						Rectangle SizeV = pdfReaderManager.getCurrentReader().getPageSizeWithRotation(i);
+//						int DocumentPageCount = pdfReaderManager.getCurrentReader().getNumberOfPages();	
+						float MediaWidth = SizeV.getWidth();
+						float MediaHeight = SizeV.getHeight();
 
+//						PdfReader StampDocument = jpdftwist.utils.PdfParser.open(style.getVectorPath());
+//						int StampPageCount = StampDocument.getNumberOfPages();
+//						StampDocument.close();
+										
+//	                    JOptionPane.showMessageDialog(null, "Document Page Count  =  " + DocumentPageCount + "   |   Stamp Page Count  =  " + StampPageCount + "", "Info", JOptionPane.INFORMATION_MESSAGE);
+						
+//						if (!style.getVectorPath().isEmpty()) {							
+
+							// Get Vector Stamp
+							PdfImportedPage WMTemplateV = stamper.getImportedPage(jpdftwist.utils.PdfParser.open(style.getVectorPath(), false), i);
+
+							double boxWidth; // Input in box by user
+							double boxHeight; // Input in box by user
+							float scaledWidthfactor;
+							float scaledHeightfactor;
+							double horOffset;
+							double verOffset;
+							double StampWidth;
+							double StampHeight;
+
+							switch (style.getUnits()) {
+							case INCHES:
+								boxWidth = (UnitTranslator.POINT_POSTSCRIPT * style.getWidth());
+								boxHeight = (UnitTranslator.POINT_POSTSCRIPT * style.getHeight());
+								horOffset = (UnitTranslator.POINT_POSTSCRIPT * style.getHorizontalPosition());
+								verOffset = (UnitTranslator.POINT_POSTSCRIPT * ((MediaHeight / 72) - style.getVerticalPosition()));
+								StampWidth = (WMTemplateV.getWidth());
+								StampHeight = (WMTemplateV.getHeight());
+								break;
+							case MM:
+								boxWidth = (UnitTranslator.millisToPoints(style.getWidth()));
+								boxHeight = (UnitTranslator.millisToPoints(style.getHeight()));
+								horOffset = (UnitTranslator.millisToPoints(style.getHorizontalPosition()));
+								verOffset = (UnitTranslator.millisToPoints(((MediaHeight / 2.8346438836889) - style.getVerticalPosition())));
+								StampWidth = (WMTemplateV.getWidth());
+								StampHeight = (WMTemplateV.getHeight());
+								break;
+							default:
+								boxWidth = (style.getWidth());
+								boxHeight = (style.getHeight());
+								horOffset = (style.getHorizontalPosition());
+								verOffset = (MediaHeight - style.getVerticalPosition());
+								StampWidth = (WMTemplateV.getWidth());
+								StampHeight = (WMTemplateV.getHeight());
+								break;
+							}
+//                  		JOptionPane.showMessageDialog(null, "H = " + Double.toString(horV) + " pts  |  V = " + Double.toString(verV) + " pts", "Info", JOptionPane.INFORMATION_MESSAGE);
+
+							if (boxWidth == 0 && boxHeight == 0) {
+								scaledWidthfactor = 1;
+								scaledHeightfactor = 1;
+							} else if (boxWidth == 0) {
+								scaledWidthfactor = 1;
+								scaledHeightfactor = (float) boxHeight / (float) StampHeight;
+							} else if (boxHeight == 0) {
+								scaledWidthfactor = (float) boxWidth / (float) StampWidth;
+								scaledHeightfactor = 1;
+							} else {
+								scaledWidthfactor = (float) boxWidth / (float) StampWidth;
+								scaledHeightfactor = (float) boxHeight / (float) StampHeight;
+							}
+
+							if (style.getHorizontalReference() == 0) {
+								horOffset = horOffset + 36; // To compensate for an unexplained 0.5" horizontal shift
+							} else if (style.getHorizontalReference() == 1) {
+								horOffset = (horOffset) + ((MediaWidth / 2) - ((StampWidth * scaledWidthfactor) / 2));
+							} else if (style.getHorizontalReference() == 2) {
+								horOffset = (horOffset + (MediaWidth - (StampWidth * scaledWidthfactor))) - 36;
+							}
+
+							if (style.getVerticalReference() == 0) {
+								verOffset = (verOffset - (StampHeight * scaledHeightfactor)) - 36; // To compensate for an unexplained 0.5" vertical shift
+							} else if (style.getVerticalReference() == 1) {
+								verOffset = (verOffset - (StampHeight * scaledHeightfactor)) - ((MediaHeight / 2) - ((StampHeight * scaledHeightfactor) / 2));
+							} else if (style.getVerticalReference() == 2) {
+								verOffset = ((verOffset - (StampHeight * scaledHeightfactor)) - ((MediaHeight) - ((StampHeight * scaledHeightfactor)))) + 36;
+							}
+
+//                    		JOptionPane.showMessageDialog(null, "BoxWidth = " + Float.toString((float)boxWidth) + " pts  |  BoxHeight = " + Float.toString((float)boxHeight) + " pts", "Info", JOptionPane.INFORMATION_MESSAGE);
+//                    		JOptionPane.showMessageDialog(null, "StampWidth = " + Float.toString((float)stampWidth) + " pts  |  StampHeight = " + Float.toString((float)stampHeight) + " pts", "Info", JOptionPane.INFORMATION_MESSAGE);
+//                    		JOptionPane.showMessageDialog(null, "ScaledWidthfactor = " + Float.toString(scaledWidthfactor) + "  |  ScaledHeightfactor = " + Float.toString(scaledHeightfactor) + " ", "Info", JOptionPane.INFORMATION_MESSAGE);
+
+							PdfContentByte OverContentV = stamper.getOverContent(i);
+
+							double angle = ((style.getAngle() * Math.PI) / 180);
+							float alpha = (100 - style.getOpacity()) / 100.0F;
+							PdfGState stateV = new PdfGState();
+							stateV.setFillOpacity(alpha);
+							OverContentV.setGState(stateV);
+
+//                    		AffineTransform transformR = AffineTransform.getRotateInstance(angle);
+//                    		OverContentV.addTemplate(Template2, transformR);
+
+							OverContentV.addTemplate(WMTemplateV, scaledWidthfactor, 0, 0, scaledHeightfactor, (float) horOffset, (float) verOffset);
+//						}
+					} catch (Exception ex) {
+						Logger.getLogger(WatermarkProcessor.class.getName()).log(Level.SEVERE, "Ex156", ex);
+					}
+				}
+            	
+            case CROPMARKS_inch:
+            	if (style.getType() == WatermarkStyle.WatermarkType.CROPMARKS_inch) {
+            		
+                    PdfContentByte CB20 = stamper.getOverContent(i);
+                    Rectangle sizeCM = pdfReaderManager.getCurrentReader().getPageSizeWithRotation(i);
+                    
+                    float width = sizeCM.getWidth();
+                    float height = sizeCM.getHeight();
+                    
+					CB20.moveTo(width - 11, 18);
+					CB20.lineTo(width, 18);
+					CB20.moveTo(width - 18, height - 11);
+					CB20.lineTo(width - 18, height);
+					
+					CB20.moveTo(18, 11);
+					CB20.lineTo(18, 0);
+					CB20.moveTo(11, height - 18);
+					CB20.lineTo(0, height - 18);
+					
+					CB20.moveTo(18, height);
+					CB20.lineTo(18, height - 11);
+					CB20.moveTo(width, height - 18);
+					CB20.lineTo(width - 11, height - 18);
+					
+					CB20.moveTo(width - 18, 0);
+					CB20.lineTo(width - 18, 11);
+					CB20.moveTo(0, 18);
+					CB20.lineTo(11, 18);
+                    
+                    CB20.setLineWidth(style.getFontSize() / 32);
+                    CB20.setColorStroke(new BaseColor(style.getFontColor()));
+                    CB20.stroke();
+                    
+                    //  Calibration Marks Top
+                    CB20.circle((0 + (width / 2) - (11 * 3)), height - 3 - (11 / 2), (11 / 2));
+                    CB20.setCMYKColorFill(0, 255, 0, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) - (11 * 2)), height - 3 - (11 / 2), (11 / 2));
+                    CB20.setRGBColorFill(255, 0, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) - (11)), height - 3 - (11 / 2), (11 / 2));
+                    CB20.setCMYKColorFill(0, 0, 255, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2)), height - 3 - (11 / 2), (11 / 2));
+                    CB20.setRGBColorFill(0, 255, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) + (11)), height - 3 - (11 / 2), (11 / 2));
+                    CB20.setCMYKColorFill(255, 0, 0, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) + (11 * 2)), height - 3 - (11 / 2), (11 / 2));
+                    CB20.setRGBColorFill(0, 0, 255);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) + (11 * 3)), height - 3 - (11 / 2), (11 / 2));
+                    CB20.setCMYKColorFill(0, 0, 0, 255);
+                    CB20.fill();
+                    
+                    //  Calibration Marks Bottom
+                    CB20.circle((0 + (width / 2) - (11 * 3)), 0 + 3 + (11 / 2), (11 / 2));
+                    CB20.setCMYKColorFill(0, 255, 0, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) - (11 * 2)), 0 + 3 + (11 / 2), (11 / 2));
+                    CB20.setRGBColorFill(255, 0, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) - (11)), 0 + 3 + (11 / 2), (11 / 2));
+                    CB20.setCMYKColorFill(0, 0, 255, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2)), 0 + 3 + (11 / 2), (11 / 2));
+                    CB20.setRGBColorFill(0, 255, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) + (11)), 0 + 3 + (11 / 2), (11 / 2));
+                    CB20.setCMYKColorFill(255, 0, 0, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) + (11 * 2)), 0 + 3 + (11 / 2), (11 / 2));
+                    CB20.setRGBColorFill(0, 0, 255);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) + (11 * 3)), 0 + 3 + (11 / 2), (11 / 2));
+                    CB20.setCMYKColorFill(0, 0, 0, 255);
+                    CB20.fill();
+            	}
+            	
+            case CROPMARKS_mm:
+            	if (style.getType() == WatermarkStyle.WatermarkType.CROPMARKS_mm) {
+            		
+                    PdfContentByte CB20 = stamper.getOverContent(i);
+                    Rectangle sizeCM = pdfReaderManager.getCurrentReader().getPageSizeWithRotation(i);
+                    
+                    float width = sizeCM.getWidth();
+                    float height = sizeCM.getHeight();
+                    
+					CB20.moveTo(width - 21, 28);
+					CB20.lineTo(width, 28);
+					CB20.moveTo(width - 28, height - 21);
+					CB20.lineTo(width - 28, height);
+					
+					CB20.moveTo(28, 21);
+					CB20.lineTo(28, 0);
+					CB20.moveTo(21, height - 28);
+					CB20.lineTo(0, height - 28);
+					
+					CB20.moveTo(28, height);
+					CB20.lineTo(28, height - 21);
+					CB20.moveTo(width, height - 28);
+					CB20.lineTo(width - 21, height - 28);
+					
+					CB20.moveTo(width - 28, 0);
+					CB20.lineTo(width - 28, 21);
+					CB20.moveTo(0, 28);
+					CB20.lineTo(21, 28);
+                    
+                    CB20.setLineWidth(style.getFontSize() / 32);
+                    CB20.setColorStroke(new BaseColor(style.getFontColor()));
+                    CB20.stroke();
+                    
+                    //  Calibration Marks Top
+                    CB20.circle((0 + (width / 2) - (21 * 3)), height - 3 - (21 / 2), (21 / 2));
+                    CB20.setCMYKColorFill(0, 255, 0, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) - (21 * 2)), height - 3 - (21 / 2), (21 / 2));
+                    CB20.setRGBColorFill(255, 0, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) - (21)), height - 3 - (21 / 2), (21 / 2));
+                    CB20.setCMYKColorFill(0, 0, 255, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2)), height - 3 - (21 / 2), (21 / 2));
+                    CB20.setRGBColorFill(0, 255, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) + (21)), height - 3 - (21 / 2), (21 / 2));
+                    CB20.setCMYKColorFill(255, 0, 0, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) + (21 * 2)), height - 3 - (21 / 2), (21 / 2));
+                    CB20.setRGBColorFill(0, 0, 255);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) + (21 * 3)), height - 3 - (21 / 2), (21 / 2));
+                    CB20.setCMYKColorFill(0, 0, 0, 255);
+                    CB20.fill();
+                    
+                    //  Calibration Marks Bottom
+                    CB20.circle((0 + (width / 2) - (21 * 3)), 0 + 3 + (21 / 2), (21 / 2));
+                    CB20.setCMYKColorFill(0, 255, 0, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) - (21 * 2)), 0 + 3 + (21 / 2), (21 / 2));
+                    CB20.setRGBColorFill(255, 0, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) - (21)), 0 + 3 + (21 / 2), (21 / 2));
+                    CB20.setCMYKColorFill(0, 0, 255, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2)), 0 + 3 + (21 / 2), (21 / 2));
+                    CB20.setRGBColorFill(0, 255, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) + (21)), 0 + 3 + (21 / 2), (21 / 2));
+                    CB20.setCMYKColorFill(255, 0, 0, 0);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) + (21 * 2)), 0 + 3 + (21 / 2), (21 / 2));
+                    CB20.setRGBColorFill(0, 0, 255);
+                    CB20.fill();
+                    CB20.circle((0 + (width / 2) + (21 * 3)), 0 + 3 + (21 / 2), (21 / 2));
+                    CB20.setCMYKColorFill(0, 0, 0, 255);
+                    CB20.fill();
+            	}
+                
             case REPEATED_TEXT:
                 if (text == null) {
                     text = style.getRepeatedText();
@@ -290,15 +598,21 @@ public class WatermarkProcessor {
                     double width = page.getWidth();
                     double height = page.getHeight();
 
-                    text = text.replace("\\{img_depth\\}", pageRange.getImageColorDepth());
-                    text = text.replace("\\{img_width\\}", Double.toString(width));
-                    text = text.replace("\\{img_height\\}", Double.toString(height));
-                    text = text.replace("\\{img_width_inch\\}", Double.toString(width / UnitTranslator.POINT_POSTSCRIPT));
-                    text = text.replace("\\{img_height_inch\\}", Double.toString(height / UnitTranslator.POINT_POSTSCRIPT));
-                    text = text.replace("\\{img_width_dpi\\}", Integer.toString(72)); // TODO
-                    text = text.replace("\\{img_height_dpi\\}", Integer.toString(72));
+                    text = text.replace("{img_depth}", pageRange.getImageColorDepth());
+                    
+                    text = text.replace("{img_width_points}", Double.toString(width));
+                    text = text.replace("{img_height_points}", Double.toString(height));
+                    
+                    text = text.replace("{img_width_inch}", Double.toString(width / UnitTranslator.POINT_POSTSCRIPT));
+                    text = text.replace("{img_height_inch}", Double.toString(height / UnitTranslator.POINT_POSTSCRIPT));
+                    
+                    text = text.replace("{img_width_mm}", Double.toString(width / 2.8346438836889));
+                    text = text.replace("{img_height_mm}", Double.toString(height / 2.8346438836889));
+                    
+                    text = text.replace("{img_width_dpi}", Integer.toString(72)); // TODO
+                    text = text.replace("{img_height_dpi}", Integer.toString(72));
                 } else {
-                    text = text.replace("\\{img_[a-z]*\\}", "");
+                    text = text.replace("{img_[a-z]*}", "");
                 }
 
                 String parent = "";
@@ -321,15 +635,21 @@ public class WatermarkProcessor {
                 text = text.replace("%f", pageRange.getFilename().substring(0, pageRange.getFilename().lastIndexOf('.')));
                 text = text.replace("%F", pageRange.getFilename());
                 text = text.replace("%p", parent);
-                text = text.replace("\\{file_size\\}", pageRange.getFileSize());
+                text = text.replace("{file_size}", pageRange.getFileSize());
                 text = text.replace("%c", Integer.toString(pageCount));
-                text = text.replace("\\{page_width\\}", Float.toString(size.getWidth()));
-                text = text.replace("\\{page_height\\}", Float.toString(size.getHeight()));
-                text = text.replace("\\{page_width_inch\\}", Float.toString(size.getWidth() / 72));
-                text = text.replace("\\{page_height_inch\\}", Float.toString(size.getHeight() / 72));
+                
+                text = text.replace("{page_width_points}", Double.toString(size.getWidth()));
+                text = text.replace("{page_height_points}", Double.toString(size.getHeight()));
+                
+                text = text.replace("{page_width_inch}", Double.toString(size.getWidth() / 72));
+                text = text.replace("{page_height_inch}", Double.toString(size.getHeight() / 72));
+                
+                text = text.replace("{page_width_mm}", Double.toString(size.getWidth() / 2.8346438836889));
+                text = text.replace("{page_height_mm}", Double.toString(size.getHeight() / 2.8346438836889));
+                
                 text = text.replace("%n", Integer.toString(i));
                 text = text.replace("%N", Integer.toString(logical));
-                text = text.replace("\\{last_modified\\}", lastModified);
+                text = text.replace("{last_modified}", lastModified);
 
                 break;
             default:
@@ -425,126 +745,134 @@ public class WatermarkProcessor {
         }
 
         Graphics2D g2d = overContent.createGraphics(size.getWidth(), size.getHeight());
+        
         g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         if (style.getType() == WatermarkStyle.WatermarkType.IMAGE) {
             BufferedImage source = null;
 
-            if (style.getImagePath().toLowerCase().endsWith(".pdf")) {
-                PDDocument document = PDDocument.load(new File(style.getImagePath()));
-                PDPageTree list = document.getPages();
+				// Get Raster Stamp
+//				if (!style.getImagePath().isEmpty()) {
+					
+            		if (style.getImagePath().toLowerCase().endsWith(".pdf")) {
+						PDDocument document = PDDocument.load(new File(style.getImagePath()));
+						PDPageTree list = document.getPages();
 
-                PDPage page = list.get(style.getPdfPage());
-                PDResources pdResources = page.getResources();
-                for (COSName cosName : pdResources.getXObjectNames()) // loop for all resources
-                {
-                    PDXObject pdxObject = pdResources.getXObject(cosName);
-                    if (pdxObject instanceof PDImageXObject) { // check that the resource is image
-                        source = ((PDImageXObject) pdxObject).getImage();
-                    }
-                    document.close();
-                }
-            } else {
-                source = (BufferedImage) JImageParser.readAwtImage(style.getImagePath());
-            }
+						PDPage page = list.get(style.getPdfPage() - 1);
+						PDResources pdResources = page.getResources();
+						for (COSName cosName : pdResources.getXObjectNames()) // loop for all resources
+						{
+							PDXObject pdxObject = pdResources.getXObject(cosName);
+							if (pdxObject instanceof PDImageXObject) { // check that the resource is image
+								source = ((PDImageXObject) pdxObject).getImage();
+							}
+							document.close();
+						}
+					} else {
+						source = (BufferedImage) JImageParser.readAwtImage(style.getImagePath());
+					}
 
-            //target = new BufferedImage(source.getWidth(null), source.getHeight(null), java.awt.Transparency.TRANSLUCENT);
+					// target = new BufferedImage(source.getWidth(null), source.getHeight(null),
+					// java.awt.Transparency.TRANSLUCENT);
 
-            target = new BufferedImage(source.getWidth(null), source.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g = target.createGraphics();
+    				target = new BufferedImage(source.getWidth(null), source.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+					Graphics2D g = target.createGraphics();
 
-            float alpha = (100 - style.getOpacity()) / 100.0F;
+					float alpha = (100 - style.getOpacity()) / 100.0F;
 
-            int mode = AlphaComposite.SRC_OVER;
-            AlphaComposite AC = AlphaComposite.getInstance(mode, alpha);
+					int mode = AlphaComposite.SRC_OVER;
+					AlphaComposite AC = AlphaComposite.getInstance(mode, alpha);
 
-            //g.setColor(new Color(255,255,255,0));
-            //g.setXORMode(new Color(255,255,255,0));
-            g.setBackground(new Color(255, 255, 255, 0));
-            g.setComposite(AC);
-            g.drawImage(source, null, 0, 0);
-            g.dispose();
+					// g.setColor(new Color(255,255,255,0));
+					// g.setXORMode(new Color(255,255,255,0));
+					g.setBackground(new Color(255, 255, 255, 0));
+					g.setComposite(AC);
+					g.drawImage(source, null, 0, 0);
+					g.dispose();
 
-            int w, h;
+					int w, h;
 
-            if (boxWidth == 0 && boxHeight == 0) {
-                w = source.getWidth();
-                h = source.getHeight();
-            } else if (boxHeight == 0) {
-                w = boxWidth;
-                float ratio = (source.getHeight() / (source.getWidth() * 1F));
-                h = (int) (ratio * boxWidth);
-            } else if (boxWidth == 0) {
-                float ratio = (source.getWidth() / (source.getHeight() * 1F));
-                w = (int) (ratio * boxHeight);
-                h = boxHeight;
-            } else {
-                w = boxWidth;
-                h = boxHeight;
-            }
+					if (boxWidth == 0 && boxHeight == 0) {
+						w = source.getWidth();
+						h = source.getHeight();
+					} else if (boxHeight == 0) {
+						w = boxWidth;
+						float ratio = (source.getHeight() / (source.getWidth() * 1F));
+						h = (int) (ratio * boxWidth);
+					} else if (boxWidth == 0) {
+						float ratio = (source.getWidth() / (source.getHeight() * 1F));
+						w = (int) (ratio * boxHeight);
+						h = boxHeight;
+					} else {
+						w = boxWidth;
+						h = boxHeight;
+					}
+					boxWidth = w;
+					boxHeight = h;
+				}
 
-            boxWidth = w;
-            boxHeight = h;
-        }
+				if (boxWidth == 0 && style.getType() != WatermarkStyle.WatermarkType.IMAGE) {
+					g2d.setFont(style.getFont());
+					String[] lines = text.split("\n");
+					int maxTextWidth = 0;
+					for (String line : lines) {
+						int textWidth = g2d.getFontMetrics().stringWidth(line) + 10;
+						if (textWidth > maxTextWidth) {
+							maxTextWidth = textWidth;
+						}
+					}
+					boxWidth = maxTextWidth;
+				}
 
-        if (boxWidth == 0 && style.getType() != WatermarkStyle.WatermarkType.IMAGE) {
-            g2d.setFont(style.getFont());
-            String[] lines = text.split("\n");
-            int maxTextWidth = 0;
-            for (String line : lines) {
-                int textWidth = g2d.getFontMetrics().stringWidth(line) + 10;
-                if (textWidth > maxTextWidth) {
-                    maxTextWidth = textWidth;
-                }
-            }
-            boxWidth = maxTextWidth;
-        }
+				if (boxHeight == 0 && style.getType() != WatermarkStyle.WatermarkType.IMAGE) {
+					int textHeight = style.getFont().getSize();
+					int textDescent = g2d.getFontMetrics().getDescent();
+					String[] lines = text.split("\n");
+					boxHeight = (textHeight + textDescent) * lines.length;
+				}
 
-        if (boxHeight == 0 && style.getType() != WatermarkStyle.WatermarkType.IMAGE) {
-            int textHeight = style.getFont().getSize();
-            int textDescent = g2d.getFontMetrics().getDescent();
-            String[] lines = text.split("\n");
-            boxHeight = (textHeight + textDescent) * lines.length;
-        }
+				if (style.getHorizontalReference() == 0) {
+					hor = (int) (0 - hor) + 36; // To compensate for an unexplained 0.5" horizontal shift
+				} else if (style.getHorizontalReference() == 1) {
+					hor = (int) (hor + (size.getWidth() / 2 - boxWidth / 2));
+				} else if (style.getHorizontalReference() == 2) {
+					hor = (int) ((size.getWidth() - boxWidth) - hor) - 36;
+				}
 
-        if (style.getHorizontalReference() == 1) {
-            hor = (int) (hor + (size.getWidth() / 2 - boxWidth / 2));
-        } else if (style.getHorizontalReference() == 2) {
-            hor = (int) (size.getWidth() - boxWidth) - hor;
-        }
+				if (style.getVerticalReference() == 0) {
+					ver = (int) (0 - ver) + 36; // To compensate for an unexplained 0.5" vertical shift
+				} else if (style.getVerticalReference() == 1) {
+					ver = (int) (ver + size.getHeight() / 2 - boxHeight / 2);
+				} else if (style.getVerticalReference() == 2) {
+					ver = (int) ((size.getHeight() - boxHeight) - ver) - 36;
+				}
 
-        if (style.getVerticalReference() == 1) {
-            ver = (int) (ver + size.getHeight() / 2 - boxHeight / 2);
-        } else if (style.getVerticalReference() == 2) {
-            ver = (int) (size.getHeight() - boxHeight) - ver;
-        }
+				g2d.rotate(angle, hor + (boxWidth / 2f), ver + (boxHeight / 2f));
 
-        g2d.rotate(angle, hor + (boxWidth / 2f), ver + (boxHeight / 2f));
+				Color bgColor = style.getBackgroundColor();
+				bgColor = new Color(bgColor.getRed(), bgColor.getGreen(), bgColor.getBlue(), opacityValue);
 
-        Color bgColor = style.getBackgroundColor();
-        bgColor = new Color(bgColor.getRed(), bgColor.getGreen(), bgColor.getBlue(), opacityValue);
+				Color foregroundColor = style.getFontColor();
+				foregroundColor = new Color(foregroundColor.getRed(), foregroundColor.getGreen(),
+						foregroundColor.getBlue(), opacityValue);
 
-        Color foregroundColor = style.getFontColor();
-        foregroundColor = new Color(foregroundColor.getRed(), foregroundColor.getGreen(), foregroundColor.getBlue(),
-            opacityValue);
+				java.awt.Rectangle bounds = new java.awt.Rectangle(hor, ver, boxWidth, boxHeight);
 
-        java.awt.Rectangle bounds = new java.awt.Rectangle(hor, ver, boxWidth, boxHeight);
+				if (style.isBackground()) {
+					g2d.setColor(bgColor);
+					g2d.fill(bounds);
+				}
 
-        if (style.isBackground()) {
-            g2d.setColor(bgColor);
-            g2d.fill(bounds);
-        }
-
-        if (style.getType() == WatermarkStyle.WatermarkType.IMAGE) {
-            g2d.drawImage(target, hor, ver, boxWidth, boxHeight, null);
-        } else {
-            TextRenderer.drawString(g2d, text, style.getFont(), foregroundColor, bounds, alignment, style.isUnderline(),
-                style.isStrikethrough(), true);
-        }
-
-        g2d.dispose();
-        } catch (Exception ex) {
+				if (style.getType() == WatermarkStyle.WatermarkType.IMAGE) {
+					g2d.drawImage(target, hor, ver, boxWidth, boxHeight, null);
+				} else {
+					TextRenderer.drawString(g2d, text, style.getFont(), foregroundColor, bounds, alignment,
+							style.isUnderline(), style.isStrikethrough(), true);
+				}
+				g2d.dispose();
+//			}
+		} catch (Exception ex) {
             Logger.getLogger(WatermarkProcessor.class.getName()).log(Level.SEVERE, "Ex108", ex);
         }
     }

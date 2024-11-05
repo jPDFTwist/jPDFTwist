@@ -7,6 +7,7 @@ import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfObject;
 import com.itextpdf.text.pdf.PdfPageLabels.PdfPageLabelFormat;
 import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.PdfStamper;
 import com.itextpdf.text.pdf.PdfWriter;
 import jpdftwist.core.tabparams.RotateParameters;
 import jpdftwist.core.tabparams.ScaleParameters;
@@ -230,6 +231,10 @@ public class PDFTwist {
 
     public void preserveHyperlinks() {
         annotationsProcessor.preserveHyperlinks(pageRanges);
+    }
+    
+    public void flattenAll() throws DocumentException {
+        annotationsProcessor.flattenAll(pageRanges);
     }
 
     private void optimizeSize() throws IOException, DocumentException {

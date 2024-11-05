@@ -2,6 +2,8 @@ package jpdftwist.core;
 
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.SimpleBookmark;
+
+import jpdftwist.gui.tab.BookmarkTab;
 import jpdftwist.utils.PdfParser;
 
 import java.io.IOException;
@@ -217,23 +219,24 @@ public class PdfBookmark {
         }
         toParse = toParse.trim();
         while (toParse.length() > 0) {
-            int pos = toParse.indexOf("=\"");
-            String key = toParse.substring(0, pos);
-            String value = "";
-            toParse = toParse.substring(pos + 2);
-            while (true) {
-                pos = toParse.indexOf('"');
-                if (pos < toParse.length() - 1 && toParse.charAt(pos + 1) == '"') {
-                    value += toParse.substring(0, pos + 1);
-                    toParse = toParse.substring(pos + 2);
-                } else {
-                    value += toParse.substring(0, pos);
-                    toParse = toParse.substring(pos + 1);
-                    break;
-                }
-            }
-            result.put(key, value);
-            toParse = toParse.trim();
+			int pos = toParse.indexOf("=\"");
+			String key = toParse.substring(0, pos);
+			String value = "";
+			toParse = toParse.substring(pos + 2);
+			while (true) {
+				pos = toParse.indexOf('"');
+				if (pos < toParse.length() - 1 && toParse.charAt(pos + 1) == '"') {
+					value += toParse.substring(0, pos + 1);
+					toParse = toParse.substring(pos + 2);
+				} else {
+					value += toParse.substring(0, pos);
+					toParse = toParse.substring(pos + 1);
+					break;
+				}
+				break;
+			}
+			result.put(key, value);
+			toParse = toParse.trim();
         }
         return result;
     }

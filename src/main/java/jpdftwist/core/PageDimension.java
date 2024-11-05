@@ -46,11 +46,11 @@ public class PageDimension {
             addCommonSize(25, "B8", PageSize.B8);
             addCommonSize(26, "B9", PageSize.B9);
             addCommonSize(27, "B10", PageSize.B10);
-            addCommonSize(28, "archE", PageSize.ARCH_E);
-            addCommonSize(29, "archD", PageSize.ARCH_D);
-            addCommonSize(30, "archC", PageSize.ARCH_C);
-            addCommonSize(31, "archB", PageSize.ARCH_B);
-            addCommonSize(32, "archA", PageSize.ARCH_A);
+            addCommonSize(28, "ArchE", PageSize.ARCH_E);
+            addCommonSize(29, "ArchD", PageSize.ARCH_D);
+            addCommonSize(30, "ArchC", PageSize.ARCH_C);
+            addCommonSize(31, "ArchB", PageSize.ARCH_B);
+            addCommonSize(32, "ArchA", PageSize.ARCH_A);
             addCommonSize(33, "American Foolscap", PageSize.FLSA);
             addCommonSize(34, "European Foolscap", PageSize.FLSE);
             addCommonSize(35, "Halfletter", PageSize.HALFLETTER);
