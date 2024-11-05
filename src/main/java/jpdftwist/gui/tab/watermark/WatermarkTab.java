@@ -49,7 +49,7 @@ public class WatermarkTab extends Tab {
             "f:p, f:p, 10dlu, f:p, f:p, f:p, f:p, f:p, 10dlu, f:p, f:p, f:p, f:p, f:p, f:p, f:p, f:p:g"));
         mainWindow = mf;
         CellConstraints CC = new CellConstraints();
-        add(pdfWatermark = new JCheckBox("Add first page of PDF as background watermark"), CC.xyw(1, 1, 4));
+        add(pdfWatermark = new JCheckBox("Add first page of  PDF as Background watermark [ centered by default ]"), CC.xyw(1, 1, 4));
         pdfWatermark.addActionListener(e -> updatePDFWatermarkEnabled());
         add(new JLabel("Filename: "), CC.xy(1, 2));
         add(filename = new JTextField(""), CC.xyw(2, 2, 2));

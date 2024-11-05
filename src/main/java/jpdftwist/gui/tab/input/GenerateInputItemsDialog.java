@@ -78,7 +78,7 @@ public class GenerateInputItemsDialog extends JFrame {
         heightModel = new SpinnerNumberModel(11F, 1F, null, 1F);
         JSpinner heightSpinner = new JSpinner(heightModel);
         unitsComboBox = new JComboBox<>();
-        unitsComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"inches", "mm", "points"}));
+        unitsComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{ "inches", "mm", "points" }));
         numberOfPagesModel = new SpinnerNumberModel(2, 1, null, 1);
         JSpinner numberOfPagesSpinner = new JSpinner(numberOfPagesModel);
         backgroundColorChooserButton = new ColorChooserButton();

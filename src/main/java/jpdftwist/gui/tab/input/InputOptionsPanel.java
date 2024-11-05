@@ -15,135 +15,149 @@ import java.awt.event.ItemListener;
  */
 public class InputOptionsPanel extends JPanel {
 
-    private final CellConstraints CC = new CellConstraints();
-    private JCheckBox batchProcessing, interleave, mergeByDir;
-    private JCheckBox optimizePDF, autoRemoveRestrictionsOverwrite, autoRemoveRestrictionsNew;
-    private JTextField interleaveSize;
-    private JCheckBox ReadPageSizes;
+	private final CellConstraints CC = new CellConstraints();
+	private JCheckBox batchProcessing, interleave, mergeByDir;
+	private JCheckBox optimizePDF, autoRemoveRestrictionsOverwrite, autoRemoveRestrictionsNew;
+	private JTextField interleaveSize;
+	private JCheckBox ReadPageSizes;
 
-    public InputOptionsPanel() {
-        super(new FormLayout(new ColumnSpec[]{
-            FormSpecs.PREF_COLSPEC,
-            ColumnSpec.decode("60px"),
-            ColumnSpec.decode("12px"),
-            ColumnSpec.decode("142px"),
-            ColumnSpec.decode("12px"),
-            ColumnSpec.decode("240px"),
-            ColumnSpec.decode("12px"),
-            ColumnSpec.decode("pref:grow"),
-            ColumnSpec.decode("12px"),},
-            new RowSpec[]{
-                RowSpec.decode("fill:pref"),
-                RowSpec.decode("fill:pref"),}));
+	public InputOptionsPanel() {
+		super(new FormLayout(
+				new ColumnSpec[] { FormSpecs.PREF_COLSPEC, ColumnSpec.decode("60px"), ColumnSpec.decode("12px"),
+						ColumnSpec.decode("142px"), ColumnSpec.decode("12px"), ColumnSpec.decode("240px"),
+						ColumnSpec.decode("12px"), ColumnSpec.decode("pref:grow"), ColumnSpec.decode("12px"), },
+				new RowSpec[] { RowSpec.decode("fill:pref"), RowSpec.decode("fill:pref"), }));
 
-        initializeComponents();
-        positionComponents();
-    }
+		initializeComponents();
+		positionComponents();
+	}
 
-    private void initializeComponents() {
-        interleave = new JCheckBox("Interleave documents in blocks of");
+	private void initializeComponents() {
+		interleave = new JCheckBox("Interleave documents in blocks of");
 
-        interleaveSize = new JTextField("1", 10);
-        interleaveSize.setEnabled(false);
-        interleave.addItemListener(interleaveListener());
-    }
+		interleaveSize = new JTextField("1", 10);
+		interleaveSize.setEnabled(false);
+		interleave.addItemListener(interleaveListener());
+	}
 
     private ItemListener interleaveListener() {
-        return e -> interleaveItemStateChanged();
-    }
-
-    private void interleaveItemStateChanged() {
-        interleaveSize.setEnabled(interleave.isSelected());
-    }
-
-    private ItemListener autoRemoveRestrictionsItemStateChanged() {
         return e -> {
-            JCheckBox check = (JCheckBox) e.getSource();
-            if (check == autoRemoveRestrictionsOverwrite && e.getStateChange() == ItemEvent.SELECTED) {
-                autoRemoveRestrictionsNew.setSelected(false);
-            } else if (check == autoRemoveRestrictionsNew && e.getStateChange() == ItemEvent.SELECTED) {
-                autoRemoveRestrictionsOverwrite.setSelected(false);
-            }
+    		if (e.getStateChange() == ItemEvent.SELECTED) {
+    			interleaveSize.setEnabled(interleave.isSelected());
+
+    			batchProcessing.setSelected(false);
+    			batchProcessing.setEnabled(false);
+
+    			mergeByDir.setSelected(false);
+    			mergeByDir.setEnabled(false);
+    		} else {
+    			interleaveSize.setEnabled(false);
+    			
+    			batchProcessing.setEnabled(true);
+    			mergeByDir.setEnabled(true);
+    		}
         };
     }
 
-    private void mergeByDirItemStateChanged(ItemEvent e) {
-        if (e.getStateChange() == ItemEvent.SELECTED) {
-            batchProcessing.setSelected(false);
-            interleave.setEnabled(true);
-        }
-    }
+	private ItemListener autoRemoveRestrictionsItemStateChanged() {
+		return e -> {
+			JCheckBox check = (JCheckBox) e.getSource();
+			if (check == autoRemoveRestrictionsOverwrite && e.getStateChange() == ItemEvent.SELECTED) {
+				autoRemoveRestrictionsNew.setSelected(false);
+				
+			} else if (check == autoRemoveRestrictionsNew && e.getStateChange() == ItemEvent.SELECTED) {
+				autoRemoveRestrictionsOverwrite.setSelected(false);
+			}
+		};
+	}
 
-    private void batchProcessingItemStateChanged(ItemEvent e) {
-        if (e.getStateChange() == ItemEvent.SELECTED) {
-            mergeByDir.setSelected(false);
-            interleave.setEnabled(false);
-            interleave.setSelected(false);
-        } else {
-            interleave.setEnabled(true);
-        }
-    }
+	private void mergeByDirItemStateChanged(ItemEvent e) {
+		if (e.getStateChange() == ItemEvent.SELECTED) {
+			batchProcessing.setSelected(false);
+			batchProcessing.setEnabled(false);
 
-    private void positionComponents() {
-        autoRemoveRestrictionsOverwrite = new JCheckBox("Auto remove restrictions (overwrite)");
-        autoRemoveRestrictionsOverwrite.addItemListener(autoRemoveRestrictionsItemStateChanged());
+			interleave.setSelected(false);
+			interleave.setEnabled(false);
+		} else {
+			batchProcessing.setEnabled(true);
+			interleave.setEnabled(true);
+		}
+	}
 
-        batchProcessing = new JCheckBox("Batch Process");
-        batchProcessing.addItemListener(this::batchProcessingItemStateChanged);
-        this.add(batchProcessing, "1, 1");
-        this.add(autoRemoveRestrictionsOverwrite, "6, 1");
-        add(getReadPageSizes(), "8, 1");
-        this.add(interleave, CC.xy(1, 2));
-        this.add(interleaveSize, CC.xy(2, 2));
-        autoRemoveRestrictionsNew = new JCheckBox("Auto remove restrictions (new)");
-        autoRemoveRestrictionsNew.addItemListener(autoRemoveRestrictionsItemStateChanged());
+	private void batchProcessingItemStateChanged(ItemEvent e) {
+		if (e.getStateChange() == ItemEvent.SELECTED) {
+			mergeByDir.setSelected(false);
+			mergeByDir.setEnabled(false);
 
-        mergeByDir = new JCheckBox("Merge by directory");
-        mergeByDir.addItemListener(this::mergeByDirItemStateChanged);
-        this.add(mergeByDir, "4, 2");
-        mergeByDir.setSelected(false);
+			interleave.setSelected(false);
+			interleave.setEnabled(false);
+		} else {
+			mergeByDir.setEnabled(true);
+			interleave.setEnabled(true);
+		}
+	}
 
-        this.add(autoRemoveRestrictionsNew, "6, 2");
+	private void positionComponents() {
+		autoRemoveRestrictionsOverwrite = new JCheckBox("Auto remove restrictions (overwrite)");
+		autoRemoveRestrictionsOverwrite.addItemListener(autoRemoveRestrictionsItemStateChanged());
 
-        optimizePDF = new JCheckBox("Optimize / Compress");
-        this.add(optimizePDF, "8, 2");
-    }
+		batchProcessing = new JCheckBox("Batch Process");
+		batchProcessing.addItemListener(this::batchProcessingItemStateChanged);
+		this.add(batchProcessing, "1, 1");
+		
+		this.add(autoRemoveRestrictionsOverwrite, "6, 1");
+		add(getReadPageSizes(), "8, 1");
+		this.add(interleave, CC.xy(1, 2));
+		this.add(interleaveSize, CC.xy(2, 2));
+		autoRemoveRestrictionsNew = new JCheckBox("Auto remove restrictions (new)");
+		autoRemoveRestrictionsNew.addItemListener(autoRemoveRestrictionsItemStateChanged());
 
-    public boolean isMergeByDirSelected() {
-        return mergeByDir.isSelected();
-    }
+		mergeByDir = new JCheckBox("Merge by Directory");
+		mergeByDir.addItemListener(this::mergeByDirItemStateChanged);
+		this.add(mergeByDir, "4, 2");
+		mergeByDir.setSelected(false);
 
-    public boolean isBatchSelected() {
-        return batchProcessing.isSelected();
-    }
+		this.add(autoRemoveRestrictionsNew, "6, 2");
 
-    public boolean isInterleaveSelected() {
-        return interleave.isSelected();
-    }
+		optimizePDF = new JCheckBox("Optimize / Compress");
+		this.add(optimizePDF, "8, 2");
+	}
 
-    public String getInterleaveSize() {
-        return interleaveSize.getText();
-    }
+	public boolean isMergeByDirSelected() {
+		return mergeByDir.isSelected();
+	}
 
-    public boolean isOptimizePDFSelected() {
-        return optimizePDF.isSelected();
-    }
+	public boolean isBatchSelected() {
+		return batchProcessing.isSelected();
+	}
 
-    public boolean isAutoRestrictionsOverwriteSelected() {
-        return autoRemoveRestrictionsOverwrite.isSelected();
-    }
+	public boolean isInterleaveSelected() {
+		return interleave.isSelected();
+	}
 
-    public boolean isAutoRestrictionsNewSelected() {
-        return autoRemoveRestrictionsNew.isSelected();
-    }
+	public String getInterleaveSize() {
+		return interleaveSize.getText();
+	}
 
-    private JCheckBox getReadPageSizes() {
-        if (ReadPageSizes == null) {
-            ReadPageSizes = new JCheckBox("Read Page Sizes");
-        }
-        ReadPageSizes.setSelected(true);
-        ReadPageSizes.setEnabled(false);
+	public boolean isOptimizePDFSelected() {
+		return optimizePDF.isSelected();
+	}
 
-        return ReadPageSizes;
-    }
+	public boolean isAutoRestrictionsOverwriteSelected() {
+		return autoRemoveRestrictionsOverwrite.isSelected();
+	}
+
+	public boolean isAutoRestrictionsNewSelected() {
+		return autoRemoveRestrictionsNew.isSelected();
+	}
+
+	private JCheckBox getReadPageSizes() {
+		if (ReadPageSizes == null) {
+			ReadPageSizes = new JCheckBox("Read Page Sizes");
+		}
+		ReadPageSizes.setSelected(true);
+		ReadPageSizes.setEnabled(false);
+
+		return ReadPageSizes;
+	}
 }

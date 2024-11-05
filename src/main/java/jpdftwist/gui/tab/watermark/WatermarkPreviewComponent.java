@@ -53,6 +53,7 @@ public class WatermarkPreviewComponent extends JComponent implements MouseListen
     private PreviewModel defaultModel;
 
     private boolean underline = false;
+    private boolean cropmarks = false;
     private boolean strikethrough = false;
 
     private WatermarkPreviewComponent() {
@@ -133,6 +134,11 @@ public class WatermarkPreviewComponent extends JComponent implements MouseListen
             public void setUnderline(boolean underline) {
                 preview.setUnderline(underline);
             }
+            
+            
+            public void setCropmarks(boolean cropmarks) {
+                preview.setCropmarks(cropmarks);
+            }
 
 
             public void setStrikethrough(boolean strikethrough) {
@@ -192,6 +198,16 @@ public class WatermarkPreviewComponent extends JComponent implements MouseListen
         crp.paintComponent(g2, renderer, this, rect.x, rect.y, dim.width, dim.height);
         if (underline) {
             g2.drawLine(rect.x, rect.y + dim.height, rect.x + dim.width, rect.y + dim.height);
+        }
+        if (cropmarks) {
+//            g2.drawLine(width * 1 - 11, 18, width * 1, 18);
+//            g2.drawLine(width * 1 - 18, height * 1 - 11, width * 1 - 18, height * 1);
+//            g2.drawLine(18, 11, 18, 0);
+//            g2.drawLine(11, height * 1 - 18, 0, height * 1 - 18);
+//            g2.drawLine(18, height * 1, 18, height * 1 - 11);
+//            g2.drawLine(width * 1, height * 1 - 18, width * 1 - 11, height * 1 - 18);
+//            g2.drawLine(width * 1 - 18, 0, width * 1 - 18, 11);
+//            g2.drawLine(0, 18, 11, 18);
         }
         if (strikethrough) {
             g2.drawLine(rect.x, rect.y + (dim.height / 2), rect.x + dim.width, rect.y + (dim.height / 2));
@@ -514,6 +530,8 @@ public class WatermarkPreviewComponent extends JComponent implements MouseListen
         public void setFont(Font font);
 
         public void setUnderline(boolean underline);
+        
+        public void setCropmarks(boolean cropmarks);
 
         public void setStrikethrough(boolean strikethrough);
     }
@@ -524,6 +542,15 @@ public class WatermarkPreviewComponent extends JComponent implements MouseListen
 
     public void setUnderline(boolean underline) {
         this.underline = underline;
+        repaint();
+    }
+    
+    public boolean isCropmarks() {
+        return cropmarks;
+    }
+
+    public void setCropmarks(boolean cropmarks) {
+        this.cropmarks = cropmarks;
         repaint();
     }
 

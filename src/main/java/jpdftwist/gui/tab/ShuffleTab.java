@@ -55,7 +55,7 @@ public class ShuffleTab extends Tab {
             previewFormatComboBox.addItem(d);
         }
         previewFormatComboBox.addActionListener(e -> previewPanel.setPageFormat((PageDimension) previewFormatComboBox.getSelectedItem()));
-        previewFormatComboBox.setSelectedIndex(0);
+        previewFormatComboBox.setSelectedIndex(2);
         previewPanel.setPreferredSize(new Dimension(50, 100));
         previewFormatComboBox.setMinimumSize(new Dimension(50, previewFormatComboBox.getMinimumSize().height));
         panel1.add(shufflePages = new JCheckBox("Shuffle pages"), CC.xyw(1, 1, 4));
@@ -84,9 +84,9 @@ public class ShuffleTab extends Tab {
         panel1.add(new JLabel("  page(s) "), CC.xy(3, 5));
         panel1.add(updatePreview = new JButton("Update"), CC.xy(4, 5));
         updatePreview.addActionListener(e -> parseGUI());
-        panel1.add(blockShuffle = new JCheckBox("Shuffle blocks of  "), CC.xy(1, 6));
+        panel1.add(blockShuffle = new JCheckBox("Shuffle blocks (signatures) of  "), CC.xy(1, 6));
         panel1.add(blockSize = new JTextField("20"), CC.xy(2, 6));
-        panel1.add(new JLabel(" pages individually"), CC.xyw(3, 6, 2));
+        panel1.add(new JLabel("  page(s)"), CC.xyw(3, 6, 2));
         blockShuffle.addActionListener(l);
         panel1.add(shuffleRulesTable = new TableComponent(
             new String[]{"Page", "OffsetX", "OffsetY", "ScaleFactor", "Rotate", "NewPageBefore", "FrameWidth"},

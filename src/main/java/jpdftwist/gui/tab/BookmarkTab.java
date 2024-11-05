@@ -1,6 +1,7 @@
 package jpdftwist.gui.tab;
 
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.pdf.CMYKColor;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.SimpleBookmark;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -9,12 +10,16 @@ import jpdftwist.core.OutputEventListener;
 import jpdftwist.core.PDFTwist;
 import jpdftwist.core.PdfBookmark;
 import jpdftwist.gui.MainWindow;
+import jpdftwist.gui.component.ColorChooserButton;
 import jpdftwist.gui.component.FileChooser;
 import jpdftwist.gui.component.table.TableComponent;
 import jpdftwist.utils.PdfParser;
+import jpdftwist.utils.PreferencesUtil;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -23,6 +28,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -32,20 +39,24 @@ import java.util.logging.Logger;
 
 public class BookmarkTab extends Tab {
 
+    private final MainWindow mainWindow;
     private final JButton load;
+    private final JButton colorBM;
+    private final JButton extraBM;
     private final JButton importPDF;
     private final JButton importCSV;
     private final JButton exportCSV;
     private final TableComponent bookmarks;
     private final JCheckBox changeBookmarks;
-    private final MainWindow mainWindow;
 
+    
     public BookmarkTab(MainWindow mf) {
         super(new FormLayout("f:p:g, f:p", "f:p, f:p, f:p:g"));
         this.mainWindow = mf;
         CellConstraints CC = new CellConstraints();
         add(changeBookmarks = new JCheckBox("Change chapter bookmarks"), CC.xy(1, 1));
         changeBookmarks.addActionListener(e -> updateEnabledState());
+        
         add(load = new JButton("Load from document"), CC.xy(2, 1));
         load.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -54,7 +65,7 @@ public class BookmarkTab extends Tab {
                 appendBookmarks(bm);
             }
         });
-        JPanel panel = new JPanel(new GridLayout(1, 3));
+        JPanel panel = new JPanel(new GridLayout(1, 5));
         panel.add(importPDF = new JButton("Import from PDF"));
         importPDF.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -96,9 +107,58 @@ public class BookmarkTab extends Tab {
                 exportCSV(f);
             }
         });
+        panel.add(colorBM = new JButton("Color"));
+        colorBM.addActionListener(e -> {
+			try {
+				Color current = Color.BLACK;
+				Color defaultColor = JColorChooser.showDialog(null, "Choose a Color", current);
+
+				double dR = (float) defaultColor.getRed() / 255.0;
+				double dG = (float) defaultColor.getGreen() / 255.0;
+				double dB = (float) defaultColor.getBlue() / 255.0;
+
+				String RD = String.format("%.1f", dR);
+				String GR = String.format("%.1f", dG);
+				String BL = String.format("%.1f", dB);
+
+//				String RD = String.valueOf(dR);
+//				String GR = String.valueOf(dG);
+//				String BL = String.valueOf(dB);
+
+				
+			    //set text on clipboard
+			    StringSelection selection = new StringSelection("Color=\"" + RD + " " + GR + " " + BL + "\"");
+				 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+				    clipboard.setContents(selection, selection);
+				
+				    
+				//selectable text from JOptionPane
+//				Color SelectedColor = new Color((int)dR, (int)dG, (int)dB);
+//                JTextArea TA = new JTextArea(1, 16);
+//                TA.setText("Color=\"" + RD + " " + GR + " " + BL + "\"");
+//                TA.setWrapStyleWord(false);
+//                TA.setLineWrap(false);
+//                TA.setCaretPosition(TA.getText().length());
+//                TA.setEditable(false);
+//				JOptionPane.showMessageDialog(null, new JScrollPane(TA), "Paste into Table", JOptionPane.INFORMATION_MESSAGE);
+				
+				    
+				JOptionPane.showMessageDialog(null, "Color=\"" + RD + " " + GR + " " + BL + "\"", 
+						"--->  Paste into Color column", JOptionPane.INFORMATION_MESSAGE);
+
+			} catch (Exception ex) { }
+        });
+        panel.add(extraBM = new JButton("Options"));
+    	extraBM.setEnabled(false);
+        extraBM.addActionListener(e -> {
+        	
+        });
+        
         add(panel, CC.xyw(1, 2, 2));
         add(bookmarks = new TableComponent(
-            new String[]{"Depth", "Open", "Title", "Page", "Position", "Bold", "Italic", "Options"},
+//          new String[]{"Depth", "Open", "Title", "Page", "Position", "Bold", "Italic", "Ex:    Color=\"0.5 0 1\"  "},
+            new String[]{"Depth", "Open", "Title", "Page", "Position", "Bold", "Italic", "Color"},
+            
             new Class[]{Integer.class, Boolean.class, String.class, Integer.class, String.class, Boolean.class,
                 Boolean.class, String.class},
             new Object[]{1, false, "", 1, "", false, false, ""}), CC.xyw(1, 3, 2));
@@ -160,6 +220,7 @@ public class BookmarkTab extends Tab {
 
     protected void updateEnabledState() {
         load.setEnabled(changeBookmarks.isSelected());
+        colorBM.setEnabled(changeBookmarks.isSelected());
         importPDF.setEnabled(changeBookmarks.isSelected());
         importCSV.setEnabled(changeBookmarks.isSelected());
         exportCSV.setEnabled(changeBookmarks.isSelected());
@@ -186,5 +247,5 @@ public class BookmarkTab extends Tab {
             pdfTwist.updateBookmarks(bm);
         }
         return pdfTwist;
-    }
+    }    
 }

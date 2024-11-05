@@ -26,6 +26,8 @@ import jpdftwist.tabs.OutputTabActions;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -81,10 +83,20 @@ public class MainWindow extends JFrame {
         JButton run;
         getContentPane().add(run = new JButton("Run"), CC.xy(2, 2));
         run.addActionListener(e -> new Thread(this::runTwist).start());
+
         JButton quit;
         getContentPane().add(quit = new JButton("Quit"), CC.xy(3, 2));
-        quit.addActionListener(e -> dispose());
+//      quit.addActionListener(e -> dispose());
+        quit.addActionListener(new ActionListener()
+        {
+          public void actionPerformed(ActionEvent e)
+          {
+            // Execute this method when the button is pressed
+              System.exit(0);
+          }
+        });
 
+        
         JProgressBar heapMemoryProgressBar = new JProgressBar();
         heapMemoryProgressBar.setStringPainted(true);
         heapMemoryProgressBar.setToolTipText("Commit Size / Max Heap Size");

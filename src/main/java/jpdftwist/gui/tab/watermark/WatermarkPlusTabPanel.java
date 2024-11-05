@@ -26,6 +26,7 @@ public class WatermarkPlusTabPanel extends JPanel {
     private WatermarkBatesPanel batesPanel;
     private WatermarkRepeatedTextPanel repeatedTextPanel;
     private WatermarkImagePanel imagePanel;
+    private WatermarkVectorPanel vectorPanel;
     private JPanel emptyPanel;
 
     private JPanel styleOptionsPanel;
@@ -79,7 +80,7 @@ public class WatermarkPlusTabPanel extends JPanel {
         batesPanel = new WatermarkBatesPanel();
         repeatedTextPanel = new WatermarkRepeatedTextPanel();
         imagePanel = new WatermarkImagePanel();
-
+        vectorPanel = new WatermarkVectorPanel();
         emptyPanel = new JPanel();
         styleOptionsPanel = emptyPanel;
     }
@@ -108,6 +109,9 @@ public class WatermarkPlusTabPanel extends JPanel {
                 case 8:
                     styleOptionsPanel = variableTextPanel;
                     break;
+                case 11:
+                    styleOptionsPanel = vectorPanel;
+                    break;
                 default:
                     styleOptionsPanel = emptyPanel;
             }
@@ -132,6 +136,8 @@ public class WatermarkPlusTabPanel extends JPanel {
                 variableTextPanel.setStyle(style);
             else if (style.getType() == WatermarkStyle.WatermarkType.IMAGE)
                 imagePanel.setStyle(style);
+            else if (style.getType() == WatermarkStyle.WatermarkType.VECTOR)
+                vectorPanel.setStyle(style);
             else if (style.getType() == WatermarkStyle.WatermarkType.BATES_NUMBERING)
                 batesPanel.setStyle(style);
 
@@ -163,8 +169,17 @@ public class WatermarkPlusTabPanel extends JPanel {
                 case VARIABLE_TEXT:
                     previewBox.setText("Variable Text");
                     break;
+                case CROPMARKS_inch:
+                    previewBox.setText("Cropmarks  0.25 inch");
+                    break;
+                case CROPMARKS_mm:
+                    previewBox.setText("Cropmarks 10.0 mm");
+                    break;
+                case VECTOR:
+                    previewBox.setText("Vector");
+                    break;
                 default:
-                    previewBox.setText("Watermark");
+                    previewBox.setText("Emtpy");
                     break;
             }
         } catch (Exception ex) {

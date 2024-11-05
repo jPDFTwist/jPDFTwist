@@ -26,8 +26,16 @@ public class AttachmentTab extends Tab {
         add.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 JFileChooser f = new JFileChooser();
+                f.setMultiSelectionEnabled(true);
+
+                //multiselect files
                 if (f.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) {
-                    model.addElement(f.getSelectedFile());
+                	File[] files = f.getSelectedFiles();
+//                	JOptionPane.showMessageDialog(null, String.valueOf(files.length), "", JOptionPane.INFORMATION_MESSAGE);
+                	
+                	for (int j = 0; j <= files.length - 1; j++) {
+                        model.addElement(files[j]);
+                	}
                 }
             }
         });

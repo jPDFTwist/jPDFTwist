@@ -96,7 +96,7 @@ public class WatermarkBatesPanel extends javax.swing.JPanel {
         javax.swing.JLabel jLabel8 = new javax.swing.JLabel();
         pagesField = new javax.swing.JTextField();
 
-        setBorder(javax.swing.BorderFactory.createTitledBorder("Bates Numbering"));
+        setBorder(javax.swing.BorderFactory.createTitledBorder(" Bates Numbering "));
 
         jLabel1.setText("Start with:");
 

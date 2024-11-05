@@ -130,7 +130,7 @@ public class FileImporter implements Runnable {
                 modelHandler.insertFileNode(node);
             }
         } catch (Exception ex) {
-            Logger.getLogger(FileImporter.class.getName()).log(Level.SEVERE, "Ex027", ex);
+            Logger.getLogger(FileImporter.class.getName()).log(Level.SEVERE, "Ex027");
             String exceptionTrace = getExceptionTrace(ex);
             importItemsListener.onError(file.getPath(), exceptionTrace);
         }
@@ -141,7 +141,6 @@ public class FileImporter implements Runnable {
         PrintWriter pw = new PrintWriter(sw);
 
         Logger.getLogger(FileImporter.class.getName()).log(Level.SEVERE, "Ex076", ex);
-
         return sw.toString();
     }
 }

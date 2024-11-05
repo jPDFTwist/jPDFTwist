@@ -13,87 +13,89 @@ import java.util.logging.Logger;
  */
 public class InputValidator {
 
-    private boolean isModelEmpty, interleave;
-    private int interleaveSize;
-    private List<PageRange> pageRanges;
+	private boolean isModelEmpty, interleave;
+	private int interleaveSize;
+	private List<PageRange> pageRanges;
 
-    public void setIsModelEmpty(boolean isModelEmpty) {
-        this.isModelEmpty = isModelEmpty;
-    }
+	public void setIsModelEmpty(boolean isModelEmpty) {
+		this.isModelEmpty = isModelEmpty;
+	}
 
-    public void setInterleave(boolean interleave) {
-        this.interleave = interleave;
-    }
+	public void setInterleave(boolean interleave) {
+		this.interleave = interleave;
+	}
 
-    public void setInterleaveSize(int interleaveSize) {
-        this.interleaveSize = interleaveSize;
-    }
+	public void setInterleaveSize(int interleaveSize) {
+		this.interleaveSize = interleaveSize;
+	}
 
-    public void setPageRanges(List<PageRange> ranges) {
-        this.pageRanges = ranges;
-    }
+	public void setPageRanges(List<PageRange> ranges) {
+		this.pageRanges = ranges;
+	}
 
-    public void checkValidity() {
-        try {
-            check();
-        } catch (NumberFormatException ex) {
-            Logger.getLogger(InputValidator.class.getName()).log(Level.SEVERE, "Ex077", ex);
-            showException(ex, "Invalid interleave value");
-        } catch (IOException ex) {
-            Logger.getLogger(InputValidator.class.getName()).log(Level.SEVERE, "Ex078", ex);
-        }
-    }
+	public void checkValidity() {
+		try {
+			check();
+		} catch (NumberFormatException ex) {
+			Logger.getLogger(InputValidator.class.getName()).log(Level.SEVERE, "Ex077", ex);
+			showException(ex, "Invalid interleave value");
+		} catch (IOException ex) {
+			Logger.getLogger(InputValidator.class.getName()).log(Level.SEVERE, "Ex078", ex);
+		}
+	}
 
-    private void check() throws IOException {
-        checkModel();
+	private void check() throws IOException {
+		checkModel();
 
-        if (interleave)
-            checkInterleave();
+		if (interleave)
+			checkInterleave();
 
-        checkPageRanges();
-    }
+		checkPageRanges();
+	}
 
-    private void checkModel() throws IOException {
-        checkIsModelEmpty();
-    }
+	private void checkModel() throws IOException {
+		checkIsModelEmpty();
+	}
 
-    private void checkIsModelEmpty() throws IOException {
-        if (isModelEmpty)
-            throw new IOException("No input file selected");
-    }
+	private void checkIsModelEmpty() throws IOException {
+		try {
+			if (isModelEmpty)
+				return;
+		} catch (Exception ex) {
+		}
+	}
 
-    private void checkInterleave() throws NumberFormatException {
-        checkInterleaveSize();
-    }
+	private void checkInterleave() throws NumberFormatException {
+		checkInterleaveSize();
+	}
 
-    private void checkInterleaveSize() throws NumberFormatException {
-        int size = interleaveSize;
+	private void checkInterleaveSize() throws NumberFormatException {
+		int size = interleaveSize;
 
-        if (size < 1)
-            throw new NumberFormatException();
-    }
+		if (size < 1)
+			throw new NumberFormatException();
+	}
 
-    private void checkPageRanges() throws IOException {
-        int pagesBefore = 0;
+	private void checkPageRanges() throws IOException {
+		int pagesBefore = 0;
 
-        for (PageRange range : pageRanges) {
-            int[] pages = range.getPages(pagesBefore);
+		for (PageRange range : pageRanges) {
+			int[] pages = range.getPages(pagesBefore);
 
-            if (pages.length == 0)
-                throw new IOException("At least one input file contains no pages");
+			if (pages.length == 0)
+				throw new IOException("At least one input file contains no pages");
 
-            if (!interleave)
-                pagesBefore += pages.length;
-        }
-    }
+			if (!interleave)
+				pagesBefore += pages.length;
+		}
+	}
 
-    private void showException(Exception ex) {
-        Logger.getLogger(InputValidator.class.getName()).log(Level.SEVERE, "Ex079", ex);
-    }
+	private void showException(Exception ex) {
+		Logger.getLogger(InputValidator.class.getName()).log(Level.SEVERE, "Ex079", ex);
+	}
 
-    private void showException(Exception ex, String message) {
-        Logger.getLogger(InputValidator.class.getName()).log(Level.SEVERE, "Ex080", ex);
-        JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-
+	private void showException(Exception ex, String message) {
+		// JOptionPane.showMessageDialog(null, message, "Error",JOptionPane.ERROR_MESSAGE);
+		Logger.getLogger(InputValidator.class.getName()).log(Level.SEVERE, "Ex080", ex);
+	}
 }

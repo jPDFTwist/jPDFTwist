@@ -1,6 +1,9 @@
 package jpdftwist.core;
 
+import jpdftwist.utils.PdfParser;
 import jpdftwist.utils.SupportedFileTypes;
+
+import org.apache.pdfbox.io.RandomAccessFile;
 import org.apache.pdfbox.io.RandomAccessRead;
 import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -8,6 +11,10 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.PdfStamper;
+import jpdftwist.core.PdfReaderManager;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +32,10 @@ public class AnnotationsProcessor {
     private ArrayList<List<PDAnnotation>> pdAnnotations = new ArrayList<>();
     private final ArrayList<PDDocument> pdDocuments = new ArrayList<>();
     private boolean preserveHyperlinks = false;
-
+    private boolean flattenAll = false;
+    private PdfReaderManager pdfReaderManager;
+    private TempFileManager tempFileManager;
+    
     public void repositionAnnotations(int page, float a, float b, float c, float d, float e, float f) {
         if (page > pdAnnotations.size()) {
             return;
@@ -73,17 +83,21 @@ public class AnnotationsProcessor {
                     pdAnnotations.add(null);
                     continue;
                 }
-                InputStream in = Files.newInputStream(new File(filepath).toPath());
-                PDFParser parser = new PDFParser((RandomAccessRead) in);
+//              InputStream in = Files.newInputStream(new File(filepath).toPath());
+//              PDFParser parser = new PDFParser((RandomAccessBufferedFileInputStream) in);
+                
+                File in = new File(filepath);
+                PDFParser parser = new PDFParser(new RandomAccessFile(in,"r"));
                 parser.parse();
                 PDDocument pdDocument = parser.getPDDocument();
                 pdDocuments.add(pdDocument);
-                List<PDPage> allPages = (List<PDPage>) pdDocument.getDocumentCatalog().getPages();
-                for (PDPage pdPage : allPages) {
+//              List<PDPage> allPages = (List<PDPage>) pdDocument.getDocumentCatalog().getPages();
+                
+                for (PDPage pdPage : pdDocument.getPages()) {
                     List<PDAnnotation> annotations = pdPage.getAnnotations();
                     pdAnnotations.add(annotations);
                 }
-                in.close();
+//              in.close();
             } catch (IOException ex) {
                 Logger.getLogger(AnnotationsProcessor.class.getName()).log(Level.SEVERE, "Ex001", ex);
             }
@@ -119,10 +133,29 @@ public class AnnotationsProcessor {
         }
     }
 
+    
+    public void flattenAll(List<PageRange> pageRanges) {
+    	flattenAll = true;
+    	for (PageRange range : pageRanges) {
+    		
+    		//TODO
+    	}
+    }
+    
+    public void flattenAll(String outputFile) throws IOException {
+    	
+		//TODO
+    }
+    
+    
     public boolean isPreserveHyperlinks() {
         return preserveHyperlinks;
     }
-
+    
+    public boolean isFalttenAll() {
+        return flattenAll;
+    }
+    
     public void setAnnotations(final ArrayList<List<PDAnnotation>> pdAnnotations) {
         this.pdAnnotations = pdAnnotations;
     }

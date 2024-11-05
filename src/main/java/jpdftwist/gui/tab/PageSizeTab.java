@@ -44,6 +44,7 @@ public class PageSizeTab extends Tab {
     private JCheckBox rotateConditionPortrait;
     private JCheckBox rotateConditionLandscape;
     private JCheckBox preserveHyperlinks;
+    private JCheckBox flattenAll;
     private JComboBox<String> rotatePortrait;
     private JComboBox<String> rotateLandscape;
     private JComboBox<String> rotatePortraitUnits;
@@ -61,7 +62,7 @@ public class PageSizeTab extends Tab {
 
     public PageSizeTab(MainWindow mf) {
         super(new FormLayout("f:p, f:p:g, 30dlu, f:p, 30dlu, f:p, f:p, f:p",
-            "f:p, 10dlu,f:p,f:p,f:p, f:p, f:p, 10dlu, f:p, 10dlu, f:p,f:p, f:p,f:p, f:p,f:p,f:p,f:p, 10dlu, f:p, f:p:g"));
+            "f:p, 10dlu,f:p,f:p,f:p, f:p, f:p, 10dlu, f:p, 10dlu, f:p,f:p, f:p,f:p, f:p,f:p,f:p,f:p, 10dlu, f:p, f:p, f:p:g"));
 
         initComponents();
 
@@ -123,6 +124,7 @@ public class PageSizeTab extends Tab {
         // Preserve Hyperlinks
         this.add(new JSeparator(), CC.xyw(1, 19, 8));
         this.add(preserveHyperlinks, CC.xyw(1, 20, 8));
+        this.add(flattenAll, CC.xyw(1, 21, 8));
     }
 
     private void initComponents() {
@@ -149,7 +151,7 @@ public class PageSizeTab extends Tab {
 
         toggleRotateEnabled();
 
-        fixRotation = new JCheckBox("Remove implicit page rotation");
+        fixRotation = new JCheckBox("Remove implicit page Rotation [ annotations will be also removed unless flattened first ]");
 
         scalePages = new JCheckBox("Scale pages");
         scaleSize = new JComboBox<>();
@@ -205,10 +207,13 @@ public class PageSizeTab extends Tab {
         scaleLandscapeLowerLimit.setHorizontalAlignment(JTextField.CENTER);
         scaleLandscapeUpperLimit.setHorizontalAlignment(JTextField.CENTER);
 
+        scaleSize.setSelectedIndex(10);
         toggleScaleEnabled();
         updateScaleSize();
 
-        preserveHyperlinks = new JCheckBox("Preserve annotations (EXPERIMENTAL)");
+        preserveHyperlinks = new JCheckBox("Preserve hyperlinks");
+        flattenAll = new JCheckBox("Flatten all");
+        flattenAll.setEnabled(false);
     }
 
     private void toggleRotateEnabled() {
@@ -337,6 +342,9 @@ public class PageSizeTab extends Tab {
         outputEventListener.updateJPDFTwistProgress(getTabName());
         if (preserveHyperlinks.isSelected()) {
             pdfTwist.preserveHyperlinks();
+        }
+        if (flattenAll.isSelected()) {
+            pdfTwist.flattenAll();
         }
         if (cropPages.isSelected()) {
             pdfTwist.cropPages((PageBox) cropTo.getSelectedItem());

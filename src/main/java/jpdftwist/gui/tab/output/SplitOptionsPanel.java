@@ -62,7 +62,7 @@ public class SplitOptionsPanel extends JPanel {
         splitBySpecificPagesRadioButton.setSelected(false);
         splitBySpecificPagesRadioButton.setEnabled(false);
 
-        splitBySpecificPagesRadioButton.setToolTipText("Split after specific pages (ex: 4-6, 9, 14)");
+        splitBySpecificPagesRadioButton.setToolTipText("Split after specific pages (Ex: 4-6, 9, 14)");
         splitBySpecificPagesTextField = new JTextField("");
 
         splitByChunkRadioButton = new JRadioButton("Split by chunk of  'n' pages");
@@ -70,7 +70,7 @@ public class SplitOptionsPanel extends JPanel {
         splitByChunkRadioButton.setEnabled(false);
 
         splitByChunkRadioButton.setSelected(true);
-        splitByChunkRadioButton.setToolTipText("Split after a chunk of pages (ex: 100)");
+        splitByChunkRadioButton.setToolTipText("Split after a chunk of pages (Ex: 100)");
         splitByChunkTextField = new JTextField("1");
 
         splitBySizeRadioButton = new JRadioButton("Split by size");

@@ -5,6 +5,8 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfWriter;
+
+import ch.randelshofer.quaqua.util.Images;
 import jpdftwist.gui.component.ImagePreviewPanel;
 import jpdftwist.gui.component.treetable.Node;
 import jpdftwist.gui.component.treetable.TreeTableComponent;
@@ -15,6 +17,7 @@ import jpdftwist.gui.component.treetable.row.TreeTableRowType;
 import jpdftwist.tabs.input.InputTabFileImporter;
 import jpdftwist.utils.JImageParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.json.JSONArray;
 import org.json.JSONObject;

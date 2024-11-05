@@ -17,7 +17,7 @@ public class ColorChooserButton extends JButton {
     public ColorChooserButton(Color c) {
         setSelectedColor(c);
         addActionListener(arg0 -> {
-            Color newColor = JColorChooser.showDialog(null, "Choose a color", current);
+            Color newColor = JColorChooser.showDialog(null, "Choose a Color", current);
             setSelectedColor(newColor);
         });
     }

@@ -2,6 +2,8 @@ package jpdftwist.gui.tab.watermark;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+
+import jpdftwist.core.PdfReaderManager;
 import jpdftwist.core.watermark.WatermarkStyle;
 
 import javax.swing.*;
@@ -23,7 +25,6 @@ public class WatermarkImagePanel extends JPanel {
     private JPanel pagePanel;
 
     private WatermarkStyle style;
-
     private final CellConstraints CC;
 
     public WatermarkImagePanel() {
@@ -39,38 +40,46 @@ public class WatermarkImagePanel extends JPanel {
     }
 
     private void initializeComponents() {
-        setBorder(javax.swing.BorderFactory.createTitledBorder("Raster"));
+        setBorder(javax.swing.BorderFactory.createTitledBorder(" Raster only "));
 
         fc = new JFileChooser();
         fc.setMultiSelectionEnabled(false);
         fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
         FileNameExtensionFilter[] filters = {
-            new FileNameExtensionFilter("PDF Files(*.pdf)", "PDF"),
-            new FileNameExtensionFilter("JPEG Image(*.jpg, *.jpeg)", "JPG", "JPEG"),
-            new FileNameExtensionFilter("JPEG2000 Image(*.jp2, *.j2k, *.jpf, *.jpx, *.jpm, *.mj2)", "JP2", "J2K", "JPF", "JPX", "JPM", "MJ2"),
-            new FileNameExtensionFilter("PNG Images(*.png)", "PNG"),
-            new FileNameExtensionFilter("GIF Images(*.gif)", "GIF"),
-            new FileNameExtensionFilter("BMP Images(*.bmp)", "BMP"),
-            new FileNameExtensionFilter("PCX Images(*.pcx)", "PCX"),
-            new FileNameExtensionFilter("TIFF Images(*.tiff, *.tif)", "TIFF", "TIF"),
-            new FileNameExtensionFilter("TGA Images(*.tga)", "TGA"),
-            new FileNameExtensionFilter("Photoshop Files(*.psd)", "PSD"),
-            new FileNameExtensionFilter("PNM Images(*.pnm)", "PNM"),
-            new FileNameExtensionFilter("PPM Images(*.ppm)", "PPM"),
-            new FileNameExtensionFilter("PGM Images(*.pgm)", "PGM"),
-            new FileNameExtensionFilter("PBM Images(*.pbm)", "PBM"),
-            new FileNameExtensionFilter("WBM Images(*.wbm)", "WBM"),
-            new FileNameExtensionFilter("WBMP Images(*.wbmp)", "WBMP"),
-            new FileNameExtensionFilter("All supported file types", "PDF", "JPG", "JPEG", "JP2", "J2K", "JPF", "JPX",
-                "JPM", "MJ2", "PNG", "GIF", "BMP", "PCX", "TIFF", "TIF", "TGA", "PSD", "PNM", "PPM", "PGM", "PBM", "WBM", "WBMP")};
-
+                new FileNameExtensionFilter("BMP Images(*.bmp)", "BMP"),
+                new FileNameExtensionFilter("GIF Images(*.gif)", "GIF"),
+                new FileNameExtensionFilter("DDS Images(*.dds)", "DDS"),
+                new FileNameExtensionFilter("HDR Images(*.hdr)", "HDR"),
+            	new FileNameExtensionFilter("JPEG Images(*.jpg, *.jpeg)", "JPG", "JPEG"),
+                new FileNameExtensionFilter("JPEG2000 Images(*.jp2, *.j2k, *.jpf, *.jpx, *.jpm, *.mj2)", "JP2", "J2K", "JPF", "JPX", "JPM", "MJ2"),
+                new FileNameExtensionFilter("AMIGA Images(*.iff)", "IFF"),
+                new FileNameExtensionFilter("PNG Images(*.png)", "PNG"),
+                new FileNameExtensionFilter("PHOTOSHOP Files(*.psd)", "PSD"),
+                new FileNameExtensionFilter("PCX Images(*.pcx)", "PCX"),
+                new FileNameExtensionFilter("PICT Images(*.pict, *.pct)", "PICT", "PCT"),
+                new FileNameExtensionFilter("PAM Images(*.pam)", "PAM"),
+                new FileNameExtensionFilter("PBM Images(*.pbm)", "PBM"),
+                new FileNameExtensionFilter("PGM Images(*.pgm)", "PGM"),
+                new FileNameExtensionFilter("PNM Images(*.pnm)", "PNM"),
+                new FileNameExtensionFilter("PPM Images(*.ppm)", "PPM"),
+                new FileNameExtensionFilter("SGI Images(*.sgi)", "SGI"),
+                new FileNameExtensionFilter("VECTOR Files(*.svg)", "SVG"),
+                new FileNameExtensionFilter("TGA Images(*.tga)", "TGA"),
+                new FileNameExtensionFilter("TIFF Images(*.tiff, *.tif)", "TIFF", "TIF"),
+                new FileNameExtensionFilter("WEBP Images(*.webp)", "WEBP"),
+                new FileNameExtensionFilter("PDF Files(*.pdf)", "PDF"),
+//                new FileNameExtensionFilter("WBM Images(*.wbm)", "WBM"),
+//                new FileNameExtensionFilter("WBMP Images(*.wbmp)", "WBMP"),
+                new FileNameExtensionFilter("All supported File types", "PDF", "JPG", "JPEG", "JP2", "J2K", "JPF", "JPX",
+                        "JPM", "MJ2", "PNG", "GIF", "DDS", "BMP", "TIFF", "TIF", "IFF", "TGA", "PSD", "PAM", "PBM", "PGM", 
+                        "PNM", "PPM", "SGI", "SVG", "HDR", "WEBP","PCX", "PICT", "PCT")};
 
         for (FileNameExtensionFilter filter : filters) {
             fc.setFileFilter(filter);
         }
 
-        panelTitle = new JLabel("ex:  *.pdf, *.png, *.tiff");
+        panelTitle = new JLabel("Ex: *.png, *.tiff, *.pdf");
         imagePathField = new JTextField();
         browseButton = new JButton("Browse");
 
@@ -95,8 +104,8 @@ public class WatermarkImagePanel extends JPanel {
         });
 
         pagePanel = new JPanel(new FormLayout("f:p, $lcgap, f:p", "p"));
-        pageLabel = new JLabel("Page:");
-        pdfPageSpinner = new JSpinner(new SpinnerNumberModel(0, 0, Integer.MAX_VALUE, 1));
+        pageLabel = new JLabel("Select which page to use:");
+        pdfPageSpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
         pdfPageSpinner.addChangeListener(e -> {
             try {
                 int page = Integer.parseInt(pdfPageSpinner.getValue().toString());
@@ -113,7 +122,11 @@ public class WatermarkImagePanel extends JPanel {
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fc.getSelectedFile();
             imagePathField.setText(file.getAbsolutePath());
-            pdfPageSpinner.setValue(0);
+            pdfPageSpinner.setValue(1);
+        }
+        else {
+        	JOptionPane.showMessageDialog(null, "Please select a valid file ...", "Info", JOptionPane.WARNING_MESSAGE);
+        	return;
         }
     }
 
@@ -134,5 +147,4 @@ public class WatermarkImagePanel extends JPanel {
         imagePathField.setText(style.getImagePath());
         pdfPageSpinner.setValue(style.getPdfPage());
     }
-
 }

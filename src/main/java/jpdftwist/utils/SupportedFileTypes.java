@@ -13,7 +13,8 @@ public class SupportedFileTypes {
         HashSet<String> supportedInputExtensions = new HashSet<>();
 
         supportedInputExtensions.addAll(Arrays.asList("jpg", "jpeg", "jp2", "j2k", "jpf", "jpx", "jpm", "mj2", "png",
-            "bmp", "tiff", "tif", "gif", "psd", "tga", "pdf"));
+            "bmp", "tiff", "tif", "iff", "dds", "gif", "svg", "hdr", "psd", "sgi", "tga", "pdf", "pam", "pbm", "pgm", 
+            "pnm", "ppm", "pcx", "pct", "pict", "webp", "wmf"));
 
         return supportedInputExtensions.contains(fileType);
     }

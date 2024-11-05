@@ -38,15 +38,20 @@ public class PdfParser {
         try {
             return open(filepath, "", optimize);
         } catch (Exception ex) {
-            Logger.getLogger(PdfParser.class.getName()).log(Level.SEVERE, "Ex081", ex);
-            return openWithPass(filepath, optimize, autoRestrictionsOverwrite, autoRestrictionsNew);
+        	if (ex.getMessage().toLowerCase().contains("password") || ex.getMessage().toLowerCase().contains("certificate")
+        	 || ex.getMessage().toLowerCase().contains("encryption")) {
+                return openWithPass(filepath, optimize, autoRestrictionsOverwrite, autoRestrictionsNew);
+        	}
+        	else {
+                Logger.getLogger(PdfParser.class.getName()).log(Level.SEVERE, "Ex081", ex);
+        	}
+        	return null;
         }
     }
 
     public static PdfReader openWithPass(String filepath, boolean optimize, boolean autoRestrictionsOverwrite,
                                          boolean autoRestrictionsNew) throws IOException {
-        Password unlockInfo = PdfUnlockDialog.askForPassword(null, filepath, autoRestrictionsOverwrite,
-            autoRestrictionsNew);
+        Password unlockInfo = PdfUnlockDialog.askForPassword(null, filepath, autoRestrictionsOverwrite, autoRestrictionsNew);
 
         if (unlockInfo.getUnlockedFilePath() != null) {
             filepath = unlockInfo.getUnlockedFilePath();
@@ -70,11 +75,10 @@ public class PdfParser {
             }
             if (ex.getException() instanceof InvalidPdfException) {
                 try {
-                    // The PdfReader constructor that takes a file name does more thorough checking
-                    // and reparing,
-                    // but it will need more RAM. Therefore, if the first one fails, try that one
-                    // now.
-                    //                    open(new PdfReader(filepath, ownerPassword.getBytes("ISO-8859-1")));
+//                     The PdfReader constructor that takes a file name does more thorough checking and repairing,
+//                     but it will need more RAM. Therefore, if the first one fails, try that one now.
+//                     open(new PdfReader(filepath, ownerPassword.getBytes("ISO-8859-1")));
+                	
                     PdfReader reader = open(new PdfReader(filepath, new byte[]{}), optimize);
                     System.out.println("in invalid pdf");
                     return reader;
@@ -104,8 +108,6 @@ public class PdfParser {
             rdr.removeUnusedObjects();
             rdr.shuffleSubsetNames();
         }
-
         return rdr;
     }
-
 }

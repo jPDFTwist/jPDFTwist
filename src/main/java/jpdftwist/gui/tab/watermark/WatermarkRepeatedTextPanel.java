@@ -43,10 +43,10 @@ public class WatermarkRepeatedTextPanel extends javax.swing.JPanel {
         javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
         jComboBox1 = new javax.swing.JComboBox<>();
 
-        setBorder(javax.swing.BorderFactory.createTitledBorder("Repeated Text"));
+        setBorder(javax.swing.BorderFactory.createTitledBorder(" Repeated Text "));
 
         jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
+        jTextArea1.setRows(10);
         jScrollPane1.setViewportView(jTextArea1);
 
         jLabel1.setText("Text:");
@@ -54,11 +54,22 @@ public class WatermarkRepeatedTextPanel extends javax.swing.JPanel {
         jLabel2.setText("Data:");
 
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(
-            new String[]{"--Data--", "System Time", "Hour", "Minutes", "Seconds", "System Date", "Day", "Month",
-                "Year", "Page Count", "Page Width", "Page Height", "Page Width (Inch)", "Page Height (Inch)",
+            new String[]{"--Data--", "System Time", "Hour", "Minutes", "Seconds", "System Date", "Day", "Month", "Year", 
+            		
+            	"Page Count", 
+                "Page Width (pts)", 	"Page Height (pts)", 
+                "Page Width (inch)", 	"Page Height (inch)",
+                "Page Width (mm)", 		"Page Height (mm)",
+                
                 "Page Number", "Logical Page Number", "File Name", "File Name with extension", "File Path",
-                "File Size", "File Last Modified Date", "Image Depth", "Image Width", "Image Height",
-                "Image Width (Inch)", "Image Height (Inch)", "Image Width DPI", "Image Height DPI"}));
+                "File Size", "File Last Modified Date", 
+                
+                "Image Depth", 
+                "Image Width (pts)", 	"Image Height (pts)",
+                "Image Width (inch)", 	"Image Height (inch)", 
+                "Image Width (mm)", 	"Image Height (mm)",
+                "Image Width (dpi)", 	"Image Height (dpi)"}));
+        
         jComboBox1.addItemListener(this::jComboBox1ItemStateChanged);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -103,10 +114,12 @@ public class WatermarkRepeatedTextPanel extends javax.swing.JPanel {
         dataCodes.add("%M");
         dataCodes.add("%Y");
         dataCodes.add("%c");
-        dataCodes.add("{page_width}");
-        dataCodes.add("{page_height}");
+        dataCodes.add("{page_width_points}");
+        dataCodes.add("{page_height_points}");
         dataCodes.add("{page_width_inch}");
         dataCodes.add("{page_height_inch}");
+        dataCodes.add("{page_width_mm}");
+        dataCodes.add("{page_height_mm}");
         dataCodes.add("%n");
         dataCodes.add("%N");
         dataCodes.add("%f");
@@ -115,12 +128,14 @@ public class WatermarkRepeatedTextPanel extends javax.swing.JPanel {
         dataCodes.add("{file_size}");
         dataCodes.add("{last_modified}");
         dataCodes.add("{img_depth}");
-        dataCodes.add("{img_width}");
-        dataCodes.add("{img_height}");
+        dataCodes.add("{img_width_points}");
+        dataCodes.add("{img_height_points}");
         dataCodes.add("{img_width_inch}");
         dataCodes.add("{img_height_inch}");
+        dataCodes.add("{img_width_mm}");
+        dataCodes.add("{img_height_mm}");
         dataCodes.add("{img_width_dpi}");
-        dataCodes.add("{img_heigth_dpi}");
+        dataCodes.add("{img_height_dpi}");
 
         data = dataCodes.get(index);
         int caretPos = jTextArea1.getCaretPosition();

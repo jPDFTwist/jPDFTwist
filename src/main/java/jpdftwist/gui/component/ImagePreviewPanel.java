@@ -14,7 +14,7 @@ public class ImagePreviewPanel extends JPanel {
     private Image originalImage;
 
     public static int INCH = 72;
-    public static final int SIZE = 45;
+    public static final int SIZE = 40;
 
     private double zoom;
 
@@ -182,7 +182,7 @@ public class ImagePreviewPanel extends JPanel {
     }
 
     private void drawHorizontalTick(Graphics g, int atY) {
-        int tickLength = 7;
+        int tickLength = 5;
         g.drawLine(SIZE - 1, atY, SIZE - tickLength - 1, atY);
     }
 
@@ -193,7 +193,7 @@ public class ImagePreviewPanel extends JPanel {
     }
 
     private void drawVerticalTick(Graphics g, int atX) {
-        int tickLength = 7;
+        int tickLength = 5;
         g.drawLine(atX, SIZE - 1, atX, SIZE - tickLength - 1);
     }
 
@@ -221,6 +221,18 @@ public class ImagePreviewPanel extends JPanel {
             return;
         }
 
+//        Graphics2D gx = (Graphics2D);
+//        super.paintComponent(gx);
+//        gx.setFont(new Font("SansSerif", Font.PLAIN, 48));
+//        gx.setColor(Color.blue);
+//        FontMetrics fm = gx.getFontMetrics();
+//        int y = ((getHeight() - fm.getHeight()) / 2) + fm.getAscent();
+//        gx.drawString("Loading ...", 48, y);
+//        gx.setFont(new Font("SansSerif", Font.PLAIN, 10));
+//        gx.setColor(Color.black);
+//        gx.dispose();
+        
+        
         zoom = zoomFactor;
         zoomLabel.setText((int) (zoomFactor * 100) + "%");
 
@@ -228,16 +240,33 @@ public class ImagePreviewPanel extends JPanel {
         int currentPreviewHeight = (int) (originalImage.getHeight(null) * zoomFactor);
 
         Image scaled = originalImage.getScaledInstance(currentPreviewWidth, currentPreviewHeight, Image.SCALE_SMOOTH);
-        BufferedImage resizedImage = new BufferedImage(scaled.getWidth(null), scaled.getHeight(null),
-            BufferedImage.TYPE_INT_RGB);
+        BufferedImage resizedImage = new BufferedImage(scaled.getWidth(null), scaled.getHeight(null), BufferedImage.TYPE_INT_ARGB);
 
         Graphics2D g = resizedImage.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
+        
+//        float alpha = 0.5f;
+//        int mode = AlphaComposite.SRC_OVER;
+//        AlphaComposite AC = AlphaComposite.getInstance(mode, alpha);
+
+//        g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+//        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+//        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+//        g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+//        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+//        g.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
+
+//        g.setBackground(new Color(255, 0, 255, 0));
+//        g.setComposite(AC);
+        
+        g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+        g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_SPEED);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+        g.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE);
+        
         g.drawImage(scaled, 0, 0, currentPreviewWidth, currentPreviewHeight, null);
 
         repaint();

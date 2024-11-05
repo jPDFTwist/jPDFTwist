@@ -31,112 +31,127 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import jpdftwist.gui.tab.output.OutputTab;
+
+//import loci.formats.ImageReader;
+import loci.formats.MetadataTools;
+import loci.formats.meta.IMetadata;
+import loci.common.ByteArrayHandle;
+import loci.common.Location;
+import loci.common.services.DependencyException;
+import loci.common.services.ServiceException;
+import loci.common.services.ServiceFactory;
+import loci.formats.*;
+import loci.formats.services.OMEXMLService;
+
 /**
  * @author Vasilis Naskos
  */
 public class ImageParser {
 
-    public static ImageObject tryToReadImage(File file) {
-        return tryToReadImage(file.getAbsolutePath());
-    }
+	public static ImageObject tryToReadImage(File file) {
+		return tryToReadImage(file.getAbsolutePath());
+	}
 
-    public static ImageObject tryToReadImage(String filepath) {
-        try {
-            return readImage(filepath);
-        } catch (BadElementException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex030", ex);
-            return null;
-        } catch (IOException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex031", ex);
-            return null;
-        }
-    }
+	public static ImageObject tryToReadImage(String filepath) {
+		try {
+			return readImage(filepath);
+		} catch (BadElementException ex) {
+			Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex030", ex);
+			return null;
+		} catch (IOException ex) {
+			Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex031", ex);
+			return null;
+		}
+	}
 
-    public static ImageObject readImage(String filepath)
-        throws BadElementException, IOException {
+	public static ImageObject readImage(String filepath) throws BadElementException, IOException {
 
-        java.awt.Image awtImage = readAwtImage(filepath);
+		java.awt.Image awtImage = readAwtImage(filepath);
 
-        if (awtImage == null) {
-            return null;
-        }
+		if (awtImage == null) {
+			return null;
+		}
 
-        OutputTab LINK = new OutputTab();
-        int physicalWidthDpi = Integer.parseInt(LINK.DPIvalue());
-        int physicalHeightDpi = Integer.parseInt(LINK.DPIvalue());
+		OutputTab LINK = new OutputTab();
+		int physicalWidthDpi = Integer.parseInt(LINK.DPIvalue());
+		int physicalHeightDpi = Integer.parseInt(LINK.DPIvalue());
 
+		try {
+			ImageInfo imageInfo = Sanselan.getImageInfo(new File(filepath));
 
-        try {
-            ImageInfo imageInfo = Sanselan.getImageInfo(new File(filepath));
-            physicalWidthDpi = imageInfo.getPhysicalWidthDpi();
-            physicalHeightDpi = imageInfo.getPhysicalHeightDpi();
-        } catch (ImageReadException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex032", ex);
-        }
+			physicalWidthDpi = imageInfo.getPhysicalWidthDpi();
+			physicalHeightDpi = imageInfo.getPhysicalHeightDpi();
+		} catch (ImageReadException ex) {
+			Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex032", ex);
+		}
 
-        ImageObject imgObj = new ImageObject(Image.getInstance(awtImage, null));
-        try {
-            imgObj.setPhysicalWidthDpi(physicalWidthDpi);
-            imgObj.setPhysicalHeightDpi(physicalHeightDpi);
-            imgObj.setWidth(awtImage.getWidth(null));
-            imgObj.setHeight(awtImage.getHeight(null));
-            imgObj.setDepth(getBitDepth(awtImage));
-        } catch (Exception ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex033", ex);
-        }
+		ImageObject imgObj = new ImageObject(Image.getInstance(awtImage, null));
+		try {
+			imgObj.setPhysicalWidthDpi(physicalWidthDpi);
+			imgObj.setPhysicalHeightDpi(physicalHeightDpi);
+			imgObj.setWidth(awtImage.getWidth(null));
+			imgObj.setHeight(awtImage.getHeight(null));
+			imgObj.setDepth(getBitDepth(awtImage));
+		} catch (Exception ex) {
+			Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex033", ex);
+		}
 
-        awtImage.flush();
+		awtImage.flush();
 
-        return imgObj;
+		return imgObj;
 
-    }
+	}
 
-    public static Image readItextImage(String filepath) {
-        try {
-            java.awt.Image awtImage = readAwtImage(filepath);
-            return Image.getInstance(awtImage, null);
-        } catch (BadElementException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex034", ex);
-        } catch (IOException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex035", ex);
-        }
-        return null;
-    }
+	public static Image readItextImage(String filepath) {
+		try {
+			java.awt.Image awtImage = readAwtImage(filepath);
+			return Image.getInstance(awtImage, null);
+		} catch (BadElementException ex) {
+			Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex034", ex);
+		} catch (IOException ex) {
+			Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex035", ex);
+		}
+		return null;
+	}
 
-    public static java.awt.Image readAwtImage(String filepath) {
-        java.awt.Image awtImage = readImageIJ(filepath);
-        if (awtImage != null) {
-            return awtImage;
-        }
+	public static java.awt.Image readAwtImage(String filepath) {
+		java.awt.Image awtImage = readImageIJ(filepath);
+		
+		//Try first reading images through standard ImageIO (Twelve Monkeys library)
+		awtImage = readImageImageIO(filepath);
+		
+		if (awtImage != null) {
+			return awtImage;
+		}
 
+		//Then read images through Bio-formats library
         awtImage = readImageBF(filepath);
         if (awtImage != null) {
             return awtImage;
         }
 
-        awtImage = readImageMultiTiff(filepath);
-        if (awtImage != null) {
-            return awtImage;
-        }
+		awtImage = readImageMultiTiff(filepath);
+		if (awtImage != null) {
+			return awtImage;
+		}
 
-        awtImage = readImageJPEGReader(filepath);
-        if (awtImage != null) {
-            return awtImage;
-        }
+		awtImage = readImageJPEGReader(filepath);
+		if (awtImage != null) {
+			return awtImage;
+		}
+		return awtImage;
+	}
 
-        awtImage = readImageImageIO(filepath);
-        return awtImage;
-    }
-
-    private static java.awt.Image readImageIJ(String filepath) {
-        try {
-            ImagePlus imp = IJ.openImage(filepath);
-            return imp.getImage();
-        } catch (Exception ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex036", ex);
-            return null;
-        }
-    }
+	private static java.awt.Image readImageIJ(String filepath) {
+		try {
+			ImagePlus imp = IJ.openImage(filepath);
+			return imp.getImage();
+		} catch (Exception ex) {
+			Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex036", ex);
+			return null;
+		}
+	}
 
     private static java.awt.Image readImageBF(String filepath) {
         try {
@@ -146,7 +161,6 @@ public class ImageParser {
             for (ImagePlus imp : imps) {
                 awtImage = imp.getImage();
             }
-
             return awtImage;
         } catch (FormatException ex) {
             Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex037", ex);
@@ -157,206 +171,201 @@ public class ImageParser {
         }
     }
 
-    private static java.awt.Image readImageMultiTiff(String filepath) {
-        try {
-            RenderedImage[] r = readMultiPageTiff(filepath);
-            return convertRenderedImage(r[0]);
-        } catch (IOException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex039", ex);
-            return null;
-        }
-    }
+	private static java.awt.Image readImageMultiTiff(String filepath) {
+		try {
+			RenderedImage[] r = readMultiPageTiff(filepath);
+			return convertRenderedImage(r[0]);
+		} catch (IOException ex) {
+			Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex039", ex);
+			return null;
+		}
+	}
 
-    private static java.awt.Image readImageJPEGReader(String filepath) {
-        try {
-            JpegReader jpeg = new JpegReader();
-            return jpeg.readImage(new File(filepath));
-        } catch (IOException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex040", ex);
-            return null;
-        } catch (ImageReadException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex041", ex);
-            return null;
-        }
-    }
+	private static java.awt.Image readImageJPEGReader(String filepath) {
+		try {
+			JpegReader jpeg = new JpegReader();
+			return jpeg.readImage(new File(filepath));
+		} catch (IOException ex) {
+			Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex040", ex);
+			return null;
+		} catch (ImageReadException ex) {
+			Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex041", ex);
+			return null;
+		}
+	}
 
-    private static java.awt.Image readImageImageIO(String filepath) {
-        try {
-            return tryWithImageIO(filepath);
-        } catch (IOException ex) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex042", ex);
-            return null;
-        }
-    }
+	private static java.awt.Image readImageImageIO(String filepath) {
+		try {
+			return tryWithImageIO(filepath);
+		} catch (IOException ex) {
+			Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex042", ex);
+			return null;
+		}
+	}
 
-    private static java.awt.Image tryWithImageIO(String filepath) throws IOException {
-        ImageInputStream iis = null;
-        try {
-            java.awt.Image awtImage = null;
+	private static java.awt.Image tryWithImageIO(String filepath) throws IOException {
+		ImageInputStream iis = null;
+		try {
+			java.awt.Image awtImage = null;
 
-            iis = new FileImageInputStream(new File(filepath));
-            for (Iterator<ImageReader> i = ImageIO.getImageReaders(iis);
-                 awtImage == null && i.hasNext(); ) {
-                ImageReader r = i.next();
-                r.setInput(iis);
-                awtImage = r.read(0);
-            }
+			iis = new FileImageInputStream(new File(filepath));
+			for (Iterator<ImageReader> i = ImageIO.getImageReaders(iis); awtImage == null && i.hasNext();) {
+				ImageReader r = i.next();
+				r.setInput(iis);
+				awtImage = r.read(0);
+			}
 
-            return awtImage;
-        } finally {
-            if (iis != null) {
-                iis.close();
-            }
-        }
-    }
+			return awtImage;
+		} finally {
+			if (iis != null) {
+				iis.close();
+			}
+		}
+	}
 
-    private static RenderedImage[] readMultiPageTiff(String filename) throws IOException {
-        if (!(filename.toLowerCase().endsWith(".tiff") || filename.toLowerCase().endsWith(".tif"))) {
-            return null;
-        }
+	private static RenderedImage[] readMultiPageTiff(String filename) throws IOException {
+		if (!(filename.toLowerCase().endsWith(".tiff") || filename.toLowerCase().endsWith(".tif"))) {
+			return null;
+		}
 
-        File file = new File(filename);
-        SeekableStream ss = new FileSeekableStream(file);
-        ImageDecoder decoder = ImageCodec.createImageDecoder("tiff", ss, null);
-        int numPages = decoder.getNumPages();
-        RenderedImage images[] = new RenderedImage[numPages];
+		File file = new File(filename);
+		SeekableStream ss = new FileSeekableStream(file);
+		ImageDecoder decoder = ImageCodec.createImageDecoder("tiff", ss, null);
+		int numPages = decoder.getNumPages();
+		RenderedImage images[] = new RenderedImage[numPages];
 
-        for (int i = 0; i < numPages; i++) {
-            images[i] = decoder.decodeAsRenderedImage(i);
-        }
+		for (int i = 0; i < numPages; i++) {
+			images[i] = decoder.decodeAsRenderedImage(i);
+		}
 
-        return images;
-    }
+		return images;
+	}
 
-    public static BufferedImage convertRenderedImage(RenderedImage img) {
-        if (img instanceof BufferedImage) {
-            return (BufferedImage) img;
-        }
-        ColorModel cm = img.getColorModel();
-        int width = img.getWidth();
-        int height = img.getHeight();
-        WritableRaster raster = cm.createCompatibleWritableRaster(width, height);
-        boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
-        Hashtable properties = new Hashtable();
-        String[] keys = img.getPropertyNames();
-        if (keys != null) {
-            for (String key : keys) {
-                properties.put(key, img.getProperty(key));
-            }
-        }
-        BufferedImage result = new BufferedImage(cm, raster, isAlphaPremultiplied, properties);
-        img.copyData(raster);
-        return result;
-    }
+	public static BufferedImage convertRenderedImage(RenderedImage img) {
+		if (img instanceof BufferedImage) {
+			return (BufferedImage) img;
+		}
+		ColorModel cm = img.getColorModel();
+		int width = img.getWidth();
+		int height = img.getHeight();
+		WritableRaster raster = cm.createCompatibleWritableRaster(width, height);
+		boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
+		Hashtable properties = new Hashtable();
+		String[] keys = img.getPropertyNames();
+		if (keys != null) {
+			for (String key : keys) {
+				properties.put(key, img.getProperty(key));
+			}
+		}
+		BufferedImage result = new BufferedImage(cm, raster, isAlphaPremultiplied, properties);
+		img.copyData(raster);
+		return result;
+	}
 
-    /**
-     * Converts a given Image into a BufferedImage
-     *
-     * @param img The Image to be converted
-     * @return The converted BufferedImage
-     */
-    public static BufferedImage toBufferedImage(java.awt.Image img) {
-        if (img instanceof BufferedImage) {
-            return (BufferedImage) img;
-        }
+	/**
+	 * Converts a given Image into a BufferedImage
+	 *
+	 * @param img The Image to be converted
+	 * @return The converted BufferedImage
+	 */
+	public static BufferedImage toBufferedImage(java.awt.Image img) {
+		if (img instanceof BufferedImage) {
+			return (BufferedImage) img;
+		}
 
-        // Create a buffered image with transparency
-        BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+		// Create a buffered image with transparency
+		BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
 
-        // Draw the image on to the buffered image
-        Graphics2D bGr = bimage.createGraphics();
-        bGr.drawImage(img, 0, 0, null);
-        bGr.dispose();
+		// Draw the image on to the buffered image
+		Graphics2D bGr = bimage.createGraphics();
+		bGr.drawImage(img, 0, 0, null);
+		bGr.dispose();
 
-        // Return the buffered image
-        return bimage;
-    }
+		// Return the buffered image
+		return bimage;
+	}
 
-    public static int getBitDepth(java.awt.Image img) throws IOException {
-        ImageInputStream in = ImageIO.createImageInputStream(img);
-        if (in == null) {
-            Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex145");
-            throw new IOException("Can't create ImageInputStream!");
-        }
+	public static int getBitDepth(java.awt.Image img) throws IOException {
+		ImageInputStream in = ImageIO.createImageInputStream(img);
+		if (in == null) {
+			Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex145");
+			throw new IOException("Can't create ImageInputStream!");
+		}
 
-        try {
-            Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
+		try {
+			Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
 
-            ImageReader reader;
-            if (!readers.hasNext()) {
-                Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex146");
-                throw new IOException("Can't read image format!");
-            } else {
-                reader = readers.next();
-            }
-            reader.setInput(in, true, true);
-            int bitDepth = reader.getImageTypes(0).next()
-                .getColorModel().getPixelSize();
-            reader.dispose();
-            return bitDepth;
-        } finally {
-            in.close();
-        }
-    }
+			ImageReader reader;
+			if (!readers.hasNext()) {
+				Logger.getLogger(ImageParser.class.getName()).log(Level.SEVERE, "Ex146");
+				throw new IOException("Can't read image format!");
+			} else {
+				reader = readers.next();
+			}
+			reader.setInput(in, true, true);
+			int bitDepth = reader.getImageTypes(0).next().getColorModel().getPixelSize();
+			reader.dispose();
+			return bitDepth;
+		} finally {
+			in.close();
+		}
+	}
 
-    public static class ImageObject {
+	public static class ImageObject {
 
-        private final Image image;
-        private int physicalWidthDpi;
-        private int physicalHeightDpi;
-        private int depth;
-        private int width;
-        private int height;
+		private final Image image;
+		private int physicalWidthDpi;
+		private int physicalHeightDpi;
+		private int depth;
+		private int width;
+		private int height;
 
-        public ImageObject(Image image) {
-            this.image = image;
-        }
+		public ImageObject(Image image) {
+			this.image = image;
+		}
 
-        public Image getImage() {
-            return image;
-        }
+		public Image getImage() {
+			return image;
+		}
 
-        public int getPhysicalWidthDpi() {
-            return physicalWidthDpi;
-        }
+		public int getPhysicalWidthDpi() {
+			return physicalWidthDpi;
+		}
 
-        public void setPhysicalWidthDpi(int physicalWidthDpi) {
-            this.physicalWidthDpi = physicalWidthDpi;
-        }
+		public void setPhysicalWidthDpi(int physicalWidthDpi) {
+			this.physicalWidthDpi = physicalWidthDpi;
+		}
 
-        public int getPhysicalHeightDpi() {
-            return physicalHeightDpi;
-        }
+		public int getPhysicalHeightDpi() {
+			return physicalHeightDpi;
+		}
 
-        public void setPhysicalHeightDpi(int physicalHeightDpi) {
-            this.physicalHeightDpi = physicalHeightDpi;
-        }
+		public void setPhysicalHeightDpi(int physicalHeightDpi) {
+			this.physicalHeightDpi = physicalHeightDpi;
+		}
 
-        public int getDepth() {
-            return depth;
-        }
+		public int getDepth() {
+			return depth;
+		}
 
-        public void setDepth(int depth) {
-            this.depth = depth;
-        }
+		public void setDepth(int depth) {
+			this.depth = depth;
+		}
 
-        public int getWidth() {
-            return width;
-        }
+		public int getWidth() {
+			return width;
+		}
 
-        public void setWidth(int width) {
-            this.width = width;
-        }
+		public void setWidth(int width) {
+			this.width = width;
+		}
 
-        public int getHeight() {
-            return height;
-        }
+		public int getHeight() {
+			return height;
+		}
 
-        public void setHeight(int height) {
-            this.height = height;
-        }
-
-
-    }
-
+		public void setHeight(int height) {
+			this.height = height;
+		}
+	}
 }
